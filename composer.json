@@ -1,0 +1,20 @@
+{
+    "name": "myclassphp/myclassphp",
+    "description": "The MyClassPHP Framework..",
+    "license" : "MIT",
+    "authors": [
+        {
+            "name": "Colin",
+            "email": "amcolin@126.com"
+        }
+    ],
+    "require": {
+    	"php" : ">=5.3.0", 
+    	"ext-gd2": "*"
+    } , 
+    "autoload" : {
+    	"psr-4" : {
+    		"myclassphp\\" : "src/"
+    	}
+    }
+}
