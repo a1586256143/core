@@ -5,6 +5,10 @@
  */
 namespace system;
 class Cache {
+	/**
+	 * 初始化
+	 * @author Colin <15070091894@163.com>
+	 */
 	public function __construct(){
 		$this->file = new File();
 		$this->cache_out_suffix = Config('CACHE_OUT_SUFFIX');
@@ -23,11 +27,11 @@ class Cache {
 	public function CacheDir(){
 		//检查是否有可写的权限
 		if(!is_writable($this->cache_data_dir)){
-			E('该目录没有可写权限！'.$this->cache_data_dir);
+			E('该目录没有可写权限！' . $this->cache_data_dir);
 		}
 		//检查是否有可读的全选
 		if(!is_readable($this->cache_data_dir)){
-			E('该目录没有可读权限！'.$this->cache_data_dir);
+			E('该目录没有可读权限！' . $this->cache_data_dir);
 		}
 	}
 
@@ -42,7 +46,7 @@ class Cache {
 		$FileName = $this->UrlAndDefaultSuffix($name);
 		//写入文件
 		if(!$this->file->WriteFile($FileName , $data)){
-			E('写入文件失败！'.$FileName);
+			E('写入文件失败！' . $FileName);
 		}
 	}
 
@@ -54,7 +58,7 @@ class Cache {
 	 */
 	public function cache_out_prefix(){
 		if(empty($this->cache_out_prefix)){
-			$this->cache_out_prefix = substr(date('Y') , 2 , 2).'_';
+			$this->cache_out_prefix = substr(date('Y') , 2 , 2) . '_';
 		}
 	}
 
@@ -67,9 +71,9 @@ class Cache {
 		//生成文件名默认前缀
 		$this->cache_out_prefix();
 		//生成文件名
-		$FileName = $this->cache_out_prefix.md5($this->cache_out_prefix.$name).$this->cache_out_suffix;
+		$FileName = $this->cache_out_prefix . md5($this->cache_out_prefix . $name) . $this->cache_out_suffix;
 		//组合地址
-		$FileName = $this->cache_data_dir.$FileName;
+		$FileName = $this->cache_data_dir . $FileName;
 		return $FileName;
 	}
 
@@ -80,9 +84,8 @@ class Cache {
 	 * @author Colin <15070091894@163.com>
 	 */
 	public function readCache($name,$time=0){
-
 		$FileName = $this->UrlAndDefaultSuffix($name);
-		$json = $time?$this->file->OpenFile($FileName,$time):$this->file->OpenFile($FileName);
+		$json = $time ? $this->file->OpenFile($FileName , $time) : $this->file->OpenFile($FileName);
 		return json_decode($json , true);
 	}
 

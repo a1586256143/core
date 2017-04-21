@@ -24,9 +24,7 @@ return array(
 
 	//控制器设置
 	'DEFAULT_CONTROLLER_LAYER'  =>	'controllers',   //默认控制器目录名
-	'DEFAULT_CONTROLLER'		=>	'Index', 		//默认控制器
-	'DEFAULT_METHOD'			=>	'index', 		//默认方法
-	'DEFAULT_CLASS_SUFFIX'		=>	'.class.php', 	//默认类文件后缀
+	'DEFAULT_CLASS_SUFFIX'		=>	'.php', 	//默认类文件后缀
 
 	//模型设置
 	'DEFAULT_MODEL_LAYER'      	=>	'models',         //默认模型目录名
@@ -63,7 +61,7 @@ return array(
 	'CODE_WIDTH'		=>	130,								//验证码宽度
 	'CODE_HEIGHT'		=>	50,								//验证码高度
 	'CODE_FONTSIZE'		=>	20,								//验证码字体大小
-	'CODE_FONTPATH'		=>	MyClass . '/include/elephant.ttf',//验证码字体文件存放路径
+	'CODE_FONTPATH'		=>	MyClass . '/Code/include/elephant.ttf',//验证码字体文件存放路径
 
 	//时间配置
 	'DATE_DEFAULT_TIMEZONE' => 'PRC',				//默认时区
@@ -73,7 +71,7 @@ return array(
 
 	//错误处理
 	'ERROR_MESSAGE' 	=> '500，此网站可能正在维护~~~' , //当Debug关闭，网页错误时提示信息
-	'TPL_ERROR_PAGE'	=> 'tip' ,					//错误载入页面 ，默认放置 system/Tpl/tpl.html
-	'TPL_SUCCESS_PAGE'	=> 'tip' ,					//成功载入页面 ，默认放置 system/Tpl/tpl.html
+	'TPL_ERROR_PAGE'	=> MyClass . '/Tpl/tip' ,					//错误载入页面 ，默认放置 system/Tpl/tpl.html
+	'TPL_SUCCESS_PAGE'	=> MyClass . '/Tpl/tip' ,					//成功载入页面 ，默认放置 system/Tpl/tpl.html
 );
 ?>

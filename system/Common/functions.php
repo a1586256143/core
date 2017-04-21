@@ -127,6 +127,14 @@ function dump($array){
 }
 
 /**
+ * 生成url
+ * @return [type] [description]
+ */
+function url($url){
+	return getSiteUrl(true) . '/' . ltrim($url , '/');
+}
+
+/**
  * 设置session
  * @param name session的名称
  * @param value session要保存的值
@@ -298,8 +306,8 @@ function getCurrentUrl(){
  * 获取站点地址
  * @author Colin <15070091894@163.com>
  */
-function getSiteUrl($scame = true){
-	return \system\Url::getSiteUrl($scame , false);
+function getSiteUrl($isIndex = false){
+	return \system\Url::getSiteUrl($isIndex);
 }
 
 
@@ -389,8 +397,6 @@ function checkSecurity($secur_number = null){
 		return false;
 	}
 	$system = session('_token');
-	dump($system);
-	dump(values('post.'));
 	if($secur_number == $system){
 		// session('_token' , 'null');
 		return true;
@@ -404,7 +410,6 @@ function checkSecurity($secur_number = null){
  * @return [type] [description]
  */
 function _token($token = false){
-	dump(1);
 	return system\Form::security($token);
 }
 

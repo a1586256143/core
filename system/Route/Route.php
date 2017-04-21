@@ -9,6 +9,8 @@ use system\Route\CSRF;
 class Route{
     //路由规则
     protected static $routes = array();
+    //模板变量
+    public static $vars = array();
 
     /**
      * 初始化路由
@@ -169,7 +171,7 @@ class Route{
         //得到controllers\index 中的 index
         $get_class_name = array_pop($class_name_array);
         //拼接路径，并自动将路由中的index转换成Index
-        $controller_path = APP_PATH . ltrim(implode('/' , $class_name_array) , '/') . '/' . ucfirst($get_class_name) . '.class.php';
+        $controller_path = APP_PATH . ltrim(implode('/' , $class_name_array) , '/') . '/' . ucfirst($get_class_name) . '.php';
         //是否存在控制器
         if(!file_exists($controller_path)){
             E($get_class_name . ' 控制器不存在！');
@@ -195,10 +197,30 @@ class Route{
                 foreach ($method_params as $key => $value) {
                     $var[$value->name] = $param[$value->name];
                 }
-                return $ReflectionMethod->invokeArgs($controller , array_filter($var));
+                self::showView($ReflectionMethod->invokeArgs($controller , array_filter($var)));
             }
         }
-        return $controller->$method();
+        self::showView($controller->$method());
+    }
+
+    /**
+     * 显示视图
+     * @return [type] [description]
+     */
+    protected static function showView($result){
+        switch ($result) {
+            case is_array($result) :
+                ajaxReturn($result);
+                break;
+            case is_file($result) : 
+                extract(self::$vars);
+                require $result;
+                exit;
+                break;
+            default:
+                exit($result);
+                break;
+        }
     }
 }
 ?>

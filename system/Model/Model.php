@@ -3,7 +3,8 @@
  * 模型操作
  * @author Colin <15070091894@163.com>
  */
-namespace system;
+namespace system\Model;
+use system\ObjFactory;
 class Model{
 	protected $db = '';					//数据库句柄
 	protected $db_prefix = '';			//获取数据表前缀

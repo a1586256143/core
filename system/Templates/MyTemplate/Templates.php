@@ -7,11 +7,8 @@ namespace system\Templates\MyTemplate;
 use system\MyError;
 use system\ObjFactory;
 use system\Url;
+use system\Route\Route;
 class Templates{
-	//创建一数组来保存注入的变量
-	private $_vars = array();
-	//保存系统变量
-	private $_config = array();
 	//模板目录
 	public $template_dir;
 	public $compile_dir;
@@ -25,7 +22,7 @@ class Templates{
      */
 	public function assign($var , $value){
 		if(isset($var) && !empty($var)){
-			$this->_vars[$var] = $value;
+			Route::$vars[$var] = $value;
 		}else{
 			E('请设置模板变量名！');
 		}
@@ -43,9 +40,9 @@ class Templates{
 		$default_modules2 = defined('CURRENT_MODULE') ? CURRENT_MODULE : $default_modules;
 		$modules = empty($default_modules2) ? $modules : $default_modules2;
 		//设置路径
-		$dirname = APP_PATH . '/' . $modules . $this->template_dir . $controller . '/';
+		$dirname = APP_PATH . $this->template_dir;
 		//编译文件目录
-		$dircname = $this->compile_dir . $modules . '/' . $controller . '/';
+		$dircname = $this->compile_dir;
 		//判断编译文件夹和缓存文件夹是否存在
 		$dir = array($this->compile_dir , $this->compile_dir . $modules , $dircname);
 		//生成文件夹
@@ -68,9 +65,7 @@ class Templates{
 			//调用解析类里面的公共方法
 			$_parser->comile($parFile);
 		}
-		//引入编译文件
-		extract($this->_vars);
-		require $parFile;
+		return $parFile;
 	}
 
 	/**

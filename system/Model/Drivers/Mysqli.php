@@ -3,7 +3,7 @@
  * mysqli操作
  * @author Colin <15070091894@163.com>
  */
-namespace system\DataBase;
+namespace system\Model\Drivers;
 use system\Db;
 
 class Mysqli extends Db{

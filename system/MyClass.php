@@ -7,6 +7,33 @@ namespace system;
 class MyClass{
 
 	/**
+	 * 初始化
+	 * @return [type] [description]
+	 * @author Colin <15070091894@163.com>
+	 */
+	public static function init(){
+		define('MyClass' , str_replace('\\' , '/' , __DIR__));
+		//根目录
+		define('ROOT_PATH' , substr(MyClass , 0 , -28));
+		//APP路径
+		define('APP_PATH' , substr(MyClass , 0 , -28));
+		//核心文件
+		define('Core' , MyClass . '/');
+		//第三方类库文件目录
+		define('Library' , APP_PATH . 'librarys');
+		//定义运行目录
+		define('RunTime' , APP_PATH . 'runtimes');
+		//公共文件目录
+		define('Common' , APP_PATH . 'globals');
+		//系统公共目录
+		define('CommonDIR' , Core . 'Common');
+		//定义版本信息
+		define('VERSION' , '3.0');
+		//执行run方法
+		self::run();
+	}
+
+	/**
 	 * 运行方法
 	 * @author Colin <15070091894@163.com>
 	 */
@@ -15,9 +42,9 @@ class MyClass{
 			//加载配置文件
 			self::loadConfig();
 			//注册autoload方法
-       		spl_autoload_register('system\\MyClass::autoload');
-       		//收集错误
-       		MyError::error_traceassstring();
+			spl_autoload_register('system\\MyClass::autoload');
+			//收集错误
+			MyError::error_traceassstring();
 			//创建项目文件夹
 			self::Dir();
 			//视图初始化
@@ -37,7 +64,7 @@ class MyClass{
 	public static function autoload($ClassName){
 		if(preg_match("/\\\\/" , $ClassName)){
 			//是否为命名空间加载
-			$ClassName = preg_replace("/\\\\/", "/", $ClassName);
+			$ClassName = preg_replace("/\\\\/" , "/" , $ClassName);
 			require_file(ROOT_PATH . $ClassName . Config('DEFAULT_CLASS_SUFFIX'));
 		}
 	}
@@ -108,7 +135,10 @@ class MyClass{
 		$data = array(
 					array(Common . '/config.php' , View::createConfig()) , 	//配置文件
 					array(Common . '/template.php' , View::createTemplate()) , //模板配置文件
-					array(ControllerDIR . '/' . Config('DEFAULT_CONTROLLER') . Config('DEFAULT_CLASS_SUFFIX') , View::createIndex(Config('DEFAULT_CONTROLLER')))			//控制器
+					array(Common . '/routes.php' , View::createRoute()) , //路由配置文件
+					array(Common . '/csrf.php' , View::createCSRF()) , //csrf配置文件
+					array(Common . '/functions.php' , View::createFunc()) , //函数配置文件
+					array(ControllerDIR . '/Index' . Config('DEFAULT_CLASS_SUFFIX') , View::createIndex(Config('DEFAULT_CONTROLLER')))			//控制器
 				);
 		//批量创建文件
 		foreach ($data as $key => $value) {

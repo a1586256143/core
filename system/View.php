@@ -37,11 +37,11 @@ class View {
      * 创建index.php 模板
      * @author Colin <15070091894@163.com>
      */
-    public static function createIndex($default){
+    public static function createIndex($default = 'Index'){
     	$string = "<?php 
 namespace controllers;
-use system\Controller;
-class $default extends Controller{
+use system\Base;
+class $default extends Base{
 	public function index(){
 		echo 'Welcome to use MyClassPHP';
 	}
@@ -83,6 +83,57 @@ if(!defined('__URL__')) define('__URL__' , getCurrentUrl());
 if(!defined('__PUBLIC__')) define('__PUBLIC__' , Config('PUBLIC_DIR'));
 ?>";
 		return $string;
+    }
+
+    /**
+     * 创建默认routes.php模板
+     * @author Colin <15070091894@163.com>
+     */
+    public static function createRoute(){
+        $string = "<?php
+/**
+ * 该页面为网站路由
+ * 所有路由全部在Route::add，如果要新增继续往后追加即可
+ * 对应的格式为
+ * '访问路由' => '访问方法'
+ */
+use system\Route\Route;
+Route::add(array(
+    '/' => '\controllers\Index@index'
+));
+?>";
+        return $string;
+    }
+
+    /**
+     * 创建默认csrf.php模板
+     * @author Colin <15070091894@163.com>
+     */
+    public static function createCSRF(){
+        $string = "<?php
+/**
+ * csrf配置表
+ * 在html中调用_token()会生成csrf表单和值
+ * 在js中调用_token(true)会生成csrf值
+ */
+use system\Route\CSRF;
+//设置允许不进行CSRF验证的路由
+CSRF::setAllow(array(
+    //'/loginAction' , //对'/loginAction'这个路由不验证CSRF
+));
+?>";
+        return $string;
+    }
+
+    /**
+     * 创建函数文件
+     * @return [type] [description]
+     */
+    public static function createFunc(){
+        $string = "<?php
+
+?>";
+        return $string;
     }
 }
 ?>

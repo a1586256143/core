@@ -81,19 +81,23 @@ class Base{
 		$filename = $filename . Config('TPL_TYPE');
 		$path = APP_PATH . ltrim(self::$view->template_dir , '/') . $filename;
 		if($params){
-			foreach ($params as $key => $value) {
-				self::assign($key , $value);
-			}
+			self::assign($params);
 		}
-		self::$view->display($path);
+		return self::$view->display($path);
 	}
 
 	/**
 	 * 注入变量
 	 * @return [type] [description]
 	 */
-	protected static function assign($name , $value){
-		self::$view->assign($name , $value);
+	protected static function assign($name , $value = null){
+		if(is_array($name)){
+			foreach ($name as $key => $value) {
+				self::$view->assign($key , $value);
+			}
+		}else{
+			self::$view->assign($name , $value);
+		}
 	}
 
 	/**
@@ -102,17 +106,15 @@ class Base{
      * @author Colin <15070091894@163.com>
 	 */
 	public static function MessageTemplate($message , $type , $param = array()){
-		$tpl = Config('TPL_' . $type . '_PAGE');
+		$tpl = Config('TPL_' . $type . '_PAGE') . Config('TPL_TYPE');
 		if(!$tpl){
 			E('请设置提示载入的页面');
 		}
-		if(count(explode('/' , $tpl)) <= 1){
-			$tpl = MyClass . '/Tpl/' . $tpl . Config('TPL_TYPE');
-		}
-		self::$view->assign('param' , $param);
-		self::$view->assign('message' , $message);
-		self::$view->display($tpl);
-		exit;
+		self::assign(array(
+			'param' => $param , 
+			'message' => $message , 
+		));
+		return self::$view->display($tpl);
 	}
 
 	/**
@@ -123,7 +125,7 @@ class Base{
      * @author Colin <15070091894@163.com>
      */
 	protected static function success($message , $url = null , $time = 3){
-		self::MessageTemplate($message , 'SUCCESS' , array('url' => $url , 'time' => $time , 'status' => 1));
+		return self::MessageTemplate($message , 'SUCCESS' , array('url' => url($url) , 'time' => $time , 'status' => 1));
 	}
 
 	/**
@@ -134,7 +136,7 @@ class Base{
      * @author Colin <15070091894@163.com>
      */
 	protected static function error($message , $url = null , $time = 3){
-		self::MessageTemplate($message , 'ERROR' , array('url' => $url , 'time' => $time , 'status' => 0));
+		return self::MessageTemplate($message , 'ERROR' , array('url' => url($url) , 'time' => $time , 'status' => 0));
 	}
 }
 ?>

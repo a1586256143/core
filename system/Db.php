@@ -16,11 +16,11 @@ abstract class Db{
             return self::$db;
         }else{
             if(strtolower(Config('DB_TYPE')) == 'mysqli'){
-                self::$db = new \system\DataBase\Mysqli();
+                self::$db = new \system\Model\Drivers\Mysqli();
             }else if(strtolower(Config('DB_TYPE')) == 'mysql'){
-                self::$db = new \system\DataBase\Mysql();
+                self::$db = new \system\Model\Drivers\Mysql();
             }else if(strtolower(Config('DB_TYPE')) == 'pdo'){
-                self::$db = new \system\DataBase\PDO();
+                self::$db = new \system\Model\Drivers\PDO();
             }
             self::$db->connect();
             self::CheckDatabase();

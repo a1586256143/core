@@ -83,7 +83,7 @@ class ObjFactory{
      * @author Colin <15070091894@163.com>
      */
     public static function CreateSystemModel($tables = null){
-        return new Model($tables);
+        return new Model\Model($tables);
     }
 
     /**
@@ -119,7 +119,7 @@ class ObjFactory{
      * @author Colin <15070091894@163.com>
      */
     public static function CreateCode(){
-        return new Code();
+        return new Code\Code();
     }
 }
 ?>
