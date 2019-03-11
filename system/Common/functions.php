@@ -127,14 +127,6 @@ function dump($array){
 }
 
 /**
- * 生成url
- * @return [type] [description]
- */
-function url($url){
-	return getSiteUrl(true) . '/' . ltrim($url , '/');
-}
-
-/**
  * 设置session
  * @param name session的名称
  * @param value session要保存的值
@@ -288,7 +280,7 @@ function Config($name = null , $value = ''){
 		//设置
 		$config = array_merge($config , $name);
 	}else if(is_string($name) && $value == ''){
-		return $config[$name];
+		return isset($config[$name]) ? $config[$name] : '';
 	}else if(is_string($name) && !empty($value)){
 		$config[$name] = $value;
 	}
@@ -306,8 +298,8 @@ function getCurrentUrl(){
  * 获取站点地址
  * @author Colin <15070091894@163.com>
  */
-function getSiteUrl($isIndex = false){
-	return \system\Url::getSiteUrl($isIndex);
+function getSiteUrl($scame = true){
+	return \system\Url::getSiteUrl($scame , false);
 }
 
 

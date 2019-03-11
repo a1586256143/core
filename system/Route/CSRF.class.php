@@ -32,8 +32,9 @@ class CSRF{
 				return;
 			}
 			if(!checkSecurity(values('post' , '_token'))){
-                E('访问的链接丢失了...');
+                E('The link to the access is lost');
             }
+			unset($_POST['_token']);
 		}
 	}
 }
