@@ -40,9 +40,11 @@ class MyClass{
 			// 简单处理app命名空间
 			list($dirname) = explode('/' , $ClassName);
 			if($dirname != 'system'){
-				$ClassName = APP_NAME . '/' . $ClassName;
+				$ClassName = APP_DIR . '/' . $ClassName;
+			}else{
+				$ClassName = ROOT_PATH . $ClassName;
 			}
-			require_file(ROOT_PATH . $ClassName . Config('DEFAULT_CLASS_SUFFIX'));
+			require_file($ClassName . Config('DEFAULT_CLASS_SUFFIX'));
 		}
 	}
 
