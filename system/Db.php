@@ -3,28 +3,33 @@
  * 数据库接口
  * @author Colin <15070091894@163.com>
  */
+
 namespace system;
-abstract class Db{
+
+use system\Model\Drivers as Drivers;
+
+abstract class Db {
     protected static $db;
 
     /**
      * 获取数据库类
      * @author Colin <15070091894@163.com>
      */
-    public static function getIns(){
-        if(self::$db){
+    public static function getIns() {
+        if (self::$db) {
             return self::$db;
-        }else{
-            if(strtolower(Config('DB_TYPE')) == 'mysqli'){
-                self::$db = new \system\Model\Drivers\Mysqli();
-            }else if(strtolower(Config('DB_TYPE')) == 'mysql'){
-                self::$db = new \system\Model\Drivers\Mysql();
-            }else if(strtolower(Config('DB_TYPE')) == 'pdo'){
-                self::$db = new \system\Model\Drivers\PDO();
+        } else {
+            if (strtolower(Config('DB_TYPE')) == 'mysqli') {
+                self::$db = new Drivers\Mysqli();
+            } else if (strtolower(Config('DB_TYPE')) == 'mysql') {
+                self::$db = new Drivers\Mysql();
+            } else if (strtolower(Config('DB_TYPE')) == 'pdo') {
+                self::$db = new Drivers\PDO();
             }
             self::$db->connect();
             self::CheckDatabase();
-            self::$db->query('SET NAMES '.Config('DB_CODE'));
+            self::$db->query('SET NAMES ' . Config('DB_CODE'));
+
             return self::$db;
         }
     }
@@ -37,21 +42,27 @@ abstract class Db{
 
     /**
      * query
-     * @param  [string] $sql [要执行的sql语句]
+     *
+     * @param  string $sql [要执行的sql语句]
+     *
      * @author Colin <15070091894@163.com>
      */
     abstract public function query($sql);
 
     /**
      * 选择数据库方法
-     * @param  [string] $tables [数据库名]
+     *
+     * @param  string $tables [数据库名]
+     *
      * @author Colin <15070091894@163.com>
      */
     abstract public function select_db($tables);
 
     /**
      * 获取结果集 以数组格式获取
-     * @param  [string] $query [query后的结果集]
+     *
+     * @param  string $query [query后的结果集]
+     *
      * @author Colin <15070091894@163.com>
      */
     abstract public function fetch_array($query);
@@ -82,7 +93,9 @@ abstract class Db{
 
     /**
      * 获取数据库所有字段信息
-     * @param  [string] $table [表名]
+     *
+     * @param  string $table [表名]
+     *
      * @author Colin <15070091894@163.com>
      */
     abstract public function getFields($table);
@@ -91,66 +104,80 @@ abstract class Db{
      * 确认数据库是否存在
      * @author Colin <15070091894@163.com>
      */
-    public static function CheckDatabase(){
+    public static function CheckDatabase() {
         $database = Config('DB_TABS');
-        $result = self::$db->select_db($database);
-        if(!$result){
-            E('数据库不存在或数据库名不正确！'.$database);
+        $result   = self::$db->select_db($database);
+        if (!$result) {
+            E('数据库不存在或数据库名不正确！' . $database);
         }
     }
 
     /**
      * 确认表是否存在
-     * @param tables 验证表名
-     * @param db_tabs 验证数据库
+     *
+     * @param string $tables  验证表名
+     * @param string $db_tabs 验证数据库
+     *
      * @author Colin <15070091894@163.com>
+     * @throws
      */
-    public function CheckTables($tables = null , $db_tabs = null){
-        if(empty($db_tabs)){
+    public function CheckTables($tables = null, $db_tabs = null) {
+        if (empty($db_tabs)) {
             $db_tabs = Config('DB_TABS');
         }
         $result = $this->execute("select `TABLE_NAME` from `INFORMATION_SCHEMA`.`TABLES` where `TABLE_SCHEMA`='$db_tabs' and `TABLE_NAME`='$tables' ");
-        if(empty($result)){
-            E('数据表不存在！'.$tables);
+        if (empty($result)) {
+            E('数据表不存在！' . $tables);
         }
     }
 
     /**
      * 确认字段是否存在
-     * @param table 查询表名
-     * @param field 查询字段
+     *
+     * @param string $table 查询表名
+     * @param string $field 查询字段
+     *
      * @author Colin <15070091894@163.com>
+     * @return bool
      */
-    public function CheckFields($table , $field){
-        if(!$this->execute("Describe `$table` `$field`")){
+    public function CheckFields($table, $field) {
+        if (!$this->execute("Describe `$table` `$field`")) {
             return true;
         }
     }
 
     /**
      * 执行源生sql语句并返回结果
-     * @param sql 要执行的sql语句
+     *
+     * @param string $sql 要执行的sql语句
+     *
      * @author Colin <15070091894@163.com>
+     * @return array|bool
      */
-    public function execute($sql){
+    public function execute($sql) {
         $query = $this->query($sql);
-        if(!$query){
+        if (!$query) {
             return false;
         }
         $result = $this->fetch_array($query);
+
         return $result;
     }
 
     /**
      * 获取结果集
-     * @param  [string] $query [query执行后结果]
+     *
+     * @param  \ResourceBundle $query [query执行后结果]
+     *
      * @author Colin <15070091894@163.com>
+     * @return array
      */
-    protected function getResult($query){
+    protected function getResult($query) {
         $data = array();
-        while ($rows = $this->fetch_array($query)){
+        while ($rows = $this->fetch_array($query)) {
             $data[] = $rows;
         }
+
         return $data;
     }
 
@@ -158,15 +185,15 @@ abstract class Db{
      * 关闭数据库方法
      * @author Colin <15070091894@163.com>
      */
-    public static function CloseDB(){
+    public static function CloseDB() {
         self::$db->close();
     }
-    
+
     /**
      * 开启事务处理
      * @author Colin <15070091894@163.com>
      */
-    public function startTransaction(){
+    public function startTransaction() {
         return $this->query('start transaction');
     }
 
@@ -174,7 +201,7 @@ abstract class Db{
      * 回滚事务处理
      * @author Colin <15070091894@163.com>
      */
-    public function rollback(){
+    public function rollback() {
         return $this->query('rollback');
     }
 
@@ -182,8 +209,7 @@ abstract class Db{
      * 提交事务处理
      * @author Colin <15070091894@163.com>
      */
-    public function commit(){
+    public function commit() {
         return $this->query('commit');
     }
 }
-?>

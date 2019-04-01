@@ -3,42 +3,45 @@
  * 视图显示
  * @author Colin <15070091894@163.com>
  */
+
 namespace system;
 class View {
-	//静态成员
-	public static $view;
-	
-	/**
+    //静态成员
+    public static $view;
+
+    /**
      * 初始化成员信息
+     *
      * @param type 类型
+     *
      * @author Colin <15070091894@163.com>
      */
-	public static function init($type , $config = array()){
-		self::$view = ObjFactory::CreateTemplates($type , $config);
-	}
-	
-	/**
+    public static function init($type, $config = array()) {
+        self::$view = ObjFactory::CreateTemplates($type, $config);
+    }
+
+    /**
      * display方法
      * @author Colin <15070091894@163.com>
      */
-	public static function display($filename){
-		return self::$view->display($filename);
-	}
-	
-	/**
+    public static function display($filename) {
+        return self::$view->display($filename);
+    }
+
+    /**
      * assign方法
      * @author Colin <15070091894@163.com>
      */
-	public static function assign($name , $value){
-		return self::$view->assign($name , $value);
-	}
+    public static function assign($name, $value) {
+        return self::$view->assign($name, $value);
+    }
 
-	/**
+    /**
      * 创建index.php 模板
      * @author Colin <15070091894@163.com>
      */
-    public static function createIndex($default = 'Index'){
-    	$string = "<?php 
+    public static function createIndex($default = 'Index') {
+        $string = "<?php 
 namespace controllers;
 use system\Base;
 class $default extends Base{
@@ -46,16 +49,17 @@ class $default extends Base{
 		return 'Welcome to use MyClassPHP';
 	}
 }
-?>";
-    	return $string;
+";
+
+        return $string;
     }
 
     /**
      * 创建config.php 模板
      * @author Colin <15070091894@163.com>
      */
-    public static function createConfig(){
-    	$string = "<?php
+    public static function createConfig() {
+        $string = "<?php
 return array(
 	//配置名 => 配置值
     'DB_HOST' => 'localhost' ,  //数据库地址
@@ -67,29 +71,31 @@ return array(
     'DB_PORT' => '3306' ,         //数据库端口
     'DB_PREFIX' => '' ,         //数据库前缀
 );
-?>";
-		return $string;
+";
+
+        return $string;
     }
 
     /**
      * 创建默认template.php模板
      * @author Colin <15070091894@163.com>
      */
-    public static function createTemplate(){
-    	$string = "<?php
+    public static function createTemplate() {
+        $string = "<?php
 //此文件为模板中使用的__常量名__格式配置文件，配置格式为
 //if(!defined('常量名')) define('常量名' , '常量值');
 if(!defined('__URL__')) define('__URL__' , getCurrentUrl());
 if(!defined('__PUBLIC__')) define('__PUBLIC__' , Config('PUBLIC_DIR'));
-?>";
-		return $string;
+";
+
+        return $string;
     }
 
     /**
      * 创建默认routes.php模板
      * @author Colin <15070091894@163.com>
      */
-    public static function createRoute(){
+    public static function createRoute() {
         $string = "<?php
 /**
  * 该页面为网站路由
@@ -101,7 +107,8 @@ use system\Route\Route;
 Route::add(array(
     '/' => '\controllers\Index@index'
 ));
-?>";
+";
+
         return $string;
     }
 
@@ -109,7 +116,7 @@ Route::add(array(
      * 创建默认csrf.php模板
      * @author Colin <15070091894@163.com>
      */
-    public static function createCSRF(){
+    public static function createCSRF() {
         $string = "<?php
 /**
  * csrf配置表
@@ -121,7 +128,8 @@ use system\Route\CSRF;
 CSRF::setAllow(array(
     //'/loginAction' , //对'/loginAction'这个路由不验证CSRF
 ));
-?>";
+";
+
         return $string;
     }
 
@@ -129,11 +137,12 @@ CSRF::setAllow(array(
      * 创建函数文件
      * @return [type] [description]
      */
-    public static function createFunc(){
+    public static function createFunc() {
         $string = "<?php
+";
 
-?>";
         return $string;
     }
 }
+
 ?>

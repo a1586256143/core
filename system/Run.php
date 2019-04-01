@@ -3,14 +3,15 @@
  * 引导
  * @author Colin <15070091894@163.com>
  */
-//MyClass目录
-define('MyClass' , str_replace('\\' , '/' , dirname(__FILE__)));
+
 //根目录
-define('ROOT_PATH' , substr(MyClass , 0 , -6));
+define('ROOT_PATH' , MyClass . '/');
 //APP路径
-define('APP_PATH' , substr(MyClass , 0 , -28));
+define('APP_PATH' , ROOT_PATH);
 //核心文件
-define('Core' , MyClass . '/');
+define('Core' , dirname(__FILE__) . '/');
+//system
+define('NAME_SPACE' , substr(Core , 0 , -7));
 //系统app名字
 define('APP_NAME' , 'app');
 //系统app目录
