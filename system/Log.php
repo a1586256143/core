@@ -17,6 +17,7 @@ class Log {
     public static function addRecord($msg = null, $time = false, $prefix = null) {
         if ($time) {
             $msg = Date::setDate(null, time()) . ' --- ' . $msg;
+            self::timeRecord();
         }
         if ($prefix) {
             $msg = '[' . $prefix . '] ' . $msg;
@@ -37,7 +38,7 @@ class Log {
      * 生成日志
      * @return bool
      */
-    public static function generator() {
+    public static function generator($msg = null) {
         if (!Debug) {
             return true;
         }
@@ -50,11 +51,43 @@ class Log {
         //日志后缀
         $logSuffix = Config('LOG_SUFFIX');
         $logPath   = $logDir . '/' . $logName . $logSuffix;
-        $logs      = implode(PHP_EOL, self::$logs);
+        $msg && self::$logs[] = $msg;
+        self::$logs[] = '[RunTime] ' . self::timeRecord(1);
+        self::$logs[] = '[Memory] ' . self::memoryRecord();
+        $logs         = implode(PHP_EOL, self::$logs);
         self::$file->AppendFile($logPath, $logs . PHP_EOL . PHP_EOL, false);
     }
 
     public function __callStatic($name, $arguments) {
         self::addRecord($arguments[0], false, strtoupper($name));
+    }
+
+    /***
+     * 记录执行时间
+     *
+     * @param int $mode
+     *
+     * @return string|void
+     */
+    public static function timeRecord($mode = 0) {
+        static $timestamp;
+        if (!$mode) {
+            $timestamp = microtime();
+
+            return;
+        }
+        $endTimestamp = microtime();
+        $start        = array_sum(explode(" ", $timestamp));
+        $end          = array_sum(explode(" ", $endTimestamp));
+
+        return sprintf("%.4f s", ($end - $start) * 1000);
+    }
+
+    /**
+     * 记录内存消耗
+     * @return string
+     */
+    public static function memoryRecord() {
+        return sprintf("%.2f k", (memory_get_usage() / 1024));
     }
 }

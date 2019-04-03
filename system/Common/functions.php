@@ -45,7 +45,7 @@ function M($name = null) {
 function E($message) {
     $debug = Debug;
     //记录日志
-    system\Log::addRecord($message, true);
+    system\Log::generator($message);
     if ($debug) {
         throw new \system\MyError($message);
     } else {
