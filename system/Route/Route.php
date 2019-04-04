@@ -219,7 +219,6 @@ class Route {
      * 显示视图
      */
     protected static function showView($result) {
-        Log::generator();
         if (!$result) {
             return '';
         }
