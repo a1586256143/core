@@ -14,7 +14,10 @@ return array(
     'DB_TABS'                  => '',                        //数据库名称
     'DB_PREFIX'                => '',                        //数据表前缀
     'DB_CODE'                  => 'UTF8',                    //数据库编码
-    'DB_PORT'                  => '3306',                //数据库端口
+    'DB_PORT'                  => '3306',                   //数据库端口
+
+    // 路由设置
+    'ROUTE_STATUS'             => false ,         // 是否开启路由
 
     //目录设置
     'PUBLIC_DIR'               => '/publics',    //公共文件地址
@@ -26,6 +29,7 @@ return array(
     'DEFAULT_CONTROLLER_LAYER' => 'controllers',   //默认控制器目录名
     'DEFAULT_CLASS_SUFFIX'     => '.php',    //默认类文件后缀
     'DEFAULT_CONTROLLER'       => 'Index', // 默认控制器
+    'DEFAULT_METHOD'           => 'index',
 
     //模型设置
     'DEFAULT_MODEL_LAYER'      => 'models',         //默认模型目录名
@@ -79,4 +83,3 @@ return array(
     'TPL_ERROR_PAGE'           => MyClass . '/Tpl/tip',                    //错误载入页面 ，默认放置 system/Tpl/tpl.html
     'TPL_SUCCESS_PAGE'         => MyClass . '/Tpl/tip',                    //成功载入页面 ，默认放置 system/Tpl/tpl.html
 );
-?>

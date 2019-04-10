@@ -16,11 +16,21 @@ class Url {
      * @return [type] [description]
      */
     public static function parseUrl($url = null) {
-        $pathinfo = $_SERVER['PATH_INFO'];
-        if (!$pathinfo) {
-            $pathinfo = '/';
+        $pathinfo = $_SERVER['REQUEST_URI'];
+        // 解析地址，得到path和query
+        $parse = parse_url($pathinfo);
+        $pathinfo = $parse['path'];
+        // 把query解析成数组
+        parse_str($parse['query'] , $query);
+        foreach ($query as $key => $value) {
+            // 处理参数，防SQL注入
+            $_GET[$key] = trim($value);
         }
-
+        if ($pathinfo == '/') {
+            if(!Config('ROUTE_STATUS')){
+                $pathinfo = sprintf('/%s/%s' , Config('DEFAULT_CONTROLLER') , Config('DEFAULT_METHOD'));
+            }
+        }
         return $pathinfo;
     }
 
@@ -51,7 +61,7 @@ class Url {
             $parse_path = array_merge($parse_path);
         }
         if (empty($parse_path)) {
-            $parse_path = array(Config('DEFAULT_MODULE'), Config('DEFAULT_CONTROLLER'), Config('DEFAULT_METHOD'));
+            $parse_path = array(Config('DEFAULT_CONTROLLER'), Config('DEFAULT_METHOD'));
         }
         self::$param = $parse_path;
         if ($is_return_current_url) return $current_url;

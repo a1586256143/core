@@ -49,8 +49,8 @@ class Log {
         //日志文件名格式
         $logName = date('Y-m-d', time());
         //日志后缀
-        $logSuffix = Config('LOG_SUFFIX');
-        $logPath   = $logDir . '/' . $logName . $logSuffix;
+        $logSuffix    = Config('LOG_SUFFIX');
+        $logPath      = $logDir . '/' . $logName . $logSuffix;
         $msg && self::$logs[] = $msg;
         self::$logs[] = '[RunTime] ' . self::timeRecord(1);
         self::$logs[] = '[Memory] ' . self::memoryRecord();

@@ -38,7 +38,6 @@ class Base {
         self::$is_get  = GET;
         self::$is_post = POST;
         self::$session = session();
-        self::$cache   = S();
         self::$get     = values('get.');
         self::$post    = values('post.');
         unset(self::$post['_token']);
@@ -88,13 +87,11 @@ class Base {
      * @return \system\View
      */
     protected static function view($filename, $params = array()) {
-        $filename = $filename . Config('TPL_TYPE');
-        $path     = ViewDIR . $filename;
         if ($params) {
             self::assign($params);
         }
 
-        return self::$view->display($path);
+        return self::$view->display($filename);
     }
 
     /**

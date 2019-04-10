@@ -13,15 +13,13 @@ use system\Route\CSRF;
 class Route {
     //路由规则
     protected static $routes = array();
-    //模板变量
-    public static $vars = array();
 
     /**
      * 初始化路由
      * @author Colin <15070091894@163.com>
      */
     public static function init() {
-        self::enableRoute();
+        Config('ROUTE_STATUS') ? self::enableRoute() : self::execRouteByUrl();
     }
 
     /**
@@ -96,8 +94,8 @@ class Route {
      * @author Colin <15070091894@163.com>
      */
     public static function parseRoutes() {
-        $parse_url = Url::parseUrl();
-        Log::addRecord($parse_url, true);
+        $parse_url   = Url::parseUrl();
+        $equalLength = [];
         //处理方法
         $request_method = $_SERVER["REQUEST_METHOD"];
         define('POST', $request_method == 'POST' ? true : false);
@@ -183,7 +181,6 @@ class Route {
         $get_class_name = array_pop($class_name_array);
         //拼接路径，并自动将路由中的index转换成Index
         $controller_path = APP_DIR . ltrim(implode('/', $class_name_array), '/') . '/' . ucfirst($get_class_name) . Config('DEFAULT_CLASS_SUFFIX');
-
         //是否存在控制器
         if (!file_exists($controller_path)) {
             E($get_class_name . ' 控制器不存在！');
@@ -199,6 +196,42 @@ class Route {
         }
         //处理跨站访问，或者cx攻击
         CSRF::execCSRF();
+        //反射
+        self::reflection($controller, $method);
+    }
+
+    /**
+     * 根据URL执行路由
+     * @throws \system\MyError
+     */
+    protected static function execRouteByUrl() {
+        $route  = Url::parseUrl();
+        $routes = explode('/', $route);
+        $method = array_pop($routes);
+        //拼接路径，并自动将路由中的index转换成Index
+        $controller_path = APP_DIR . Config('DEFAULT_CONTROLLER_LAYER') . '/' . ltrim(implode('/', $routes), '/') . Config('DEFAULT_CLASS_SUFFIX');
+        //是否存在控制器
+        if (!file_exists($controller_path)) {
+            E($get_class_name . ' 控制器不存在！');
+        }
+        $classname  = '\\' . Config('DEFAULT_CONTROLLER_LAYER') . implode('\\', $routes);
+        $controller = new $classname;
+        //控制器方法是否存在
+        if (!method_exists($controller, $method)) {
+            E($method . '() 这个方法不存在');
+        }
+        self::reflection($controller, $method);
+    }
+
+    /**
+     * 反射类
+     *
+     * @param object $controller 被执行的控制器实体类
+     * @param string $method     被执行的控制器方法名
+     *
+     * @throws \ReflectionException
+     */
+    protected static function reflection($controller, $method) {
         //反射
         $ReflectionMethod = new \ReflectionMethod($controller, $method);
         $method_params    = $ReflectionMethod->getParameters($method);
@@ -218,21 +251,13 @@ class Route {
     /**
      * 显示视图
      */
-    protected static function showView($result) {
-        if (!$result) {
-            return '';
-        }
+    protected static function showView($result = '') {
         switch ($result) {
             case is_array($result) || is_object($result) :
                 ajaxReturn($result);
                 break;
-            case is_file($result) :
-                extract(self::$vars);
-                require $result;
-                exit;
-                break;
             default:
-                exit($result);
+                exit($result == null ? '' : $result);
                 break;
         }
     }

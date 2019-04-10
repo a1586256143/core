@@ -219,8 +219,9 @@ function values($type, $formname = null, $function = 'trim', $default = null) {
     }
     //解析函数，得到函数名
     $function   = explode(',', $function);
-    $processing = '';
+    $processing = is_array($string) ? [] : '';
     if (is_array($string)) {
+        $processing = [];
         foreach ($string as $key => $value) {
             if (is_array($value)) {
                 foreach ($value as $k => $v) {
@@ -237,7 +238,6 @@ function values($type, $formname = null, $function = 'trim', $default = null) {
                     $processing[ $key ] = $value;
                 }
             }
-
         }
     } else if (is_string($string)) {
         //对得到的值 使用函数处理
@@ -284,20 +284,12 @@ function S($name = '', $value = '', $time = 0) {
  * 日志
  * @author Colin <15070091894@163.com>
  */
-function WriteLog($message, $logConfigName = 'LOG_NAME_FORMAT') {
-    $logDir = Config('LOGDIR');
-    //创建日志文件夹
-    outdir($logDir);
-    //日志文件名格式
-    $logName = Config($logConfigName);
-    $logName = date($logName, time());
-    //日志后缀
-    $logSuffix = Config('LOG_SUFFIX');
-    $file      = new \system\File();
-    $url       = getCurrentUrl();
-    $logPath   = $logDir . '/' . $logName . $logSuffix;
-    $data      = date('[ Y-m-d H:i:s ]') . " $url\r\n$message\r\n";
-    $status    = $file->AppendFile($logPath, $data, false);
+/**
+ * 日志
+ * @author Colin <15070091894@163.com>
+ */
+function WriteLog($message) {
+    system\Log::addRecord($message);
 }
 
 /**
@@ -524,5 +516,3 @@ function ShowMessage($message) {
     $info .= '</script>';
     die($info);
 }
-
-?>

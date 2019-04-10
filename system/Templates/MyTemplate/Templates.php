@@ -13,9 +13,10 @@ use system\Route\Route;
 
 class Templates {
     //模板目录
-    public $template_dir;
-    public $compile_dir;
-    public $cache_dir;
+    public        $template_dir;
+    public        $compile_dir;
+    public        $cache_dir;
+    public static $vars = array();
 
     /**
      * assign()方法  用于注入变量
@@ -27,7 +28,7 @@ class Templates {
      */
     public function assign($var, $value) {
         if (isset($var) && !empty($var)) {
-            Route::$vars[ $var ] = $value;
+            self::$vars[ $var ] = $value;
         } else {
             E('请设置模板变量名！');
         }
@@ -43,22 +44,20 @@ class Templates {
      * @throws
      */
     public function display($file) {
-        //获取模板名
-        //$filename = $this->getTemplateName($file);
         //默认控制器和默认方法
         $default_modules2 = defined('CURRENT_MODULE') ? CURRENT_MODULE : $default_modules;
         $modules          = empty($default_modules2) ? $modules : $default_modules2;
-        //设置路径
-        $dirname = APP_DIR . $this->template_dir;
+        $file             = ViewDIR . $file . Config('TPL_TYPE');
         //编译文件目录
         $dircname = $this->compile_dir;
         //判断编译文件夹和缓存文件夹是否存在
         $dir = array($this->compile_dir, $this->compile_dir . $modules, $dircname);
         //生成文件夹
         outdir($dir);
+        $dirName = dirname($file);
         //判断方法目录是否存在
-        if (!is_dir($dirname)) {
-            E($dirname . '目录不存在');
+        if (!is_dir($dirName)) {
+            E($dirName . '目录不存在');
         }
         //判断模板文件是否存在
         if (!file_exists($file)) {
@@ -74,8 +73,8 @@ class Templates {
             //调用解析类里面的公共方法
             $_parser->comile($parFile);
         }
-
-        return $parFile;
+        extract(self::$vars);
+        include $parFile;
     }
 
     /**

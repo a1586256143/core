@@ -64,7 +64,7 @@ class Parser {
         //elseif语句
         $elseifpatten = '/\{elseif(.*?)}/u';
         //匹配查找
-        if (preg_match($_ifpatten, $this->_tpl)) {
+        if (preg_match($_ifpatten, $this->_tpl, $match)) {
             //查找是否关闭IF
             if (preg_match($_endifpatten, $this->_tpl)) {
                 //替换
@@ -111,17 +111,13 @@ class Parser {
      */
     private function parinclude() {
         $patten = '/\{include\s+file=(\"|\')([\w\.\-\/]+)(\"|\')\}/';
+        if (preg_match($patten, $this->_tpl)) {
+            $this->_tpl = preg_replace_callback($patten, function ($file) {
+                list(, , $vars) = $file;
+                $vars = str_replace('.', '/', $vars);
 
-        if (preg_match($patten, $this->_tpl, $file)) {
-            $filename = $file[2];
-            $modules  = defined('CURRENT_MODULE') ? CURRENT_MODULE : Config('DEFAULT_MODULE');
-            $path     = APP_DIR . ltrim(Config('TPL_DIR'), '/');
-            $filepath = $path . $filename . Config('TPL_TYPE');
-            if (!file_exists($filepath) || empty($file)) {
-                E($filepath . '引入文件出错！请检查！');
-            }
-            $prefix     = Config('TPL_TYPE');
-            $this->_tpl = preg_replace($patten, "<?php \$this->display(\"$path$2$prefix\") ?>", $this->_tpl);
+                return "<?php \$this->display(\"$vars\") ?>";
+            }, $this->_tpl);
         }
     }
 

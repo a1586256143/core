@@ -144,5 +144,3 @@ CSRF::setAllow(array(
         return $string;
     }
 }
-
-?>
