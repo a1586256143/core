@@ -20,11 +20,13 @@ class Url {
         // 解析地址，得到path和query
         $parse = parse_url($pathinfo);
         $pathinfo = $parse['path'];
-        // 把query解析成数组
-        parse_str($parse['query'] , $query);
-        foreach ($query as $key => $value) {
-            // 处理参数，防SQL注入
-            $_GET[$key] = trim($value);
+        if(isset($parse['query'])){
+            // 把query解析成数组
+            parse_str($parse['query'] , $query);
+            foreach ($query as $key => $value) {
+                // 处理参数，防SQL注入
+                $_GET[$key] = trim($value);
+            }
         }
         if ($pathinfo == '/') {
             if(!Config('ROUTE_STATUS')){

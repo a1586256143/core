@@ -163,7 +163,9 @@ class Model {
             //非数组
             extract($this->parseWhere(array($field => array($sub, $wherevalue)), false, $sub));
         }
-
+        if ($tmp) {
+            $this->Where[] = $tmp;
+        }
         return $this;
     }
 
@@ -923,7 +925,6 @@ class Model {
         $end = strlen($this->WhereOR) + 1;
         //截取掉$this->WhereOr
         $tmp = mb_substr($tmp, 0, -$end, 'utf-8');
-
         return array('tmp' => $tmp, 'value' => $value, 'sub' => $sub);
     }
 

@@ -58,7 +58,7 @@ class Log {
         self::$file->AppendFile($logPath, $logs . PHP_EOL . PHP_EOL, false);
     }
 
-    public function __callStatic($name, $arguments) {
+    public static function __callStatic($name, $arguments) {
         self::addRecord($arguments[0], false, strtoupper($name));
     }
 

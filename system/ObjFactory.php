@@ -106,7 +106,7 @@ class ObjFactory {
      * @return model\Model;
      */
     public static function CreateSystemModel($tables = null) {
-        return new Model\Model($tables);
+        return new Model($tables);
     }
 
     /**

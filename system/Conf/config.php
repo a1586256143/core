@@ -17,7 +17,7 @@ return array(
     'DB_PORT'                  => '3306',                   //数据库端口
 
     // 路由设置
-    'ROUTE_STATUS'             => false ,         // 是否开启路由
+    'ROUTE_STATUS'             => true ,         // 是否开启路由
 
     //目录设置
     'PUBLIC_DIR'               => '/publics',    //公共文件地址
