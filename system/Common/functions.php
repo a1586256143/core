@@ -28,10 +28,10 @@ function ajaxReturn($array = null) {
 function M($name = null) {
     if (empty($name)) {
         //创建系统模型   不带表名
-        return system\ObjFactory::CreateSystemModel();
+        return system\Factory::CreateSystemModel();
     } else {
         //创建系统模型   带表名
-        return system\ObjFactory::CreateSystemModel($name);
+        return system\Factory::CreateSystemModel($name);
     }
 }
 
@@ -263,7 +263,7 @@ function values($type, $formname = null, $function = 'trim', $default = null) {
  */
 function S($name = '', $value = '', $time = 0) {
     //实例化一个缓存句柄
-    $cache = \system\ObjFactory::CreateCache();
+    $cache = \system\Factory::CreateCache();
     if ($name == 'null') {
         $cache->clearCache();
     } else if (!empty($name) && is_null($value)) {

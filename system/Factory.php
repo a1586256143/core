@@ -9,7 +9,7 @@ namespace system;
 use system\Templates\MyTemplate\Templates;
 use system\Templates\MyTemplate\Parser;
 
-class ObjFactory {
+class Factory {
     /**
      * 创建数据库对象
      * @author Colin <15070091894@163.com>
@@ -150,5 +150,12 @@ class ObjFactory {
      */
     public static function CreateCode() {
         return new Code\Code();
+    }
+
+    /**
+     * 获取容器
+     */
+    public static function Container(){
+        return Container::getInstance();
     }
 }

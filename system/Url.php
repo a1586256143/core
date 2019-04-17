@@ -16,23 +16,24 @@ class Url {
      * @return [type] [description]
      */
     public static function parseUrl($url = null) {
-        $pathinfo = $_SERVER['REQUEST_URI'];
+        $pathinfo = PHP_SAPI !== 'cli' ? $_SERVER['REQUEST_URI'] : '';
         // 解析地址，得到path和query
-        $parse = parse_url($pathinfo);
+        $parse    = parse_url($pathinfo);
         $pathinfo = $parse['path'];
-        if(isset($parse['query'])){
+        if (isset($parse['query'])) {
             // 把query解析成数组
-            parse_str($parse['query'] , $query);
+            parse_str($parse['query'], $query);
             foreach ($query as $key => $value) {
                 // 处理参数，防SQL注入
-                $_GET[$key] = trim($value);
+                $_GET[ $key ] = trim($value);
             }
         }
         if ($pathinfo == '/') {
-            if(!Config('ROUTE_STATUS')){
-                $pathinfo = sprintf('/%s/%s' , Config('DEFAULT_CONTROLLER') , Config('DEFAULT_METHOD'));
+            if (!Config('ROUTE_STATUS')) {
+                $pathinfo = sprintf('/%s/%s', Config('DEFAULT_CONTROLLER'), Config('DEFAULT_METHOD'));
             }
         }
+
         return $pathinfo;
     }
 

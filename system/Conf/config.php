@@ -82,4 +82,8 @@ return array(
     'ERROR_MESSAGE'            => '500，此网站可能正在维护~~~', //当Debug关闭，网页错误时提示信息
     'TPL_ERROR_PAGE'           => MyClass . '/Tpl/tip',                    //错误载入页面 ，默认放置 system/Tpl/tpl.html
     'TPL_SUCCESS_PAGE'         => MyClass . '/Tpl/tip',                    //成功载入页面 ，默认放置 system/Tpl/tpl.html
+
+    //扩展配置
+    'ADDON_PATH'                => 'addons' , // 扩展目录
+
 );

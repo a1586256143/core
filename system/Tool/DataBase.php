@@ -21,7 +21,7 @@ class DataBase{
 	 * @author Colin <15070091894@163.com>
 	 */
 	public function __construct(){
-		$this->db = \system\ObjFactory::getIns();
+		$this->db = \system\Factory::getIns();
 		$this->prefix = Config('DB_PREFIX');
 	}
 

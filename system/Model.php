@@ -47,7 +47,7 @@ class Model {
         //数据库信息是否填写
         self::CheckConnectInfo();
         //获取数据库对象
-        $this->db = ObjFactory::getIns();
+        $this->db = Factory::getIns();
         //如果表名为空，并且TableName为空
         if (empty($tables) && !$this->TableName) {
             // 处理是否有实例化类名

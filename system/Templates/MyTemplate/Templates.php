@@ -7,7 +7,7 @@
 namespace system\Templates\MyTemplate;
 
 use system\MyError;
-use system\ObjFactory;
+use system\Factory;
 use system\Url;
 use system\Route\Route;
 
@@ -69,7 +69,7 @@ class Templates {
         if (!file_exists($parFile) || (filemtime($parFile) < filemtime($file))) {
             //编译文件的修改时间<tpl模板文件的修改时间
             //实例化解析类
-            $_parser = ObjFactory::CreateTemplatesParse('tpl', $file);
+            $_parser = Factory::CreateTemplatesParse('tpl', $file);
             //调用解析类里面的公共方法
             $_parser->comile($parFile);
         }
@@ -129,7 +129,7 @@ class Templates {
         if (!file_exists($parFile) || (filemtime($parFile) < filemtime($tplFile))) {
             //编译文件的修改时间<tpl模板文件的修改时间
             //实例化解析类
-            $parser = ObjFactory::CreateTemplatesParse('tpl', $tplFile);
+            $parser = Factory::CreateTemplatesParse('tpl', $tplFile);
             //调用解析类里面的公共方法
             $parser->comile($parFile);
         }

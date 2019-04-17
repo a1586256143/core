@@ -19,7 +19,9 @@ class Route {
      * @author Colin <15070091894@163.com>
      */
     public static function init() {
-        Config('ROUTE_STATUS') ? self::enableRoute() : self::execRouteByUrl();
+        if(!PHP_CLI){
+            Config('ROUTE_STATUS') ? self::enableRoute() : self::execRouteByUrl();
+        }
     }
 
     /**

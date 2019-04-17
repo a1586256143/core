@@ -25,7 +25,9 @@ define('Common', APP_DIR . 'globals');
 //系统公共目录
 define('CommonDIR', Core . 'Common');
 //定义版本信息
-define('VERSION', '3.0');
+define('VERSION', '3.1.4');
+//定义版本信息
+define('PHP_CLI', PHP_SAPI === 'cli' ? true : false);
 //引入MyClass核心文件
 require_once Core . 'MyClass.php';
 //执行run方法

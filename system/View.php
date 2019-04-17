@@ -17,7 +17,7 @@ class View {
      * @author Colin <15070091894@163.com>
      */
     public static function init($type, $config = array()) {
-        self::$view = ObjFactory::CreateTemplates($type, $config);
+        self::$view = Factory::CreateTemplates($type, $config);
     }
 
     /**
