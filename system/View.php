@@ -40,14 +40,30 @@ class View {
      * 创建index.php 模板
      * @author Colin <15070091894@163.com>
      */
-    public static function createIndex($default = 'Index') {
+    public static function createIndex($default = 'Index', $namespace = 'controllers') {
         $string = "<?php 
-namespace controllers;
+namespace $namespace;
 use system\Base;
 class $default extends Base{
 	public function index(){
 		return 'Welcome to use MyClassPHP';
 	}
+}
+";
+
+        return $string;
+    }
+
+    /**
+     * 创建指定模型
+     * @author Colin <15070091894@163.com>
+     */
+    public static function createModel($default = 'Index', $namespace = 'models') {
+        $string = "<?php 
+namespace $namespace;
+use system\Model;
+class $default extends Model{
+
 }
 ";
 

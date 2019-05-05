@@ -10,9 +10,11 @@ use system\Templates\MyTemplate\Templates;
 use system\Templates\MyTemplate\Parser;
 
 class Factory {
+
     /**
      * 创建数据库对象
      * @author Colin <15070091894@163.com>
+     * @return \system\Db
      */
     public static function getIns() {
         return Db::getIns();
@@ -21,6 +23,7 @@ class Factory {
     /**
      * 创建缓存类
      * @author Colin <15070091894@163.com>
+     * @return \system\Cache
      */
     public static function CreateCache() {
         return Cache::getInstance();
@@ -103,7 +106,7 @@ class Factory {
      * @param tables 表名
      *
      * @author Colin <15070091894@163.com>
-     * @return model\Model;
+     * @return system\Model
      */
     public static function CreateSystemModel($tables = null) {
         return new Model($tables);
@@ -130,7 +133,7 @@ class Factory {
      * @param pagesize 分页数
      *
      * @author Colin <15070091894@163.com>
-     * @return Page
+     * @return \system\Page
      */
     public static function CreatePage($total, $pagesize) {
         return new Page($total, $pagesize);
@@ -139,6 +142,7 @@ class Factory {
     /**
      * 创建时间类
      * @author Colin <15070091894@163.com>
+     * @return \system\Date
      */
     public static function CreateDate() {
         return new Date();
@@ -147,6 +151,7 @@ class Factory {
     /**
      * 验证码类
      * @author Colin <15070091894@163.com>
+     * @return \system\Code\Code
      */
     public static function CreateCode() {
         return new Code\Code();
@@ -154,8 +159,18 @@ class Factory {
 
     /**
      * 获取容器
+     * @return \system\Container
      */
-    public static function Container(){
+    public static function Container() {
         return Container::getInstance();
     }
+
+    /**
+     * 创建文件类
+     * @return \system\File
+     */
+    public static function File() {
+        return File::getInstance();
+    }
+
 }

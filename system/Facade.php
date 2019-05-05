@@ -6,7 +6,7 @@ class Facade{
     	if($classname instanceof \Closure){
     		return $classname;
     	}
-        return new $classname($args);
+        return new $classname($args[0]);
     }
 
     public static function getFacadeAccessor(){
@@ -15,6 +15,6 @@ class Facade{
 
     public static function __callstatic($method,$args){
         $instance = static::getInstance(static::getFacadeAccessor() , $args);
-        return call_user_func_array(array($instance , $method) , $arg);
+        return call_user_func_array(array($instance , $method) , $args);
     }
 }

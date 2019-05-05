@@ -254,12 +254,12 @@ class Route {
      * 显示视图
      */
     protected static function showView($result = '') {
-        switch ($result) {
+        switch (true) {
             case is_array($result) || is_object($result) :
                 ajaxReturn($result);
                 break;
             default:
-                exit($result == null ? '' : $result);
+                exit($result === null ? '' : $result);
                 break;
         }
     }
