@@ -26,13 +26,7 @@ function ajaxReturn($array = null) {
  * @author Colin <15070091894@163.com>
  */
 function M($name = null) {
-    if (empty($name)) {
-        //创建系统模型   不带表名
-        return system\Factory::CreateSystemModel();
-    } else {
-        //创建系统模型   带表名
-        return system\Factory::CreateSystemModel($name);
-    }
+    return system\Factory::CreateSystemModel();
 }
 
 /**
@@ -74,9 +68,9 @@ function require_file($path, $modules = '', $return = true) {
     } else if (is_string($path)) {
         if (file_exists($path)) {
             if ($return) {
-                return require_once $path;
+                return require $path;
             } else {
-                require_once $path;
+                require $path;
             }
 
         }
@@ -176,7 +170,7 @@ function session($name = '', $value = '') {
             unset($_SESSION["$name"]);
         }
     } else {
-        throw new \system\MyError('session未打开！请进入config.php打开');
+        throw new \system\MyError('session未打开！请检查配置文件');
     }
 }
 
@@ -374,7 +368,7 @@ function library($name = null) {
     list($filedir, $filename) = explode('/', $name);
     if ($filename == '*') {
         $path = Library . '/' . $filedir;
-        $file = new \system\File();
+        $file = \system\Factory::File();
         //获取目录下的所有文件
         $allfile = $file->getDirAllFile($path, 'php');
         //如果目录空 ，则返回null
@@ -450,12 +444,12 @@ function _token($token = false) {
  * 获取类名称
  * @return [type] [description]
  */
-function get_filename($name) {
+function _getFileName($name) {
     return $name . Config('DEFAULT_CLASS_SUFFIX');
 }
 
 /**
- * 设置get参数，Route.class.php调用
+ * 设置get参数，Route.php调用
  *
  * @param  [type] $item  [description]
  * @param  [type] $item2 [description]

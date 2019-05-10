@@ -19,7 +19,7 @@ class Route {
      * @author Colin <15070091894@163.com>
      */
     public static function init() {
-        if(!PHP_CLI){
+        if (!PHP_CLI) {
             Config('ROUTE_STATUS') ? self::enableRoute() : self::execRouteByUrl();
         }
     }
@@ -182,7 +182,7 @@ class Route {
         //得到controllers\index 中的 index
         $get_class_name = array_pop($class_name_array);
         //拼接路径，并自动将路由中的index转换成Index
-        $controller_path = APP_DIR . ltrim(implode('/', $class_name_array), '/') . '/' . ucfirst($get_class_name) . Config('DEFAULT_CLASS_SUFFIX');
+        $controller_path = _getFileName(APP_DIR . ltrim(implode('/', $class_name_array), '/') . '/' . ucfirst($get_class_name));
         //是否存在控制器
         if (!file_exists($controller_path)) {
             E($get_class_name . ' 控制器不存在！');
@@ -207,17 +207,17 @@ class Route {
      * @throws \system\MyError
      */
     protected static function execRouteByUrl() {
-        $route  = Url::parseUrl();
-        $routes = explode('/', $route);
-        $method = array_pop($routes);
+        $route     = Url::parseUrl();
+        $routes    = array_merge(array_filter(explode('/', $route)));
+        $method    = count($routes) == 1 ? $method = Config('DEFAULT_METHOD') : array_pop($routes);
+        $namespace = '\\' . Config('DEFAULT_CONTROLLER_LAYER') . '\\' . implode('\\', $routes);
         //拼接路径，并自动将路由中的index转换成Index
-        $controller_path = APP_DIR . Config('DEFAULT_CONTROLLER_LAYER') . '/' . ltrim(implode('/', $routes), '/') . Config('DEFAULT_CLASS_SUFFIX');
+        $controller_path = _getFileName(APP_DIR . Config('DEFAULT_CONTROLLER_LAYER') . '/' . ltrim(implode('/', $routes), '/'));
         //是否存在控制器
         if (!file_exists($controller_path)) {
             E($get_class_name . ' 控制器不存在！');
         }
-        $classname  = '\\' . Config('DEFAULT_CONTROLLER_LAYER') . implode('\\', $routes);
-        $controller = new $classname;
+        $controller = new $namespace;
         //控制器方法是否存在
         if (!method_exists($controller, $method)) {
             E($method . '() 这个方法不存在');

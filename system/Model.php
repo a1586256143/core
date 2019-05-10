@@ -911,10 +911,14 @@ class Model {
                 $sub   = ' ' . $sub . ' ';
                 $value = $tmpValue;
             }
+            // 数据过滤
+            if(!is_numeric($value) && !is_float($value) && !is_bool($value)){
+                $value = mysqli_real_escape_string($value);
+            }
             if (strpos($key, '.') !== false) {
                 //处理使用array('p.name' => '工' , 'p.id' => 111) 中文''问题
                 if ($value) {
-                    $value = is_numeric($value) && !empty($value) ? $value : "'$value'";
+                    $value = (is_numeric($value) || is_numeric($value)) && !empty($value) ? $value : "'$value'";
                 }
                 $tmp .= $key . $sub . $value . ' ' . $this->WhereOR . ' ';
             } else {

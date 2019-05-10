@@ -26,22 +26,6 @@ class CommandParse {
     }
 
     /**
-     * 控制器初始化
-     * @return [type] [description]
-     */
-    public function getController() {
-        $this->setvalue(ControllerDIR, 'controllers');
-    }
-
-    /**
-     * 模型初始化
-     * @return [type] [description]
-     */
-    public function getModel() {
-        $this->setvalue(ModelDIR, 'models');
-    }
-
-    /**
      * 参数封装
      *
      * @param  [type] $value [description]
@@ -68,7 +52,7 @@ class CommandParse {
         $this->className           = ucfirst($this->names[ $lastChild ]);
         $this->names[ $lastChild ] = $this->className;
         $this->names               = implode('/', $this->names);
-        $this->path                = sprintf($this->dirname . "/%s" . Config('DEFAULT_CLASS_SUFFIX'), $this->names);
+        $this->path                = sprintf(_getFileName($this->dirname . "/%s"), $this->names);
     }
 
     /**

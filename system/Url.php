@@ -20,6 +20,7 @@ class Url {
         // 解析地址，得到path和query
         $parse    = parse_url($pathinfo);
         $pathinfo = $parse['path'];
+        $pathinfo = preg_replace('/\/[\w]+\.php/', '', $pathinfo);
         if (isset($parse['query'])) {
             // 把query解析成数组
             parse_str($parse['query'], $query);

@@ -55,7 +55,7 @@ class MyClass {
         //DEBUG
         if (!defined('Debug')) define('Debug', true);
         //载入函数库文件
-        require_once CommonDIR . '/functions.php';
+        require CommonDIR . '/functions.php';
         //合并config文件内容
         $merge = replace_recursive_params(Core . '/Conf/config.php', Common . '/config.php');
         //加入配置文件
@@ -77,7 +77,7 @@ class MyClass {
             session_start();
         }
         //加载全部配置文件
-        $app = array(CommonDIR . '/functions.php', Common . '/functions.php');
+        $app = Common . '/functions.php';
         require_file($app);
     }
 
@@ -118,14 +118,15 @@ class MyClass {
             array(Common . '/csrf.php', View::createCSRF()), //csrf配置文件
             array(Common . '/functions.php', View::createFunc()), //函数配置文件
             array(
-                ControllerDIR . '/Index' . Config('DEFAULT_CLASS_SUFFIX'),
+                _getFileName(ControllerDIR . '/' . Config('DEFAULT_CONTROLLER')),
                 View::createIndex(Config('DEFAULT_CONTROLLER'))
-            )            //控制器
+            )//控制器
         );
+        $file = Factory::File();
         //批量创建文件
         foreach ($data as $key => $value) {
             if (!file_exists($value[0])) {
-                file_put_contents($value[0], $value[1]);
+                $file->WriteFile($value[0], $value[1], false);
             }
         }
         //设置默认时间格式
