@@ -115,8 +115,7 @@ class Parser {
             $this->_tpl = preg_replace_callback($patten, function ($file) {
                 list(, , $vars) = $file;
                 $vars = str_replace('.', '/', $vars);
-
-                return "<?php \$this->display(\"$vars\") ?>";
+                return "<?php \$this->display(\"$vars\" , ViewDIR) ?>";
             }, $this->_tpl);
         }
     }

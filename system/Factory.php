@@ -38,14 +38,13 @@ class Factory {
      * @author Colin <15070091894@163.com>
      * @return Templates
      */
-    public static function CreateTemplates($type = null, $config = array()) {
+    public static function CreateTemplates($type = null, $config = []) {
         if ($type == 'tpl') {
             $templateobject = new Templates();
         } else {
             //实例化第三方模板类
             $template       = ucfirst($type);
-            $name           = '\system\Templates\\' . $template . '\\' . $template;
-            $templateobject = new $name();
+            $templateobject = new $template;
         }
         if (!empty($templateobject)) {
             foreach ($config as $key => $value) {

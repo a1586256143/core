@@ -5,6 +5,9 @@
  */
 
 namespace system;
+
+use system\Route\Route;
+
 abstract class Middleware extends Base {
     //不过滤
     protected static $notFilter;
@@ -29,7 +32,11 @@ abstract class Middleware extends Base {
 
     /**
      * 执行中间件
+     *
+     * @param \system\Base  $controller 当前执行的控制器
+     * @param \system\Route $route      路由
+     *
      * @author Colin <15070091894@163.com>
      */
-    abstract function execMiddleware();
+    abstract public function execMiddleware(Base $controller, Route $route);
 }

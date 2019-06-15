@@ -58,6 +58,18 @@ class Base {
             echo "<meta http-equiv='refresh' content='$time; url=$url'/>";
             exit($info);
         }
+        self::location($url);
+    }
+
+    /**
+     * header跳转
+     *
+     * @param string url  跳转地址
+     *
+     * @author Colin <15070091894@163.com>
+     *
+     */
+    public static function location($url) {
         header("Location:$url");
     }
 
@@ -86,12 +98,13 @@ class Base {
      *
      * @return \system\View
      */
-    protected static function view($filename, $params = array()) {
+    protected static function view($filename = null, $params = []) {
         if ($params) {
             self::assign($params);
         }
+        $filename = _parseFileName($filename);
 
-        return self::$view->display($filename);
+        return self::$view->display($filename, ViewDIR);
     }
 
     /**
@@ -121,15 +134,15 @@ class Base {
      * @return \system\View
      * @throws
      */
-    public static function MessageTemplate($message, $type, $param = array()) {
-        $tpl = Config('TPL_' . $type . '_PAGE') . Config('TPL_TYPE');
+    public static function MessageTemplate($message, $type, $param = []) {
+        $tpl = Config('TPL_' . $type . '_PAGE');
         if (!$tpl) {
             E('请设置提示载入的页面');
         }
-        $data = array(
+        $data = [
             'param'   => $param,
             'message' => $message,
-        );
+        ];
         self::assign($data);
 
         return self::$view->display($tpl);
@@ -146,7 +159,7 @@ class Base {
      * @return string
      */
     protected static function success($message, $url = null, $time = 3) {
-        return self::MessageTemplate($message, 'SUCCESS', array('url' => url($url), 'time' => $time, 'status' => 1));
+        return self::MessageTemplate($message, 'SUCCESS', ['url' => url($url), 'time' => $time, 'status' => 1]);
     }
 
     /**
@@ -160,6 +173,54 @@ class Base {
      * @return string
      */
     protected static function error($message, $url = null, $time = 3) {
-        return self::MessageTemplate($message, 'ERROR', array('url' => url($url), 'time' => $time, 'status' => 0));
+        return self::MessageTemplate($message, 'ERROR', ['url' => url($url), 'time' => $time, 'status' => 0]);
+    }
+
+    /**
+     * 读取session
+     *
+     * @param $name
+     *
+     * @return mixed
+     */
+    protected static function readSession($name = null) {
+        $data = self::$session[ $name ];
+        $json = json_decode($data, true);
+        if (!$json) {
+            return $data;
+        }
+
+        return $json;
+    }
+
+    /**
+     * 设置session
+     *
+     * @param $name
+     * @param $data
+     *
+     * @return bool
+     * @throws \system\MyError
+     */
+    protected static function setSession($name = null, $data) {
+        if (is_array($data)) {
+            $data = json_encode($data);
+        }
+        session($name, $data);
+
+        return true;
+    }
+
+    /**
+     * 删除session
+     *
+     * @param $name
+     * @param $data
+     *
+     * @return bool|null
+     * @throws \system\MyError
+     */
+    protected static function removeSession($name = '') {
+        return session($name, null);
     }
 }

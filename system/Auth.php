@@ -81,7 +81,7 @@ class Auth {
             if ($this->auth_other === false) {
                 $auth = M('Auth');
                 //数据库找不到，返回true
-                if (!$find = $auth->where(array('url' => $current))->find()) {
+                if (!$find = $auth->where(['url' => $current])->find()) {
                     return true;
                 }
             }
@@ -104,9 +104,9 @@ class Auth {
             throw new MyError('请设置权限uid');
         }
         //获取用户的权限组
-        $auth_users = M('AuthUsers')->where(array('uid' => $uid))->find();
+        $auth_users = M('AuthUsers')->where(['uid' => $uid])->find();
         //根据权限组查找组权限
-        $auth_group = M('AuthGroup')->where('id', $auth_users['gid'])->find();
+        $auth_group = M('AuthGroup')->where(['id' => $auth_users['gid']])->find();
         //根据权限规则查找对应的权限
         $model = M('Auth');
         $auths = $model->field('url')->in('id', $auth_group['auths'])->select();

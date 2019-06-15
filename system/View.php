@@ -16,24 +16,8 @@ class View {
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function init($type, $config = array()) {
+    public static function init($type, $config = []) {
         self::$view = Factory::CreateTemplates($type, $config);
-    }
-
-    /**
-     * display方法
-     * @author Colin <15070091894@163.com>
-     */
-    public static function display($filename) {
-        return self::$view->display($filename);
-    }
-
-    /**
-     * assign方法
-     * @author Colin <15070091894@163.com>
-     */
-    public static function assign($name, $value) {
-        return self::$view->assign($name, $value);
     }
 
     /**

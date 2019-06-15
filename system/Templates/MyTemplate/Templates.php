@@ -16,7 +16,7 @@ class Templates {
     public        $template_dir;
     public        $compile_dir;
     public        $cache_dir;
-    public static $vars = array();
+    public static $vars = [];
 
     /**
      * assign()方法  用于注入变量
@@ -43,17 +43,17 @@ class Templates {
      * @return string
      * @throws
      */
-    public function display($file) {
+    public function display($file = null, $path = null) {
+        if (!$file) {
+            $file = ACTION_NAME;
+        }
         //默认控制器和默认方法
-        $default_modules2 = defined('CURRENT_MODULE') ? CURRENT_MODULE : $default_modules;
-        $modules          = empty($default_modules2) ? $modules : $default_modules2;
-        $file             = ViewDIR . $file . Config('TPL_TYPE');
+        $default_modules2 = defined('CURRENT_MODULE') ? CURRENT_MODULE : Config('DEFAULT_MODULE');
+        $file             = _parseFileName($path . $file);
         //编译文件目录
         $dircname = $this->compile_dir;
-        //判断编译文件夹和缓存文件夹是否存在
-        $dir = array($this->compile_dir, $this->compile_dir . $modules, $dircname);
         //生成文件夹
-        outdir($dir);
+        outdir($this->compile_dir);
         $dirName = dirname($file);
         //判断方法目录是否存在
         if (!is_dir($dirName)) {

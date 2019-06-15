@@ -55,17 +55,17 @@ class MyClass {
         //DEBUG
         if (!defined('Debug')) define('Debug', true);
         //载入函数库文件
-        require CommonDIR . '/functions.php';
+        require_once CommonDIR . '/functions.php';
         //合并config文件内容
         $merge = replace_recursive_params(Core . '/Conf/config.php', Common . '/config.php');
         //加入配置文件
         Config($merge);
         //设置默认工作空间目录结构
-        $dirnames = array(
+        $dirnames = [
             'ControllerDIR' => APP_DIR . Config('DEFAULT_CONTROLLER_LAYER'),
             'ModelDIR'      => APP_DIR . Config('DEFAULT_MODEL_LAYER'),
             'ViewDIR'       => APP_DIR . Config('TPL_DIR'),
-        );
+        ];
         //根据数组的key 生成常量
         foreach ($dirnames as $key => $value) {
             if (!defined($key)) {
@@ -94,10 +94,12 @@ class MyClass {
             $cache    = '/' . $cache;
             $cacheTmp = '/' . $cacheTmp;
         }
-        //更新文件权限
-        shell_exec('chmod -R 0755 ' . APP_DIR);
+        if (!is_dir(APP_DIR)) {
+            //更新文件权限
+            shell_exec('chmod -R 0755 ' . APP_DIR);
+        }
         //批量创建目录
-        $dir = array(
+        $dir = [
             APP_PATH,                //应用路径
             APP_DIR,                //系统app目录
             RunTime,                //运行目录
@@ -108,20 +110,20 @@ class MyClass {
             $cacheTmp,            //缓存临时文件
             Common,                //全局目录
             Library,                //第三方目录
-        );
+        ];
         outdir($dir);
         //生成默认的配置文件、控制器
-        $data = array(
-            array(Common . '/config.php', View::createConfig()),    //配置文件
-            array(Common . '/template.php', View::createTemplate()), //模板配置文件
-            array(Common . '/routes.php', View::createRoute()), //路由配置文件
-            array(Common . '/csrf.php', View::createCSRF()), //csrf配置文件
-            array(Common . '/functions.php', View::createFunc()), //函数配置文件
-            array(
+        $data = [
+            [Common . '/config.php', View::createConfig()],    //配置文件
+            [Common . '/template.php', View::createTemplate()], //模板配置文件
+            [Common . '/routes.php', View::createRoute()], //路由配置文件
+            [Common . '/csrf.php', View::createCSRF()], //csrf配置文件
+            [Common . '/functions.php', View::createFunc()], //函数配置文件
+            [
                 _getFileName(ControllerDIR . '/' . Config('DEFAULT_CONTROLLER')),
                 View::createIndex(Config('DEFAULT_CONTROLLER'))
-            )//控制器
-        );
+            ]            //控制器
+        ];
         $file = Factory::File();
         //批量创建文件
         foreach ($data as $key => $value) {
@@ -139,7 +141,7 @@ class MyClass {
      */
     public static function initRoute() {
         //加载配置文件
-        $requires = array(Common . '/routes.php', Common . '/csrf.php');
+        $requires = [Common . '/routes.php', Common . '/csrf.php'];
         //批量引入
         require_file($requires);
         //执行路由

@@ -26,6 +26,22 @@ class CommandParse {
     }
 
     /**
+     * 控制器初始化
+     * @return [type] [description]
+     */
+    public function getController() {
+        $this->setvalue(ControllerDIR, 'controllers');
+    }
+
+    /**
+     * 模型初始化
+     * @return [type] [description]
+     */
+    public function getModel() {
+        $this->setvalue(ModelDIR, 'models');
+    }
+
+    /**
      * 参数封装
      *
      * @param  [type] $value [description]

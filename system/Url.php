@@ -20,7 +20,6 @@ class Url {
         // 解析地址，得到path和query
         $parse    = parse_url($pathinfo);
         $pathinfo = $parse['path'];
-        $pathinfo = preg_replace('/\/[\w]+\.php/', '', $pathinfo);
         if (isset($parse['query'])) {
             // 把query解析成数组
             parse_str($parse['query'], $query);
@@ -34,8 +33,13 @@ class Url {
                 $pathinfo = sprintf('/%s/%s', Config('DEFAULT_CONTROLLER'), Config('DEFAULT_METHOD'));
             }
         }
-
-        return $pathinfo;
+        // 去除当前访问的文件名
+        $scriptName = $_SERVER['SCRIPT_NAME'];
+        $pathinfo = str_replace($scriptName, '', $pathinfo);
+        if(strpos($pathinfo, '/') === 0){
+            return $pathinfo;
+        }
+        return '/' . $pathinfo;
     }
 
     /**

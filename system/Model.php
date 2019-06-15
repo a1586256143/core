@@ -15,8 +15,8 @@ class Model {
     protected $Fields           = '*';            //多表查询字段名
     protected $TrueTables       = '';            //数据表的真实名字
     protected $DataNameName     = '';        //数据表判断后存放的字段
-    protected $Where            = array();            //where字段
-    protected $value            = array();            //where value
+    protected $Where            = [];            //where字段
+    protected $value            = [];            //where value
     protected $WhereOR          = "AND";            //where 条件的 OR and
     protected $Sql              = '';                //sql语句
     protected $ParKey           = '';                //解析后存放的字段
@@ -24,11 +24,11 @@ class Model {
     protected $Alias            = '';                //字符别名
     protected $Limit            = '';                //limit
     protected $Order            = '';                //order
-    protected $auto             = array();            //自动完成
-    protected $validate         = array();        //自动验证
-    protected $data             = array();            //保存数据
+    protected $auto             = [];            //自动完成
+    protected $validate         = [];        //自动验证
+    protected $data             = [];            //保存数据
     protected $callback         = '';            //回调时使用的操作句柄
-    protected $Join             = array();            //join
+    protected $Join             = [];            //join
     protected $startTransaction = 0;    //开启事务
     const MODEL_INSERT = 1;                //新增时操作
     const MODEL_UPDATE = 2;                //修改时操作
@@ -111,7 +111,7 @@ class Model {
      * @author Colin <15070091894@163.com>
      * @return array
      */
-    public function create($data = array()) {
+    public function create($data = []) {
         if (!$data) $data = values('post.');
         //获取表所有字段
         $fields = $this->getFields();
@@ -143,10 +143,10 @@ class Model {
     /**
      * 条件
      *
-     * @param string $field      字段名称
-     * @param string $wherevalue 字段值
-     * @param string $whereor    OR和AND
-     * @param string $sub        操作符号 可以为 =,!=,in,not in,between,not between
+     * @param string|array $field      字段名称
+     * @param string       $wherevalue 字段值
+     * @param string       $whereor    OR和AND
+     * @param string       $sub        操作符号 可以为 =,!=,in,not in,between,not between
      *
      * @author Colin <15070091894@163.com>
      * @return \system\Model
@@ -161,11 +161,12 @@ class Model {
             $fieldlen > 1 ? extract($this->parseWhere($field, true, $sub)) : extract($this->parseWhere($field, false, $sub));
         } else {
             //非数组
-            extract($this->parseWhere(array($field => array($sub, $wherevalue)), false, $sub));
+            extract($this->parseWhere([$field => [$sub, $wherevalue]], false, $sub));
         }
         if ($tmp) {
             $this->Where[] = $tmp;
         }
+
         return $this;
     }
 
@@ -193,7 +194,7 @@ class Model {
      */
     public function query($sql = null) {
         $sql         = $sql === null ? $this->Sql : $sql;
-        $this->Where = array();
+        $this->Where = [];
 
         return $this->getResult($sql);
     }
@@ -224,6 +225,25 @@ class Model {
         $this->getSql();
 
         return $this->getResult();
+    }
+
+    /**
+     * 执行之后
+     *
+     * @param $data
+     *
+     * @return bool
+     */
+    protected function afterFind(&$data) {
+        return true;
+    }
+
+    /**
+     * 执行之前
+     * @return bool
+     */
+    protected function beforeFind() {
+        return true;
     }
 
     /**
@@ -783,13 +803,13 @@ class Model {
         foreach ($this->validate as $key => $value) {
             switch ($value[3]) {
                 case 'validate':
-                    $string = $validate->Validate($value[0], array(
-                        array(
+                    $string = $validate->Validate($value[0], [
+                        [
                             'string'  => $value[0],
                             $value[4] => $value[1],
                             'info'    => $value[2]
-                        )
-                    ));
+                        ]
+                    ]);
                     break;
             }
             //保存自动验证属性
@@ -817,8 +837,8 @@ class Model {
      * 清理where条件和join
      */
     protected function _clearThis() {
-        $this->Where = array();
-        $this->Join  = array();
+        $this->Where = [];
+        $this->Join  = [];
     }
 
     /**
@@ -912,7 +932,7 @@ class Model {
                 $value = $tmpValue;
             }
             // 数据过滤
-            if(!is_numeric($value) && !is_float($value) && !is_bool($value)){
+            if (!is_numeric($value) && !is_float($value) && !is_bool($value)) {
                 $value = mysqli_real_escape_string($value);
             }
             if (strpos($key, '.') !== false) {
@@ -929,7 +949,8 @@ class Model {
         $end = strlen($this->WhereOR) + 1;
         //截取掉$this->WhereOr
         $tmp = mb_substr($tmp, 0, -$end, 'utf-8');
-        return array('tmp' => $tmp, 'value' => $value, 'sub' => $sub);
+
+        return ['tmp' => $tmp, 'value' => $value, 'sub' => $sub];
     }
 
     /**
@@ -962,13 +983,16 @@ class Model {
     protected function getResult($sql = null, $is_more = false) {
         $sql    = $sql === null ? $this->Sql : $sql;
         $result = $this->ADUP($sql);
-        $data   = array();
+        $data   = [];
+        $this->beforeFind();
         if ($is_more) {
             while ($rows = $this->db->fetch_array($result)) {
+                $this->afterFind($rows);
                 $data[] = $rows;
             }
         } else {
             $data = $this->db->fetch_array($result);
+            $this->afterFind($data);
         }
 
         return $data;

@@ -5,7 +5,7 @@
 	FileType : 配置文件
 	FileName : config.php
 */
-return array(
+return [
     //数据库配置信息
     'DB_TYPE'                  => 'mysqli',                //数据库类型(mysql,mysqli,pdo)
     'DB_HOST'                  => 'localhost',            //主机地址
@@ -17,7 +17,8 @@ return array(
     'DB_PORT'                  => '3306',                   //数据库端口
 
     // 路由设置
-    'ROUTE_STATUS'             => true ,         // 是否开启路由
+    'ROUTE_STATUS'             => true,         // 是否开启路由
+    'CSRF'                     => false,        // 是否开启CSRF
 
     //目录设置
     'PUBLIC_DIR'               => '/publics',    //公共文件地址
@@ -35,16 +36,16 @@ return array(
     'DEFAULT_MODEL_LAYER'      => 'models',         //默认模型目录名
 
     //模板引擎设置
-    'TPL_MODEL'                => 'tpl',                    //模板引擎
+    'TPL_MODEL'                => 'smarty',                    //模板引擎
     'TPL_TYPE'                 => '.html',                //模板类型
-    'TPL_DIR'                  => 'views/',                //模板文件存放目录
+    'TPL_DIR'                  => APP_DIR . 'views/',                //模板文件存放目录
     'TPL_C_DIR'                => RunTime . '/templates_c/',    //编译文件存放目录
     'TPL_CACHE'                => RunTime . '/templates_cache/',      //编译文件文件目录
-    'TPL_CONFIG'               => array(
+    'TPL_CONFIG'               => [
         'template_dir' => 'TPL_DIR',
         'compile_dir'  => 'TPL_C_DIR',
         'cache_dir'    => 'TPL_CACHE'
-    ),                    //模板配置
+    ],                    //模板配置
 
     //缓存设置
     'CACHE_DIR'                => RunTime . '/caches/', //缓存文件夹
@@ -80,10 +81,10 @@ return array(
 
     //错误处理
     'ERROR_MESSAGE'            => '500，此网站可能正在维护~~~', //当Debug关闭，网页错误时提示信息
-    'TPL_ERROR_PAGE'           => MyClass . '/Tpl/tip',                    //错误载入页面 ，默认放置 system/Tpl/tpl.html
-    'TPL_SUCCESS_PAGE'         => MyClass . '/Tpl/tip',                    //成功载入页面 ，默认放置 system/Tpl/tpl.html
+    'TPL_ERROR_PAGE'           => Core . 'Tpl/tip',                    //错误载入页面 ，默认放置 system/Tpl/tpl.html
+    'TPL_SUCCESS_PAGE'         => Core . 'Tpl/tip',                    //成功载入页面 ，默认放置 system/Tpl/tpl.html
 
     //扩展配置
-    'ADDON_PATH'                => 'addons' , // 扩展目录
+    'ADDON_PATH'               => 'addons', // 扩展目录
 
-);
+];

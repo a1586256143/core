@@ -19,6 +19,32 @@ function ajaxReturn($array = null) {
 }
 
 /**
+ * 返回成功状态
+ *
+ * @param $msg
+ */
+function success($msg) {
+    $item = ['code' => 200, 'msg' => $msg];
+    if (is_array($msg)) {
+        $item['data'] = $msg;
+        unset($item['msg']);
+    }
+
+    return ajaxReturn($item);
+}
+
+/**
+ * 返回失败|错误状态
+ *
+ * @param $msg
+ */
+function error($msg, $code = 404) {
+    $item = ['code' => $code, 'msg' => $msg];
+
+    return ajaxReturn($item);
+}
+
+/**
  * M方法实例化模型
  *
  * @param name 模型名称
@@ -40,6 +66,9 @@ function E($message) {
     $debug = Debug;
     //记录日志
     system\Log::generator($message);
+    if (AJAX) {
+        return error($message);
+    }
     if ($debug) {
         throw new \system\MyError($message);
     } else {
@@ -68,9 +97,9 @@ function require_file($path, $modules = '', $return = true) {
     } else if (is_string($path)) {
         if (file_exists($path)) {
             if ($return) {
-                return require $path;
+                return require_once $path;
             } else {
-                require $path;
+                require_once $path;
             }
 
         }
@@ -111,7 +140,7 @@ function replace_recursive_params($name1, $name2 = null, $name3 = null) {
  * @author Colin <15070091894@163.com>
  */
 function outdir($param) {
-    $result = array();
+    $result = [];
     if (is_array($param)) {
         foreach ($param as $key => $value) {
             if (!is_dir($value)) {
@@ -144,7 +173,7 @@ function dump($array) {
  * @return [type] [description]
  */
 function url($url) {
-    return getSiteUrl(true) . '/' . ltrim($url, '/');
+    return getSiteUrl(false) . '/' . ltrim($url, '/');
 }
 
 /**
@@ -295,7 +324,7 @@ function WriteLog($message) {
  * @author Colin <15070091894@163.com>
  */
 function Config($name = null, $value = '') {
-    static $config = array();
+    static $config = [];
     if (empty($name)) {
         return $config;
     } else if (is_array($name)) {
@@ -358,6 +387,15 @@ function getTime($prc = null) {
 }
 
 /**
+ * 时间格式化
+ *
+ * @param null $timestamp
+ */
+function timeFormat($timestamp = null, $model = null) {
+    return \system\Date::setDate($timestamp, $model);
+}
+
+/**
  * 第三方类库调用
  *
  * @param name 第三方类库名称
@@ -398,7 +436,7 @@ function library($name = null) {
  * 处理Model类的 array_filter 过滤 0 操作
  * @author Colin <15070091894@163.com>
  */
-function myclass_filter($array = array()) {
+function myclass_filter($array = []) {
     foreach ($array as $key => $value) {
         if ($value === null || $value === '') {
             continue;
@@ -509,4 +547,43 @@ function ShowMessage($message) {
 			}';
     $info .= '</script>';
     die($info);
+}
+
+/**
+ * 获取IP地址
+ * @return array|false|string
+ */
+function getIp() {
+    if (getenv("HTTP_CLIENT_IP") && strcasecmp(getenv("HTTP_CLIENT_IP"), "unknown")) $ip = getenv("HTTP_CLIENT_IP"); else if (getenv("HTTP_X_FORWARDED_FOR") && strcasecmp(getenv("HTTP_X_FORWARDED_FOR"), "unknown")) $ip = getenv("HTTP_X_FORWARDED_FOR"); else if (getenv("REMOTE_ADDR") && strcasecmp(getenv("REMOTE_ADDR"), "unknown")) $ip = getenv("REMOTE_ADDR"); else if (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] && strcasecmp($_SERVER['REMOTE_ADDR'], "unknown")) $ip = $_SERVER['REMOTE_ADDR']; else
+        $ip = "unknown";
+
+    return ($ip);
+}
+
+/**
+ * 解析模板文件名
+ *
+ * @param $filename
+ *
+ * @return string
+ */
+function _parseFileName($filename) {
+    if (!$filename) {
+        $filename = ACTION_NAME;
+    }
+    $explode = explode('.', $filename);
+    if (count($explode) > 1) {
+        return $filename;
+    }
+    $filename .= Config('TPL_TYPE');
+    return $filename;
+}
+
+/**
+ * 扩展smarty的函数
+ * @param  [type] $url [description]
+ * @return [type]      [description]
+ */
+function smarty_modifier_url($url){
+    return url($url);
 }

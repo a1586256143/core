@@ -10,7 +10,7 @@ use system\Url;
 
 class CSRF {
     //不过滤
-    protected static $notFilter = array();
+    protected static $notFilter = [];
 
     /**
      * 设置过滤
@@ -19,7 +19,7 @@ class CSRF {
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function setAllow($items = array()) {
+    public static function setAllow($items = []) {
         foreach ($items as $key => $value) {
             self::$notFilter[] = $value;
         }
@@ -30,7 +30,7 @@ class CSRF {
      * @author Colin <15070091894@163.com>
      */
     public static function execCSRF() {
-        if (POST) {
+        if (POST && Config('CSRF') == 1) {
             $url = Url::parseUrl();
             if (in_array($url, self::$notFilter)) {
                 return;

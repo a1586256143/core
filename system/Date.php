@@ -38,13 +38,13 @@ class Date {
     /**
      * 设置时间格式
      *
-     * @param string $model     时间格式
      * @param int    $timestamp 时间戳
+     * @param string $model     时间格式
      *
      * @return string
      * @author Colin <15070091894@163.com>
      */
-    public static function setDate($model, $timestamp) {
+    public static function setDate($timestamp, $model = null) {
         date_default_timezone_set(Config('DATE_DEFAULT_TIMEZONE'));
         if ($model == null) {
             return date('Y-m-d H:i:s', $timestamp);
