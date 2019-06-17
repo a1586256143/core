@@ -62,28 +62,8 @@ class Route {
         if (strpos($url, '@') === false) {
             $url .= '@' . Config('DEFAULT_METHOD');
         }
-        $url = self::parseClassName($key, $url);
 
         return $prefix . '\\' . $url;
-    }
-
-    /**
-     * 解析命名空间
-     *
-     * @param null $key
-     * @param null $url
-     */
-    protected static function parseClassName($key = null, $url = null) {
-        // 解析#号
-        if (strpos($url, '#') !== false) {
-            $prefix = array_shift(array_filter(explode('/', $key)));
-            $url    = str_replace('#', $prefix, $url);
-        }
-        if (strpos($url, '\\') === 0) {
-            $url = ltrim($url, '\\');
-        }
-
-        return $url;
     }
 
     /**
