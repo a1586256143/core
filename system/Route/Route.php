@@ -50,6 +50,11 @@ class Route {
      * @return [type] [description]
      */
     protected static function compleNamespace($key, $url = null) {
+        $prefix = '\\' . Config('DEFAULT_CONTROLLER_LAYER');
+
+        if (strpos($url, $prefix) === 0) {
+            return $url;
+        }
         if (strpos($url, '\\') === 0) {
             $url = ltrim($url, '\\');
         }
@@ -59,7 +64,7 @@ class Route {
         }
         $url = self::parseClassName($key, $url);
 
-        return '\\' . Config('DEFAULT_CONTROLLER_LAYER') . '\\' . $url;
+        return $prefix . '\\' . $url;
     }
 
     /**
@@ -73,6 +78,9 @@ class Route {
         if (strpos($url, '#') !== false) {
             $prefix = array_shift(array_filter(explode('/', $key)));
             $url    = str_replace('#', $prefix, $url);
+        }
+        if (strpos($url, '\\') === 0) {
+            $url = ltrim($url, '\\');
         }
 
         return $url;

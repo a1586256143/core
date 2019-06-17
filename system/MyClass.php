@@ -56,10 +56,15 @@ class MyClass {
         if (!defined('Debug')) define('Debug', true);
         //载入函数库文件
         require_once CommonDIR . '/functions.php';
-        //合并config文件内容
-        $merge = replace_recursive_params(Core . '/Conf/config.php', Common . '/config.php');
+        $config = require_file(Core . '/Conf/config.php');
+        // 解析.env文件
+        if (is_file(Common . '/.env')) {
+            $env = parse_ini_file(Common . '/.env');
+            //合并config文件内容
+            $config = array_replace_recursive($config, $env);
+        }
         //加入配置文件
-        Config($merge);
+        Config($config);
         //设置默认工作空间目录结构
         $dirnames = [
             'ControllerDIR' => APP_DIR . Config('DEFAULT_CONTROLLER_LAYER'),
@@ -114,7 +119,7 @@ class MyClass {
         outdir($dir);
         //生成默认的配置文件、控制器
         $data = [
-            [Common . '/config.php', View::createConfig()],    //配置文件
+            [Common . '/.env', View::createConfig()],    //配置文件
             [Common . '/template.php', View::createTemplate()], //模板配置文件
             [Common . '/routes.php', View::createRoute()], //路由配置文件
             [Common . '/csrf.php', View::createCSRF()], //csrf配置文件

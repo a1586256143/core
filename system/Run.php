@@ -21,11 +21,11 @@ define('Library', APP_DIR . 'librarys');
 //定义运行目录
 define('RunTime', APP_DIR . 'runtimes');
 //公共文件目录
-define('Common', APP_DIR . 'globals');
+define('Common', APP_DIR . 'config');
 //系统公共目录
 define('CommonDIR', Core . 'Common');
 //定义版本信息
-define('VERSION', '3.1.4');
+define('VERSION', '3.1.6');
 //定义版本信息
 define('PHP_CLI', PHP_SAPI === 'cli' ? true : false);
 //引入MyClass核心文件

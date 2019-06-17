@@ -29,9 +29,9 @@ class View {
 namespace $namespace;
 use system\Base;
 class $default extends Base{
-	public function index(){
-		return 'Welcome to use MyClassPHP';
-	}
+    public function index(){
+        return 'Welcome to use MyClassPHP';
+    }
 }
 ";
 
@@ -59,18 +59,12 @@ class $default extends Model{
      * @author Colin <15070091894@163.com>
      */
     public static function createConfig() {
-        $string = "<?php
-return array(
-	//配置名 => 配置值
-    'DB_HOST' => 'localhost' ,  //数据库地址
-    'DB_TYPE' => 'mysqli' ,     //数据库类型
-    'DB_TABS' => '' ,           //数据表名
-    'DB_USER' => 'root' ,       //数据库用户
-    'DB_PASS' => '' ,           //数据库密码
-    'DB_CODE' => 'utf8' ,       //数据库编码
-    'DB_PORT' => '3306' ,         //数据库端口
-    'DB_PREFIX' => '' ,         //数据库前缀
-);
+        $string = "[config]
+DB_HOST=localhost   #数据库地址
+DB_TYPE=mysqli      #数据库类型
+DB_TABS=test        #数据表名
+DB_USER=root        #数据库用户
+DB_PASS=你的密码     #数据库密码
 ";
 
         return $string;
@@ -139,6 +133,9 @@ CSRF::setAllow(array(
      */
     public static function createFunc() {
         $string = "<?php
+/**
+ * 在这里定义你的自定义函数
+ */
 ";
 
         return $string;
