@@ -17,7 +17,11 @@ class Mysqli extends Db {
      * @author Colin <15070091894@163.com>
      */
     public function connect() {
-        $host      = Config('DB_HOST') . ':' . Config('DB_PORT');
+        $port = Config('DB_PORT');
+        $host = Config('DB_HOST');
+        if ($port) {
+            $host .= ':' . $port;
+        }
         $this->_db = new \mysqli($host, Config('DB_USER'), Config('DB_PASS'));
         if (mysqli_connect_errno()) {
             throw new \system\MyError(mysqli_connect_error());

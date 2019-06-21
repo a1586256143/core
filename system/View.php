@@ -60,11 +60,11 @@ class $default extends Model{
      */
     public static function createConfig() {
         $string = "[config]
-DB_HOST=localhost   #数据库地址
-DB_TYPE=mysqli      #数据库类型
-DB_TABS=test        #数据表名
-DB_USER=root        #数据库用户
-DB_PASS=你的密码     #数据库密码
+DB_HOST=localhost   ;数据库地址
+DB_TYPE=mysqli      ;数据库类型
+DB_TABS=test        ;数据表名
+DB_USER=root        ;数据库用户
+DB_PASS=你的密码     ;数据库密码
 ";
 
         return $string;

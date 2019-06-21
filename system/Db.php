@@ -26,6 +26,9 @@ abstract class Db {
             } else if (strtolower(Config('DB_TYPE')) == 'pdo') {
                 self::$db = new Drivers\PDO();
             }
+            if (!self::$db) {
+                throw new MyError('数据库驱动失败，请检查配置文件');
+            }
             self::$db->connect();
             self::CheckDatabase();
             self::$db->query('SET NAMES ' . Config('DB_CODE'));

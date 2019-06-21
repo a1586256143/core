@@ -7,6 +7,7 @@
 namespace system\Model\Drivers;
 
 use system\Db;
+use system\MyError;
 
 class Mysql extends Db {
     protected $_db;
@@ -16,7 +17,14 @@ class Mysql extends Db {
      * @author Colin <15070091894@163.com>
      */
     public function connect() {
-        $host      = Config('DB_HOST') . ':' . Config('DB_PORT');
+        $port = Config('DB_PORT');
+        $host = Config('DB_HOST');
+        if ($port) {
+            $host .= ':' . $port;
+        }
+        if (version_compare(PHP_VERSION, '5.5.0', '>')) {
+            throw new MyError('不支持的mysql库，请检查你的PHP版本');
+        }
         $this->_db = mysql_connect($host, Config('DB_USER'), Config('DB_PASS'));
         if (!$this->_db) {
             throw new \system\MyError(mysql_error());

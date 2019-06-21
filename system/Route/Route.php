@@ -62,7 +62,6 @@ class Route {
         if (strpos($url, '@') === false) {
             $url .= '@' . Config('DEFAULT_METHOD');
         }
-
         return $prefix . '\\' . $url;
     }
 
