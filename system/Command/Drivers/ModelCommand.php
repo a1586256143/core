@@ -1,7 +1,8 @@
 <?php
 
-namespace system\Command\Dirvers;
+namespace system\Command\Drivers;
 
+use system\IO\Build\Task\ModelBuild;
 use system\View;
 use system\Command\CommandInterface;
 use system\Command\CommandParse;
@@ -28,7 +29,7 @@ class ModelCommand implements CommandInterface {
     public function generate($argv = null) {
         $common = new CommandParse($argv);
 
-        return $common->generateFile(Config('DEFAULT_MODEL_LAYER'));
+        return $common->generateFile(Config('DEFAULT_MODEL_LAYER'), $this->getBuild());
     }
 
     /**
@@ -36,7 +37,7 @@ class ModelCommand implements CommandInterface {
      * @return string
      */
     public function getHelp() {
-        return '创建模型 使用方法为 php make.php model test';
+        return './make model test';
     }
 
     /**
@@ -45,5 +46,17 @@ class ModelCommand implements CommandInterface {
      */
     public function getCommand() {
         return 'model';
+    }
+
+    /**
+     * 获取Build
+     * @return string
+     */
+    public function getBuild() {
+        return ModelBuild::class;
+    }
+
+    public function requireName() {
+        return true;
     }
 }

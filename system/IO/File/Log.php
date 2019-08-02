@@ -1,6 +1,9 @@
 <?php
 
-namespace system;
+namespace system\IO\File;
+
+use system\Factory;
+
 class Log {
 
     protected static $file;
@@ -16,7 +19,7 @@ class Log {
      */
     public static function addRecord($msg = null, $time = false, $prefix = null) {
         if ($time) {
-            $msg = Date::setDate(null, time()) . ' --- ' . $msg;
+            $msg = date('Y-m-d H:i:s') . ' --- ' . $msg;
             self::timeRecord();
         }
         if ($prefix) {
@@ -42,22 +45,28 @@ class Log {
         if (!Debug) {
             return true;
         }
-        self::$file = File::getInstance();
+        self::$file = Factory::File();
         $logDir     = Config('LOGDIR');
         //创建日志文件夹
         outdir($logDir);
         //日志文件名格式
         $logName = date('Y-m-d', time());
         //日志后缀
-        $logSuffix    = Config('LOG_SUFFIX');
-        $logPath      = $logDir . '/' . $logName . $logSuffix;
+        $logSuffix = Config('LOG_SUFFIX');
+        $logPath   = $logDir . '/' . $logName . $logSuffix;
         $msg && self::$logs[] = $msg;
         self::$logs[] = '[RunTime] ' . self::timeRecord(1);
         self::$logs[] = '[Memory] ' . self::memoryRecord();
         $logs         = implode(PHP_EOL, self::$logs);
-        self::$file->AppendFile($logPath, $logs . PHP_EOL . PHP_EOL, false);
+        self::$file->appendFileContent($logPath, $logs . PHP_EOL . PHP_EOL, false);
     }
 
+    /**
+     * 实现调用静态方法
+     *
+     * @param $name
+     * @param $arguments
+     */
     public static function __callStatic($name, $arguments) {
         self::addRecord($arguments[0], false, strtoupper($name));
     }

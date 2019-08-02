@@ -4,12 +4,14 @@
  * @author Colin <15070091894@163.com>
  */
 
-namespace system;
+namespace system\Model;
 
-use system\Model\Drivers as Drivers;
+use system\IO\Storage\Storage;
 
 abstract class Db {
     protected static $db;
+    // $_db 供子类存储用
+    protected $_db;
 
     /**
      * 获取数据库类
@@ -19,13 +21,8 @@ abstract class Db {
         if (self::$db) {
             return self::$db;
         } else {
-            if (strtolower(Config('DB_TYPE')) == 'mysqli') {
-                self::$db = new Drivers\Mysqli();
-            } else if (strtolower(Config('DB_TYPE')) == 'mysql') {
-                self::$db = new Drivers\Mysql();
-            } else if (strtolower(Config('DB_TYPE')) == 'pdo') {
-                self::$db = new Drivers\PDO();
-            }
+            $types    = 'system\Model\Drivers\\' . ucfirst(strtolower(Config('DB_TYPE')));
+            self::$db = new $types;
             if (!self::$db) {
                 throw new MyError('数据库驱动失败，请检查配置文件');
             }
@@ -36,72 +33,6 @@ abstract class Db {
             return self::$db;
         }
     }
-
-    /**
-     * 连接数据库
-     * @author Colin <15070091894@163.com>
-     */
-    abstract public function connect();
-
-    /**
-     * query
-     *
-     * @param  string $sql [要执行的sql语句]
-     *
-     * @author Colin <15070091894@163.com>
-     */
-    abstract public function query($sql);
-
-    /**
-     * 选择数据库方法
-     *
-     * @param  string $tables [数据库名]
-     *
-     * @author Colin <15070091894@163.com>
-     */
-    abstract public function select_db($tables);
-
-    /**
-     * 获取结果集 以数组格式获取
-     *
-     * @param  string $query [query后的结果集]
-     *
-     * @author Colin <15070091894@163.com>
-     */
-    abstract public function fetch_array($query);
-
-    /**
-     * 获取新增的ID
-     * @author Colin <15070091894@163.com>
-     */
-    abstract public function insert_id();
-
-    /**
-     * 获取执行影响的记录数
-     * @author Colin <15070091894@163.com>
-     */
-    abstract public function affected_rows();
-
-    /**
-     * 关闭数据库
-     * @author Colin <15070091894@163.com>
-     */
-    abstract public function close();
-
-    /**
-     * 返回最近的一条sql语句错误信息
-     * @author Colin <15070091894@163.com>
-     */
-    abstract public function showerror();
-
-    /**
-     * 获取数据库所有字段信息
-     *
-     * @param  string $table [表名]
-     *
-     * @author Colin <15070091894@163.com>
-     */
-    abstract public function getFields($table);
 
     /**
      * 确认数据库是否存在
@@ -176,7 +107,7 @@ abstract class Db {
      * @return array
      */
     protected function getResult($query) {
-        $data = array();
+        $data = [];
         while ($rows = $this->fetch_array($query)) {
             $data[] = $rows;
         }
@@ -214,5 +145,22 @@ abstract class Db {
      */
     public function commit() {
         return $this->query('commit');
+    }
+
+    /**
+     * 获取表所有字段
+     *
+     * @param string $table [表名]
+     *
+     * @author Colin <15070091894@163.com>
+     */
+    public function getFields($table) {
+        $prefix = Config('DB_PREFIX') . $table;
+        $dbName = Config('DB_TABS');
+        $query  = $this->_db->query("select COLUMN_NAME from information_schema.COLUMNS where table_name = '$prefix' and table_schema = '$dbName' ");
+        $result = $this->getResult($query);
+        $result = array_column($result, 'COLUMN_NAME');
+
+        return $result;
     }
 }

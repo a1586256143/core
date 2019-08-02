@@ -1,7 +1,8 @@
 <?php
 
-namespace system\Command\Dirvers;
+namespace system\Command\Drivers;
 
+use system\IO\Build\Task\ControllerBuild;
 use system\View;
 use system\Command\CommandInterface;
 use system\Command\CommandParse;
@@ -29,7 +30,7 @@ class ControllerCommand implements CommandInterface {
     public function generate($argv = null) {
         $common = new CommandParse($argv);
 
-        return $common->generateFile(Config('DEFAULT_CONTROLLER_LAYER'));
+        return $common->generateFile(Config('DEFAULT_CONTROLLER_LAYER'), $this->getBuild());
     }
 
     /**
@@ -37,7 +38,7 @@ class ControllerCommand implements CommandInterface {
      * @return string
      */
     public function getHelp() {
-        return '创建控制器 使用方法为 php make.php controller user';
+        return './make controller user';
     }
 
     /**
@@ -46,5 +47,17 @@ class ControllerCommand implements CommandInterface {
      */
     public function getCommand() {
         return 'controller';
+    }
+
+    /**
+     * 获取Build
+     * @return string
+     */
+    public function getBuild() {
+        return ControllerBuild::class;
+    }
+
+    public function requireName() {
+        return true;
     }
 }

@@ -6,10 +6,11 @@
 
 namespace system\Model\Drivers;
 
-use system\Db;
+use system\Model\Db;
+use system\Model\DBInterface;
 use system\MyError;
 
-class Mysql extends Db {
+class Mysql extends Db implements DBInterface {
     protected $_db;
 
     /**
@@ -57,7 +58,7 @@ class Mysql extends Db {
      * @author Colin <15070091894@163.com>
      */
     public function fetch_array($query = null) {
-        $fetch = mysql_fetch_array($query);
+        $fetch = mysql_fetch_assoc($query);
         mysql_free_result($fetch);
 
         return $fetch;
@@ -93,21 +94,5 @@ class Mysql extends Db {
      */
     public function showerror() {
         return mysql_error();
-    }
-
-    /**
-     * 获取表所有字段
-     * @author Colin <15070091894@163.com>
-     */
-    public function getFields($table) {
-        $prefix = Config('DB_PREFIX') . $table;
-        $query  = $this->_db->query("select COLUMN_NAME from information_schema.COLUMNS where table_name = '$prefix'");
-        $result = $this->getResult($query);
-        foreach ($result as $key => $value) {
-            $fields[] = $value['COLUMN_NAME'];
-        }
-        $result = array_values($fields);
-
-        return $result;
     }
 }

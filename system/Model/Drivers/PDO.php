@@ -6,9 +6,13 @@
 
 namespace system\Model\Drivers;
 
-use system\Db;
+use system\Model\Db;
+use system\Model\DBInterface;
 
-class PDO extends Db {
+class Pdo extends Db implements DBInterface {
+    /**
+     * @var \Pdo
+     */
     protected $_db;
 
     /**
@@ -17,7 +21,7 @@ class PDO extends Db {
      */
     public function connect() {
         $string    = "mysql:host=%s;dbname=%s";
-        $this->_db = new \PDO(sprintf($string, Config('DB_HOST'), Config('DB_NAME')), Config('DB_USER'), Config('DB_PASS'));
+        $this->_db = new \PDO(sprintf($string, Config('DB_HOST'), Config('DB_TABS')), Config('DB_USER'), Config('DB_PASS'));
     }
 
     /**
@@ -55,10 +59,10 @@ class PDO extends Db {
      */
     public function fetch_array($query = null) {
         if ($query) {
-            return $query->fetch();
+            return $query->fetch(\PDO::FETCH_ASSOC);
         }
 
-        return $this->query->fetch();
+        return $this->query->fetch(\PDO::FETCH_ASSOC);
     }
 
     /**
@@ -90,19 +94,8 @@ class PDO extends Db {
      * @author Colin <15070091894@163.com>
      */
     public function showerror() {
-        $info = $this->query->errorInfo();
+        $info = $this->_db->errorInfo();
 
         return $info[2];
-    }
-
-    /**
-     * 获取数据库所有字段信息
-     *
-     * @param  [string] $table [表名]
-     *
-     * @author Colin <15070091894@163.com>
-     */
-    public function getFields($table) {
-
     }
 }

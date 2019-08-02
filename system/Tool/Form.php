@@ -4,7 +4,7 @@
  * @author Colin <15070091894@163.com>
  */
 
-namespace system;
+namespace system\Tool;
 class Form {
     public static $form;
 
@@ -17,7 +17,7 @@ class Form {
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function openForm($action = null, $method = 'post', $attr = array()) {
+    public static function openForm($action = null, $method = 'post', $attr = []) {
         $attr       = walkFormAttr($attr);
         self::$form = "<form method='$method' action='$action' $attr>\n";
         self::echoForm();
@@ -56,7 +56,7 @@ class Form {
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function inputText($name = null, $value = null, $attr = array()) {
+    public static function inputText($name = null, $value = null, $attr = []) {
         self::input('text', $name, $value, $attr);
     }
 
@@ -69,7 +69,7 @@ class Form {
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function inputHidden($name = null, $value = null, $attr = array()) {
+    public static function inputHidden($name = null, $value = null, $attr = []) {
         self::input('hidden', $name, $value, $attr);
     }
 
@@ -82,7 +82,7 @@ class Form {
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function inputPass($name = null, $value = null, $attr = array()) {
+    public static function inputPass($name = null, $value = null, $attr = []) {
         self::input('password', $name, $value, $attr);
     }
 
@@ -96,7 +96,7 @@ class Form {
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function input($type = null, $name = null, $value = null, $attr = array()) {
+    public static function input($type = null, $name = null, $value = null, $attr = []) {
         $attr       = walkFormAttr($attr);
         self::$form = "\t\t<input type='$type' name='$name' value='$value' $attr>\n";
         self::echoForm();
@@ -112,7 +112,7 @@ class Form {
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function select($args = array(), $name = null, $value = null, $attr = array()) {
+    public static function select($args = [], $name = null, $value = null, $attr = []) {
         $attr       = walkFormAttr($attr);
         self::$form = "\t\t<select name='$name' $attr>\n";
         foreach ($args as $k => $v) {
@@ -132,7 +132,7 @@ class Form {
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function textarea($name = null, $value = null, $attr = array()) {
+    public static function textarea($name = null, $value = null, $attr = []) {
         $attr       = walkFormAttr($attr);
         self::$form = "\t\t<textarea name='$name' $attr>$value</textarea>\n";
         self::echoForm();
@@ -148,7 +148,7 @@ class Form {
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function button($type = null, $name = null, $value = '确定', $attr = array()) {
+    public static function button($type = null, $name = null, $value = '确定', $attr = []) {
         $attr       = walkFormAttr($attr);
         self::$form = "\t\t<button type='$type' name='$name' $attr>$value</button>\n";
         self::echoForm();
@@ -163,7 +163,7 @@ class Form {
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function submitButton($name = null, $value = null, $attr = array()) {
+    public static function submitButton($name = null, $value = null, $attr = []) {
         self::button('submit', $name, $value, $attr);
     }
 
@@ -176,7 +176,7 @@ class Form {
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function generalButton($name = null, $value = null, $attr = array()) {
+    public static function generalButton($name = null, $value = null, $attr = []) {
         self::button('button', $name, $value, $attr);
     }
 
@@ -189,7 +189,7 @@ class Form {
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function resetButton($name = null, $value = null, $attr = array()) {
+    public static function resetButton($name = null, $value = null, $attr = []) {
         self::button('reset', $name, $value, $attr);
     }
 

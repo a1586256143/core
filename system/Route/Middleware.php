@@ -30,5 +30,5 @@ abstract class Middleware extends Base {
      * 执行中间件
      * @author Colin <15070091894@163.com>
      */
-    abstract function execMiddleware();
+    abstract function execMiddleware(Base $controller, Route $route);
 }

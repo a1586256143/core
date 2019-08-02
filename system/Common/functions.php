@@ -23,8 +23,8 @@ function ajaxReturn($array = null) {
  *
  * @param $msg
  */
-function success($msg) {
-    $item = ['code' => 200, 'msg' => $msg];
+function success($msg, $code = 200) {
+    $item = ['code' => $code, 'msg' => $msg];
     if (is_array($msg)) {
         $item['data'] = $msg;
         unset($item['msg']);
@@ -52,7 +52,7 @@ function error($msg, $code = 404) {
  * @author Colin <15070091894@163.com>
  */
 function M($name = null) {
-    return system\Factory::CreateSystemModel();
+    return system\Factory::CreateSystemModel($name);
 }
 
 /**
@@ -65,7 +65,7 @@ function M($name = null) {
 function E($message) {
     $debug = Debug;
     //记录日志
-    system\Log::generator($message);
+    \system\IO\File\Log::generator($message);
     if (AJAX) {
         return error($message);
     }
@@ -288,18 +288,18 @@ function S($name = '', $value = '', $time = 0) {
     //实例化一个缓存句柄
     $cache = \system\Factory::CreateCache();
     if ($name == 'null') {
-        $cache->clearCache();
+        $cache->clear();
     } else if (!empty($name) && is_null($value)) {
         //移除缓存
-        $cache->removeCache($name);
+        $cache->remove($name);
     } else if (!empty($name) && !empty($value)) {
         //生成缓存
-        $cache->outputFileName($name, $value);
+        $cache->set($name, $value, $time);
 
         return $value;
     } else if (!empty($name) && empty($value)) {
         //读取缓存
-        return $time ? $cache->readCache($name, $time) : $cache->readCache($name);
+        return $cache->get($name, $time);
     }
 }
 
@@ -307,12 +307,8 @@ function S($name = '', $value = '', $time = 0) {
  * 日志
  * @author Colin <15070091894@163.com>
  */
-/**
- * 日志
- * @author Colin <15070091894@163.com>
- */
 function WriteLog($message) {
-    system\Log::addRecord($message);
+    \system\IO\File\Log::addRecord($message);
 }
 
 /**
@@ -475,7 +471,7 @@ function checkSecurity($secur_number = null) {
  * @return [type] [description]
  */
 function _token($token = false) {
-    return system\Form::security($token);
+    return system\Tool\Form::security($token);
 }
 
 /**
@@ -576,14 +572,17 @@ function _parseFileName($filename) {
         return $filename;
     }
     $filename .= Config('TPL_TYPE');
+
     return $filename;
 }
 
 /**
  * 扩展smarty的函数
+ *
  * @param  [type] $url [description]
+ *
  * @return [type]      [description]
  */
-function smarty_modifier_url($url){
+function smarty_modifier_url($url) {
     return url($url);
 }

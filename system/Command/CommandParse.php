@@ -4,6 +4,8 @@ namespace system\Command;
 
 use system\Facade;
 use system\Factory;
+use system\IO\Build\Build;
+use system\IO\Build\Task\ModelBuild;
 use system\View;
 
 class CommandParse {
@@ -13,6 +15,7 @@ class CommandParse {
     public $dirname;
     public $path;
     public $className;
+    public $action = '';
 
     /**
      * 构造方法
@@ -21,6 +24,7 @@ class CommandParse {
      */
     public function __construct($argv) {
         list($cli, $action, $name) = $argv;
+        $this->action     = $action;
         $this->names      = explode('/', $name);
         $this->namescount = count($this->names);
     }
@@ -30,7 +34,7 @@ class CommandParse {
      * @return [type] [description]
      */
     public function getController() {
-        $this->setvalue(ControllerDIR, 'controllers');
+        $this->setvalue(ControllerDIR);
     }
 
     /**
@@ -38,7 +42,7 @@ class CommandParse {
      * @return [type] [description]
      */
     public function getModel() {
-        $this->setvalue(ModelDIR, 'models');
+        $this->setvalue(ModelDIR);
     }
 
     /**
@@ -93,17 +97,20 @@ class CommandParse {
      *
      * @return bool
      */
-    public function generateFile($namespace = null) {
+    public function generateFile($namespace = null, $buildType) {
         $this->setvalue($namespace);
         // 设置参数
         $this->seting();
         // 生成文件
         $this->createdata();
-        $file = Factory::File();
-        if (!is_file($this->path)) {
-
-            return $file->WriteFile($this->path, View::createIndex($this->className, $this->namespace), false);
-        }
+        $file  = Factory::File();
+        $build = new Build();
+        $build->addBuild('module', new $buildType([
+            'namespace' => $this->namespace,
+            'name'      => $this->className,
+            'path'      => $this->path,
+        ]));
+        $build->buildStart();
 
         return true;
     }

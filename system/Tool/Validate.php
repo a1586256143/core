@@ -4,12 +4,12 @@
  * @author Colin <15070091894@163.com>
  */
 
-namespace system;
+namespace system\Tool;
 class Validate {
     protected $string          = '';        //要处理的字符串
     protected $require         = 0;        //是否必填
-    protected $parstring       = array();//处理后的字符串
-    protected $config          = array();    //配置信息
+    protected $parstring       = [];//处理后的字符串
+    protected $config          = [];    //配置信息
     protected $maxlength       = '';        //最大长度
     protected $minlength       = '';        //最小长度
     protected $info            = '';            //提示消息
@@ -228,7 +228,7 @@ class Validate {
                 showMessage($this->info);
                 break;
             case 'ajaxReturn':
-                ajaxReturn(array('info' => $this->info, 'url' => null, 'status' => 0));
+                ajaxReturn(['info' => $this->info, 'url' => null, 'status' => 0]);
                 break;
             default :
                 $this->type($this->info);

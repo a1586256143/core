@@ -4,7 +4,7 @@
  * @author Colin <15070091894@163.com>
  */
 
-namespace system;
+namespace system\IO\File;
 class File {
     protected        $file;
     protected static $instance;
@@ -28,9 +28,9 @@ class File {
      *
      * @author Colin <15070091894@163.com>
      */
-    public function OpenFile($filename, $time = 0) {
+    public function getFileContent($filename, $time = 0) {
         if ($time && (fileatime($filename) + $time) <= time()) {
-            $this->DeleteFile($filename);
+            $this->removeFile($filename);
 
             return null;
         }
@@ -50,7 +50,7 @@ class File {
      *
      * @author Colin <15070091894@163.com>
      */
-    public function OpenFileDir($path) {
+    public function getDirFiles($path) {
         //打开目录
         $dir_soule = opendir($path);
 
@@ -64,15 +64,15 @@ class File {
      *
      * @author Colin <15070091894@163.com>
      */
-    public function ClearPathData($path) {
+    public function removeAll($path) {
         //打开目录
-        $dir_soule = $this->OpenFileDir($path);
+        $dir_soule = $this->getDirFiles($path);
         //读取目录内容
         while ($filename = readdir($dir_soule)) {
             //屏蔽. 和 .. 特殊操作符
-            if (in_array($filename, array('.', '..'))) continue;
+            if (in_array($filename, ['.', '..'])) continue;
             //删除文件
-            $this->DeleteFile($path . $filename);
+            $this->removeFile($path . $filename);
         }
     }
 
@@ -86,7 +86,7 @@ class File {
      */
     public function getDirAllFile($path = null, $suffix = null) {
         //打开目录
-        $dir_soule = $this->OpenFileDir($path);
+        $dir_soule = $this->getDirFiles($path);
         while ($filename = readdir($dir_soule)) {
             $filepath = $path . '/' . $filename;
             //获取文件信息，主要获取文件后缀
@@ -96,7 +96,7 @@ class File {
                 if ($info['extension'] != $suffix) continue;
             }
             //屏蔽. 和 .. 特殊操作符
-            if (in_array($filename, array('.', '..', '.DS_Store'))) continue;
+            if (in_array($filename, ['.', '..', '.DS_Store'])) continue;
             if (is_dir($filepath)) {
                 //如果是文件夹则递归
                 $file[ $filename ] = $this->getDirAllFile($filepath);
@@ -117,7 +117,7 @@ class File {
      *
      * @author Colin <15070091894@163.com>
      */
-    public function WriteFile($filename, $data, $isJson = true) {
+    public function putFileContent($filename, $data, $isJson = true) {
         if ($isJson) {
             //对数据进行json编码
             $data = json_encode($data);
@@ -139,7 +139,7 @@ class File {
      *
      * @author Colin <15070091894@163.com>
      */
-    public function AppendFile($filename, $data) {
+    public function appendFileContent($filename, $data) {
         $fopen = fopen($filename, 'a');
         fwrite($fopen, $data);
         fclose($fopen);
@@ -149,64 +149,23 @@ class File {
      * 删除文件
      * @author Colin <15070091894@163.com>
      */
-    public function DeleteFile($filename) {
+    public function removeFile($filename) {
         //删除文件
         return @unlink($filename);
     }
 
     /**
-     * 获取上一层目录
+     * 是否是一个文件
      *
-     * @param string $path       路径
-     * @param string $endpath    遇到哪个目录停止
-     * @param string $return_all 是否返回整条路径，如果为false 则返回上一层的文件夹名称
+     * @param $filename
      *
-     * @author Colin <15070091894@163.com>
+     * @return bool
      */
-    public function getprev($path = null, $endpath = null, $return_all = false) {
-        $preg_replace = preg_replace("/\\\\/", '/', $path);
-        $path         = explode('/', $preg_replace);
-        $pop          = array_pop($path);
-        $endname      = array_pop($path);
-        //处理遇到目录tingzhi
-        $endpath    = explode('/', $endpath);
-        $endpop     = array_pop($endpath);
-        $merge_path = implode('/', $path);
-        if ($endname == $endpop) {
-            return null;
+    public function isExsits($filename) {
+        if (!is_file($filename)) {
+            return false;
         }
-        if (is_dir($merge_path)) {
-            return $return_all ? $merge_path : $endname;
-        }
-    }
 
-    /**
-     * 显示一个文件管理系统
-     *
-     * @param string $path 访问路径
-     *
-     * @author Colin <15070091894@163.com>
-     */
-    public function fileManage($path = null, $param = null, $style = 'table') {
-        $oldpath = $path;
-        if (!empty($param)) {
-            $path = $path . $param;
-        }
-        $path      = preg_replace('/@/', '/', $path);
-        $parsepath = preg_replace('/@/', '/', $param);
-        $prepath   = $this->getprev($path, $oldpath);
-        if ($prepath) {
-            $prepath = '@' . $prepath;
-            if (!$param) {
-                $prepath = '';
-            }
-        }
-        $data['filearray'] = $this->getDirAllFile($path);
-        $data['oldpath']   = $oldpath;
-        $data['param']     = $param;
-        $data['prepath']   = $prepath;
-        $data['parsepath'] = $parsepath;
-
-        return $data;
+        return true;
     }
 }

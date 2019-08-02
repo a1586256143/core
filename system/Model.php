@@ -5,6 +5,10 @@
  */
 
 namespace system;
+
+use system\IO\File\Log;
+use system\Validate;
+
 class Model {
     protected $db               = '';                    //数据库句柄
     protected $db_prefix        = '';            //获取数据表前缀
@@ -30,6 +34,7 @@ class Model {
     protected $callback         = '';            //回调时使用的操作句柄
     protected $Join             = [];            //join
     protected $startTransaction = 0;    //开启事务
+    protected $map              = [];   // 查询时默认加入的条件
     const MODEL_INSERT = 1;                //新增时操作
     const MODEL_UPDATE = 2;                //修改时操作
     const MODEL_BOTH   = 3;                //所有操作
@@ -625,6 +630,36 @@ class Model {
     }
 
     /**
+     * 获取单条数据
+     *
+     * @param null|array $id
+     * @param string     $field
+     * @param string     $desc
+     *
+     * @return array|string|int
+     */
+    public function getFind($id = null, $field = '*', $desc = '') {
+        if (is_array($id)) {
+            $map = $id;
+        } else {
+            $map = ['id' => $id];
+        }
+        $find = $this->field($field)->where($map);
+        if ($desc) {
+            $find->order($desc . ' DESC');
+        }
+        $find = $find->find();
+        if ($field !== '*') {
+            $fields = explode(',', $field);
+            if (count($fields) == 1) {
+                return $find[ $field ];
+            }
+        }
+
+        return $find;
+    }
+
+    /**
      * 容错处理机制
      *
      * @param string $fun
@@ -649,7 +684,7 @@ class Model {
     }
 
     /**
-     * invoke方法  处理吧类当成函数来使用
+     * invoke方法  处理把类当成函数来使用
      * @author Colin <15070091894@163.com>
      */
     public function __invoke() {
@@ -1049,7 +1084,6 @@ class Model {
             }
             $member        = strtolower($match[0]);
             $this->$member = $value;
-            // eval('$this->' . $member . ' = "' . $value . '";');
         }
     }
 }

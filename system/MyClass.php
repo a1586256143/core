@@ -5,6 +5,10 @@
  */
 
 namespace system;
+
+use system\IO\Build\Build;
+use system\Date;
+
 class MyClass {
     /**
      * 运行方法
@@ -17,13 +21,12 @@ class MyClass {
             //注册autoload方法
             spl_autoload_register('system\\MyClass::autoload');
             //收集错误
-            MyError::error_traceassstring();
-            //创建项目文件夹
-            self::Dir();
-            //视图初始化
-            self::View();
-            //初始化路由
-            self::initRoute();
+            MyError::traceError();
+            // Build
+            $build = new Build();
+            $build->exec();
+            // 启动
+            self::start();
         } catch (MyError $m) {
             die($m);
         }
@@ -39,10 +42,11 @@ class MyClass {
     public static function autoload($ClassName) {
         if (preg_match("/\\\\/", $ClassName)) {
             //是否为命名空间加载
-            $ClassName = preg_replace("/\\\\/", "/", $ClassName);
+            $ClassName = preg_replace("/\\\\/", DIRECTORY_SEPARATOR, $ClassName);
             // 简单处理app命名空间
-            list($dirname) = explode('/', $ClassName);
-            $ClassName = $dirname != 'system' ? APP_NAME . '/' . $ClassName : NAME_SPACE . $ClassName;
+            list($dirname) = explode(DIRECTORY_SEPARATOR, $ClassName);
+            $path      = APP_PATH . APP_NAME . DIRECTORY_SEPARATOR;
+            $ClassName = $dirname != 'system' ? $path . $ClassName : NAME_SPACE . $ClassName;
             require_file($ClassName . Config('DEFAULT_CLASS_SUFFIX'));
         }
     }
@@ -65,102 +69,31 @@ class MyClass {
         }
         //加入配置文件
         Config($config);
-        //设置默认工作空间目录结构
-        $dirnames = [
-            'ControllerDIR' => APP_DIR . Config('DEFAULT_CONTROLLER_LAYER'),
-            'ModelDIR'      => APP_DIR . Config('DEFAULT_MODEL_LAYER'),
-            'ViewDIR'       => APP_DIR . Config('TPL_DIR'),
-        ];
-        //根据数组的key 生成常量
-        foreach ($dirnames as $key => $value) {
-            if (!defined($key)) {
-                define($key, $value);
-            }
-        }
         //解析session
         if (Config('SESSION_START')) {
             session_start();
         }
-        //加载全部配置文件
-        $app = Common . '/functions.php';
-        require_file($app);
-    }
-
-    /**
-     * 目录结构方法
-     * @author Colin <15070091894@163.com>
-     */
-    public static function Dir() {
-        //缓存文件夹
-        $cache = rtrim(ltrim(Config('CACHE_DIR'), './'), './');
-        //缓存临时文件
-        $cacheTmp = rtrim(ltrim(Config('CACHE_DATA_DIR'), './'), './');
-        if (strpos($_SERVER['HTTP_USER_AGENT'], 'Mac OS')) {
-            $cache    = '/' . $cache;
-            $cacheTmp = '/' . $cacheTmp;
-        }
-        if (!is_dir(APP_DIR)) {
-            //更新文件权限
-            shell_exec('chmod -R 0755 ' . APP_DIR);
-        }
-        //批量创建目录
-        $dir = [
-            APP_PATH,                //应用路径
-            APP_DIR,                //系统app目录
-            RunTime,                //运行目录
-            ControllerDIR,        //控制器目录
-            ModelDIR,                //模型目录
-            ViewDIR,                //视图目录
-            $cache,                //缓存目录
-            $cacheTmp,            //缓存临时文件
-            Common,                //全局目录
-            Library,                //第三方目录
-        ];
-        outdir($dir);
-        //生成默认的配置文件、控制器
-        $data = [
-            [Common . '/.env', View::createConfig()],    //配置文件
-            [Common . '/template.php', View::createTemplate()], //模板配置文件
-            [Common . '/routes.php', View::createRoute()], //路由配置文件
-            [Common . '/csrf.php', View::createCSRF()], //csrf配置文件
-            [Common . '/functions.php', View::createFunc()], //函数配置文件
-            [
-                _getFileName(ControllerDIR . '/' . Config('DEFAULT_CONTROLLER')),
-                View::createIndex(Config('DEFAULT_CONTROLLER'))
-            ]            //控制器
-        ];
-        $file = Factory::File();
-        //批量创建文件
-        foreach ($data as $key => $value) {
-            if (!file_exists($value[0])) {
-                $file->WriteFile($value[0], $value[1], false);
-            }
-        }
         //设置默认时间格式
-        Date::set_timezone();
+        date_default_timezone_set(Config('TIMEZONE'));
     }
 
     /**
-     * 初始化路由
-     * @author Colin <15070091894@163.com>
+     * 执行一系列操作
+     * @return mixed
      */
-    public static function initRoute() {
+    public static function start() {
         //加载配置文件
-        $requires = [Common . '/routes.php', Common . '/csrf.php'];
+        $requires = [
+            Common . '/routes.php',
+            Common . '/csrf.php',
+            Common . '/template.php',
+            Common . '/functions.php'
+        ];
         //批量引入
         require_file($requires);
-        //执行路由
-        Route\Route::init();
-    }
-
-    /**
-     * 视图初始化
-     * @author Colin <15070091894@163.com>
-     */
-    public static function View() {
-        //加载配置文件
-        require_file(Common . '/template.php');
         //初始化视图工厂
         View::init(Config('TPL_MODEL'), Config('TPL_CONFIG'));
+        //执行路由
+        Route\Route::init();
     }
 }

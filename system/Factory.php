@@ -6,8 +6,11 @@
 
 namespace system;
 
+use system\IO\File\File;
+use system\IO\Storage\Storage;
 use system\Templates\MyTemplate\Templates;
 use system\Templates\MyTemplate\Parser;
+use system\Model\Db;
 
 class Factory {
 
@@ -23,10 +26,10 @@ class Factory {
     /**
      * 创建缓存类
      * @author Colin <15070091894@163.com>
-     * @return \system\Cache
+     * @return \system\IO\Storage\Drivers\RedisStorage
      */
     public static function CreateCache() {
-        return Cache::getInstance();
+        return Storage::getIns();
     }
 
     /**
@@ -39,13 +42,9 @@ class Factory {
      * @return Templates
      */
     public static function CreateTemplates($type = null, $config = []) {
-        if ($type == 'tpl') {
-            $templateobject = new Templates();
-        } else {
-            //实例化第三方模板类
-            $template       = ucfirst($type);
-            $templateobject = new $template;
-        }
+        //实例化第三方模板类
+        $template       = ucfirst($type);
+        $templateobject = new $template;
         if (!empty($templateobject)) {
             foreach ($config as $key => $value) {
                 $templateobject->$key = Config(strtoupper($value));
@@ -53,34 +52,6 @@ class Factory {
         }
 
         return $templateobject;
-    }
-
-    /**
-     * 创建模板解析类对象
-     *
-     * @param tplFile 解析的文件名
-     *
-     * @author Colin <15070091894@163.com>
-     * @return \system\Templates\MyTemplate\Parser
-     */
-    public static function CreateTemplatesParse($type = null, $tplFile) {
-        if ($type == 'tpl') {
-            return new Parser($tplFile);
-        } else {
-            //实例化第三方解析类
-        }
-    }
-
-    /**
-     * 创建控制器类
-     *
-     * @param name 控制器名称
-     *
-     * @author Colin <15070091894@163.com>
-     * @return class
-     */
-    public static function CreateController($name) {
-        return new $name();
     }
 
     /**
@@ -112,48 +83,12 @@ class Factory {
     }
 
     /**
-     * 创建视图类
-     *
-     * @param name 为视图文件名称
-     *
-     * @author Colin <15070091894@163.com>
-     * @return class
-     */
-    public static function CreateView() {
-        $obj = '\\system\\View';
-
-        return new $obj();
-    }
-
-    /**
-     * 创建分页类
-     *
-     * @param total 总数
-     * @param pagesize 分页数
-     *
-     * @author Colin <15070091894@163.com>
-     * @return \system\Page
-     */
-    public static function CreatePage($total, $pagesize) {
-        return new Page($total, $pagesize);
-    }
-
-    /**
-     * 创建时间类
-     * @author Colin <15070091894@163.com>
-     * @return \system\Date
-     */
-    public static function CreateDate() {
-        return new Date();
-    }
-
-    /**
      * 验证码类
      * @author Colin <15070091894@163.com>
      * @return \system\Code\Code
      */
     public static function CreateCode() {
-        return new Code\Code();
+        return new Tool\Code();
     }
 
     /**
@@ -166,7 +101,7 @@ class Factory {
 
     /**
      * 创建文件类
-     * @return \system\File
+     * @return \system\IO\File\File
      */
     public static function File() {
         return File::getInstance();

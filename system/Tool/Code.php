@@ -4,7 +4,7 @@
  * @author Colin <15070091894@163.com>
  */
 
-namespace system\Code;
+namespace system\Tool;
 class Code {
     private $charset  = 'abcdefghkmnprstuvwxyz23456789';    //随机因子
     private $code;                                        //验证码

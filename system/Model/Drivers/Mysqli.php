@@ -6,11 +6,11 @@
 
 namespace system\Model\Drivers;
 
-use system\Db;
+use system\Model\Db;
+use system\Model\DBInterface;
 
-class Mysqli extends Db {
-    protected $_db;
-    public    $affected_rows;
+class Mysqli extends Db implements DBInterface {
+    public $affected_rows;
 
     /**
      * 连接数据库操作
@@ -85,24 +85,5 @@ class Mysqli extends Db {
      */
     public function showerror() {
         return $this->_db->error;
-    }
-
-    /**
-     * 获取表所有字段
-     *
-     * @param string $table [表名]
-     *
-     * @author Colin <15070091894@163.com>
-     */
-    public function getFields($table) {
-        $prefix = Config('DB_PREFIX') . $table;
-        $query  = $this->_db->query("select COLUMN_NAME from information_schema.COLUMNS where table_name = '$prefix'");
-        $result = $this->getResult($query);
-        foreach ($result as $key => $value) {
-            $fields[] = $value['COLUMN_NAME'];
-        }
-        $result = array_values($fields);
-
-        return $result;
     }
 }

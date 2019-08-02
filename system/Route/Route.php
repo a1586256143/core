@@ -6,7 +6,7 @@
 
 namespace system\Route;
 
-use system\Log;
+use system\IO\File\Log;
 use system\Url;
 use system\Route\CSRF;
 
@@ -33,7 +33,7 @@ class Route {
     protected static function setRoutes($key, $value, $group = false) {
         if (is_array($value)) {
             self::$routes[ $key ] = [
-                'middleware' => self::parseClassName($key, $value['middleware']),
+                'middleware' => self::compleNamespace($key, $value['middleware'], 1),
                 'route'      => self::compleNamespace($key, $value['route']),
                 'group'      => $group
             ];
@@ -49,19 +49,19 @@ class Route {
      * 组装明名空间
      * @return [type] [description]
      */
-    protected static function compleNamespace($key, $url = null) {
-        $prefix = '\\' . Config('DEFAULT_CONTROLLER_LAYER');
-
+    protected static function compleNamespace($key, $url = null, $middleware = false) {
+        $layer  = Config('DEFAULT_CONTROLLER_LAYER');
+        $prefix = '\\' . ltrim($layer, '\\');
+        $url    = '\\' . ltrim($url, '\\');
         if (strpos($url, $prefix) === 0) {
             return $url;
         }
-        if (strpos($url, '\\') === 0) {
-            $url = ltrim($url, '\\');
-        }
+        $url = ltrim($url, '\\');
         // 解析有没有@字符
-        if (strpos($url, '@') === false) {
+        if (strpos($url, '@') === false && !$middleware) {
             $url .= '@' . Config('DEFAULT_METHOD');
         }
+
         return $prefix . '\\' . $url;
     }
 
@@ -138,7 +138,8 @@ class Route {
      * @author Colin <15070091894@163.com>
      */
     public static function parseRoutes() {
-        $parse_url   = self::getRoute();
+        $parse_url = self::getRoute();
+        // 验证访问的是否是一个文件
         $equalLength = [];
         //寻找路由
         if (array_key_exists($parse_url, self::$routes)) {
@@ -161,7 +162,7 @@ class Route {
             }
             //没有找到
             if (count($equalLength) == 0) {
-                E('一个未定义的路由');
+                self::faildRoute($parse_url);
             }
             $isFind = false;
             //处理获取的长度数组
@@ -186,17 +187,30 @@ class Route {
                             $isFind = true;
                             self::execRoute(self::$routes[ $items ]);
                         } else {
-                            E('一个未定义的路由');
+                            self::faildRoute($parse_url);
                         }
                     }
                 } else {
-                    E('一个未定义的路由');
+                    self::faildRoute($parse_url);
                 }
             }
             if (!$isFind) {
-                E('一个未定义的路由');
+                self::faildRoute($parse_url);
             }
         }
+    }
+
+    /**
+     * 失败的路由
+     */
+    protected static function faildRoute($url) {
+        // 验证是否为一个文件
+        $info = pathinfo($url);
+        if ($info['extension']) {
+            http_response_code(404);
+            exit;
+        }
+        E('一个未定义的路由');
     }
 
     /**
@@ -211,7 +225,6 @@ class Route {
     public static function execRoute($route) {
         $controllerOrAction = explode('@', $route['route']);
         list($namespace, $method) = $controllerOrAction;
-        $controller = new $namespace;
         //分割数组
         $class_name_array = explode('\\', $namespace);
         //得到controllers\index 中的 index
@@ -223,6 +236,7 @@ class Route {
         if (!file_exists($controller_path)) {
             E($get_class_name . ' 控制器不存在！');
         }
+        $controller = new $namespace;
         //控制器方法是否存在
         if (!method_exists($controller, $method)) {
             E($method . '() 这个方法不存在');
@@ -309,12 +323,13 @@ class Route {
      */
     protected static function setRunMethod() {
         //处理方法
-        $request_method = $_SERVER["REQUEST_METHOD"];
+        $request_method = isset($_SERVER["REQUEST_METHOD"]) ? $_SERVER["REQUEST_METHOD"] : '';
         define('POST', $request_method == 'POST' ? true : false);
         //定义get和post常量
         define('GET', $request_method == 'GET' ? true : false);
-        $httpRequest = $_SERVER['HTTP_X_REQUESTED_WITH'];
+        $httpRequest = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ? $_SERVER['HTTP_X_REQUESTED_WITH'] : '';
         define('AJAX', $httpRequest == 'XMLHttpRequest' ? true : false);
+        header('X-Powered-By:MyClassPHP');
     }
 
     /**

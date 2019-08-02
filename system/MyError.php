@@ -5,6 +5,9 @@
  */
 
 namespace system;
+
+use system\IO\File\Log;
+
 class MyError extends \Exception {
     protected static $info;
 
@@ -69,7 +72,7 @@ class MyError extends \Exception {
      * 收集错误
      * @author Colin <15070091894@163.com>
      */
-    public static function error_traceassstring() {
+    public static function traceError() {
         Log::addRecord(Url::parseUrl(), true);
         error_reporting(E_PARSE | E_RECOVERABLE_ERROR | E_ERROR);
         //设置错误处理

@@ -4,7 +4,7 @@
  * @author Major
  */
 
-namespace system;
+namespace system\Tool;
 class Upload {
     public $path;                        //上传文件保存路径
     public $allowtype;                    //设置上传文件类型
@@ -124,7 +124,7 @@ class Upload {
      * 输出上传错误信息
      * @author Major <1450494434@qq.com>
      */
-    public function UploadError($code, $info = array()) {
+    public function UploadError($code, $info = []) {
         switch ($code) {
             case 1 :
                 $message = '上传成功！';
@@ -146,6 +146,6 @@ class Upload {
                 break;
         }
 
-        return array('msg' => $message, 'info' => $info);
+        return ['msg' => $message, 'info' => $info];
     }
 }
