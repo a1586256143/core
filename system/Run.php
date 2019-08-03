@@ -13,7 +13,7 @@ define('Core', dirname(__FILE__) . DIRECTORY_SEPARATOR);
 //system
 define('NAME_SPACE', substr(Core, 0, -7));
 //系统app名字
-define('APP_NAME', '..');
+define('APP_NAME', '');
 //是否CLI模式
 define('PHP_CLI', PHP_SAPI === 'cli' ? true : false);
 //系统app目录
