@@ -6,7 +6,7 @@
 
 namespace system;
 class Url {
-    public static $param = array();
+    public static $param = [];
 
     /**
      * 解析URL，得到url后面的参数
@@ -35,10 +35,11 @@ class Url {
         }
         // 去除当前访问的文件名
         $scriptName = $_SERVER['SCRIPT_NAME'];
-        $pathinfo = str_replace($scriptName, '', $pathinfo);
-        if(strpos($pathinfo, '/') === 0){
+        $pathinfo   = str_replace($scriptName, '', $pathinfo);
+        if (strpos($pathinfo, '/') === 0) {
             return $pathinfo;
         }
+
         return '/' . $pathinfo;
     }
 
@@ -69,7 +70,7 @@ class Url {
             $parse_path = array_merge($parse_path);
         }
         if (empty($parse_path)) {
-            $parse_path = array(Config('DEFAULT_CONTROLLER'), Config('DEFAULT_METHOD'));
+            $parse_path = [Config('DEFAULT_CONTROLLER'), Config('DEFAULT_METHOD')];
         }
         self::$param = $parse_path;
         if ($is_return_current_url) return $current_url;
@@ -97,5 +98,13 @@ class Url {
         }
 
         return $scheme . $hostName . $params;
+    }
+
+    /**
+     * 获取请求的URL
+     * @return mixed
+     */
+    public static function getFullUrl() {
+        return $_SERVER['REQUEST_URI'];
     }
 }

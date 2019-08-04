@@ -89,7 +89,7 @@ class Log {
         $start        = array_sum(explode(" ", $timestamp));
         $end          = array_sum(explode(" ", $endTimestamp));
 
-        return sprintf("%.4f s", ($end - $start) * 1000);
+        return sprintf("%.4f s", ($end - $start));
     }
 
     /**

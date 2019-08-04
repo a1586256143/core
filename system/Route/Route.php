@@ -242,7 +242,7 @@ class Route {
             E($method . '() 这个方法不存在');
         }
         //执行中间件
-        if (!!$route['middleware']) {
+        if (isset($route['middleware']) && !$route['middleware']) {
             $middleware = new $route['middleware'];
             $middleware->execMiddleware($controller, new self());
         }
@@ -345,8 +345,10 @@ class Route {
         $ReflectionMethod = new \ReflectionMethod($controller, $method);
         $method_params    = $ReflectionMethod->getParameters($method);
         //处理参数返回
-        $param = array_filter(values('get.'));
-        $post  = array_filter(values('post.'));
+        $get   = values('get.');
+        $post  = values('post.');
+        $param = array_filter($get ? $get : []);
+        $post  = array_filter($post ? $post : []);
         if (!$param) {
             $param = [];
         }
@@ -377,6 +379,7 @@ class Route {
      * 显示视图
      */
     protected static function showView($result = '') {
+        \system\IO\File\Log::generator();
         switch (true) {
             case is_array($result) || is_object($result) :
                 ajaxReturn($result);

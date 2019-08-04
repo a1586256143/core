@@ -736,7 +736,6 @@ class Model {
         }
         $where     = $this->getWhere();
         $this->Sql = $prefix . implode(' ', $this->Join) . $where . $this->Order . $this->Limit;
-        Log::addRecord($this->Sql);
 
         return $this->Sql;
     }
@@ -751,6 +750,7 @@ class Model {
         $this->DataName = strtolower($tables);
         //空格转换
         $spaceIndex = strpos($this->DataName, ' ');
+        $as         = '';
         if ($spaceIndex !== false) {
             $as             = substr($this->DataName, $spaceIndex);
             $this->DataName = substr($this->DataName, 0, $spaceIndex);
@@ -884,7 +884,7 @@ class Model {
         $sql = $sql === null ? $this->Sql : $sql;
         $this->_clearThis();
         $query = $this->db->query($sql);
-        WriteLog($sql, 'LOG_SQL_FORMAT');
+        WriteLog($sql);
         if (!$query) {
             if ($this->startTransaction) {
                 return false;

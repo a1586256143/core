@@ -73,7 +73,7 @@ class MyError extends \Exception {
      * @author Colin <15070091894@163.com>
      */
     public static function traceError() {
-        Log::addRecord(Url::parseUrl(), true);
+        Log::addRecord(Url::getFullUrl(), true);
         error_reporting(E_PARSE | E_RECOVERABLE_ERROR | E_ERROR);
         //设置错误处理
         set_error_handler('system\\MyError::customError');
