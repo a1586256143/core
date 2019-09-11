@@ -5,7 +5,10 @@
  */
 
 namespace system\IO\File;
-class File {
+
+use system\Factory;
+
+class File extends Factory {
     protected        $file;
     protected static $instance;
 
@@ -14,11 +17,7 @@ class File {
      * @return \system\File
      */
     public static function getInstance() {
-        if (!self::$instance instanceof self) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
+        return self::applyIns(self::class, new self);
     }
 
     /**

@@ -12,5 +12,10 @@
         "php": ">=5.5.0",
         "smarty/smarty": "~3.1.33"
     },
-    "autoload": {}
+    "autoload": {
+        "files": [
+            "system/bootstrap.php"
+        ]
+    } , 
+    "minimum-stability": "dev"
 }

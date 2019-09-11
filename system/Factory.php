@@ -8,11 +8,27 @@ namespace system;
 
 use system\IO\File\File;
 use system\IO\Storage\Storage;
-use system\Templates\MyTemplate\Templates;
-use system\Templates\MyTemplate\Parser;
 use system\Model\Db;
 
 class Factory {
+    protected static $ins;
+    protected static $regIns;
+
+    /**
+     * 使用一个单例对象
+     *
+     * @param  [type] $name [description]
+     * @param  [type] $class [description]
+     *
+     * @return [type]       [description]
+     */
+    public static function applyIns($name, $class) {
+        if (!self::$regIns[ $name ]) {
+            self::$regIns[ $name ] = $class;
+        }
+
+        return self::$regIns[ $name ];
+    }
 
     /**
      * 创建数据库对象
@@ -106,5 +122,4 @@ class Factory {
     public static function File() {
         return File::getInstance();
     }
-
 }

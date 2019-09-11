@@ -11,6 +11,14 @@ class Log {
     protected static $logs;
 
     /**
+     * 获取单例句柄
+     * @return mixed
+     */
+    public static function getInstance() {
+        return self::applyIns(self::class, new self);
+    }
+
+    /**
      * 添加记录条数
      *
      * @param null   $msg    记录信息

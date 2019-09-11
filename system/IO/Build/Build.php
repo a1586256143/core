@@ -9,12 +9,19 @@ use system\IO\Build\Task\EnvBuild;
 use system\IO\Build\Task\HelperBuild;
 use system\IO\Build\Task\RouteBuild;
 use system\IO\Build\Task\TemplateBuild;
-use system\MyError;
 
-class Build {
+class Build extends Factory {
     protected $build = [];
     // 生成时传递的参数
     protected $args = [];
+
+    /**
+     * 获取单例句柄
+     * @return mixed
+     */
+    public static function getInstance($args = []) {
+        return self::applyIns(self::class, new self($args));
+    }
 
     /**
      * 初始化
@@ -22,7 +29,7 @@ class Build {
      *
      * @param $args
      */
-    public function __construct($args = []) {
+    private function __construct($args = []) {
         if ($args) {
             $this->args = $args;
         }

@@ -6,8 +6,8 @@
 
 namespace system;
 
-use system\IO\Build\Build;
 use system\Date;
+use system\IO\Build\Build;
 
 class MyClass {
     /**
@@ -23,7 +23,7 @@ class MyClass {
             //收集错误
             MyError::traceError();
             // Build
-            $build = new Build();
+            $build = Build::getInstance();
             $build->exec();
             // 启动
             self::start();

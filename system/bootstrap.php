@@ -28,7 +28,6 @@ define('Common', APP_DIR . 'config');
 define('CommonDIR', Core . 'Common');
 //定义版本信息
 define('VERSION', '3.2.0');
-require_once MyClass . '/vendor/autoload.php';
 //引入MyClass核心文件
 require Core . 'MyClass.php';
 //执行run方法

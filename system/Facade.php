@@ -2,8 +2,7 @@
 
 namespace system;
 class Facade {
-    public static function getInstance($classname, $args) {
-
+    public static function getInstance($classname = '', $args = []) {
         if ($classname instanceof \Closure) {
             return $classname;
         }
