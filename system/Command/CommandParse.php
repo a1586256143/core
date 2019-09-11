@@ -2,11 +2,8 @@
 
 namespace system\Command;
 
-use system\Facade;
 use system\Factory;
 use system\IO\Build\Build;
-use system\IO\Build\Task\ModelBuild;
-use system\View;
 
 class CommandParse {
     public $namescount;
@@ -104,7 +101,7 @@ class CommandParse {
         // 生成文件
         $this->createdata();
         $file  = Factory::File();
-        $build = new Build();
+        $build = Build::getInstance();
         $build->addBuild('module', new $buildType([
             'namespace' => $this->namespace,
             'name'      => $this->className,

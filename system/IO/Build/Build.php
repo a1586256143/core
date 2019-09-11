@@ -29,7 +29,7 @@ class Build extends Factory {
      *
      * @param $args
      */
-    private function __construct($args = []) {
+    public function __construct($args = []) {
         if ($args) {
             $this->args = $args;
         }

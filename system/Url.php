@@ -105,6 +105,6 @@ class Url {
      * @return mixed
      */
     public static function getFullUrl() {
-        return $_SERVER['REQUEST_URI'];
+        return isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
     }
 }
