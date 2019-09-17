@@ -6,7 +6,6 @@
 
 namespace system;
 
-use system\IO\File\Log;
 use system\Validate;
 
 class Model {
@@ -207,11 +206,32 @@ class Model {
     /**
      * 查询函数
      * @author Colin <15070091894@163.com>
+     *
+     * @param bool $each 遍历
      */
-    public function select() {
+    public function select($each = false) {
         $this->getSql();
+        if ($each) {
+            return $this;
+        }
 
         return $this->getResult(null, true);
+    }
+
+    /**
+     * 遍历数组
+     *
+     * @param \Closure $callback
+     */
+    public function each(\Closure $callback) {
+        $list = $this->getResult(null, true);
+        foreach ($list as $key => &$value) {
+            if ($return = $callback($value, $key)) {
+                $value = $return;
+            }
+        }
+
+        return $list;
     }
 
     /**
@@ -884,7 +904,7 @@ class Model {
         $sql = $sql === null ? $this->Sql : $sql;
         $this->_clearThis();
         $query = $this->db->query($sql);
-        WriteLog($sql);
+        Config('LOG_SQL') && WriteLog($sql);
         if (!$query) {
             if ($this->startTransaction) {
                 return false;

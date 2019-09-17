@@ -5,6 +5,7 @@
  */
 
 namespace system;
+
 class Base {
     //是否get
     protected static $is_get;
@@ -94,13 +95,13 @@ class Base {
      * 显示视图
      *
      * @param string $filename 文件名
-     * @param array  $params   参数
+     * @param array  $data     参数
      *
      * @return \system\View
      */
-    protected static function view($filename = null, $params = []) {
-        if ($params) {
-            self::assign($params);
+    protected static function view($filename = null, $data = []) {
+        if ($data) {
+            self::assign($data);
         }
         $filename = _parseFileName($filename);
 

@@ -6,7 +6,7 @@
 
 namespace system\Model;
 
-use system\IO\Storage\Storage;
+use system\MyError;
 
 abstract class Db {
     protected static $db;
@@ -16,6 +16,7 @@ abstract class Db {
     /**
      * 获取数据库类
      * @author Colin <15070091894@163.com>
+     * @return \system\Model\Drivers\Mysqli
      */
     public static function getIns() {
         if (self::$db) {
@@ -55,13 +56,14 @@ abstract class Db {
      * @author Colin <15070091894@163.com>
      * @throws
      */
-    public function CheckTables($tables = null, $db_tabs = null) {
+    public function CheckTables($tables = null, $db_tabs = null, $throw = true) {
         if (empty($db_tabs)) {
             $db_tabs = Config('DB_TABS');
         }
         $result = $this->execute("select `TABLE_NAME` from `INFORMATION_SCHEMA`.`TABLES` where `TABLE_SCHEMA`='$db_tabs' and `TABLE_NAME`='$tables' ");
         if (empty($result)) {
-            E('数据表不存在！' . $tables);
+            $throw && E('数据表不存在！' . $tables);
+            if (!$throw) throw new MyError('数据表不存在！' . $tables);
         }
     }
 

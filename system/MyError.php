@@ -46,7 +46,7 @@ class MyError extends \Exception {
     public static function customError($errno, $errstr, $errfile, $errline, $detail) {
         self::set_error_show();
         if (E_USER_WARNING !== $errno && !(error_reporting() & $errno)) {
-            Log::error($errfile . ' ' . $errstr . ' line:' . $errno);
+            Log::error($errfile . ' ' . $errstr . ' line:' . $errline);
 
             return;
         }

@@ -12,7 +12,7 @@ use system\Model\Db;
 
 class Factory {
     protected static $ins;
-    protected static $regIns;
+    protected static $regIns = [];
 
     /**
      * 使用一个单例对象
@@ -23,7 +23,7 @@ class Factory {
      * @return [type]       [description]
      */
     public static function applyIns($name, $class) {
-        if (!self::$regIns[ $name ]) {
+        if (!isset(self::$regIns[ $name ])) {
             self::$regIns[ $name ] = $class;
         }
 
@@ -33,7 +33,7 @@ class Factory {
     /**
      * 创建数据库对象
      * @author Colin <15070091894@163.com>
-     * @return \system\Db
+     * @return \system\Model\Drivers\Mysqli
      */
     public static function getIns() {
         return Db::getIns();

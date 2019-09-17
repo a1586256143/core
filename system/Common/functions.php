@@ -50,6 +50,7 @@ function error($msg, $code = 404) {
  * @param name 模型名称
  *
  * @author Colin <15070091894@163.com>
+ * @return \system\Model
  */
 function M($name = null) {
     return system\Factory::CreateSystemModel($name);
@@ -327,7 +328,7 @@ function Config($name = null, $value = '') {
         //设置
         $config = array_merge($config, $name);
     } else if (is_string($name) && $value == '') {
-        return $config[ $name ];
+        return isset($config[ $name ]) ? $config[ $name ] : '';
     } else if (is_string($name) && !empty($value)) {
         $config[ $name ] = $value;
     }
@@ -383,12 +384,34 @@ function getTime($prc = null) {
 }
 
 /**
- * 时间格式化
+ * 时间戳格式化
  *
- * @param null $timestamp
+ * @param int    $timestamp 时间戳
+ * @param string $model     模式 a 完整的 m 显示到分 h 显示到小时 d 显示到天
+ * @param string $mode
+ *
+ * @return string
  */
-function timeFormat($timestamp = null, $model = null) {
-    return \system\Date::setDate($timestamp, $model);
+function timeFormat($timestamp, $model = 'a', $mode = '') {
+    if (!$timestamp) {
+        return '-';
+    }
+    switch ($model) {
+        case 'a' :
+            $mode = 'Y-m-d H:i:s';
+            break;
+        case 'm' :
+            $mode = 'Y-m-d H:i';
+            break;
+        case 'h' :
+            $mode = 'Y-m-d H';
+            break;
+        case 'd' :
+            $mode = 'Y-m-d';
+            break;
+    }
+
+    return date($mode, $timestamp);
 }
 
 /**
@@ -567,6 +590,18 @@ function _parseFileName($filename) {
     if (!$filename) {
         $filename = ACTION_NAME;
     }
+    // 替换特殊的@符号
+    if (strpos($filename, '@') === 0) {
+        $route = ltrim(\system\Route\Route::getRoute(), '/');
+        $route = explode('/', $route);
+        array_pop($route);
+        $route = implode('/', $route);
+        // @后面没有跟上/，给它加上
+        if (strpos($filename, '@/') !== 0) {
+            $route .= '/';
+        }
+        $filename = str_replace('@', $route, $filename);
+    }
     $explode = explode('.', $filename);
     if (count($explode) > 1) {
         return $filename;
@@ -585,4 +620,33 @@ function _parseFileName($filename) {
  */
 function smarty_modifier_url($url) {
     return url($url);
+}
+
+/**
+ * 预处理函数
+ *
+ * @param $strInput
+ * @param $smarty
+ *
+ * @return string|string[]|null
+ */
+function smarty_preFilterConstants($strInput, $smarty) {
+    $str = preg_replace("/__(.*)__/", '{$smarty.const.__\\1__}', $strInput);
+
+    return $str;
+}
+
+/**
+ * 输出常量的值
+ *
+ * @param      $args
+ * @param bool $objSmarty
+ *
+ * @return mixed
+ */
+function functionHash($args, $objSmarty = false) {
+    $c = $args['c'];
+    if (!defined($c)) return constant($c); // 如果常量已定义则抛出异常
+
+    return $c; // 默认的行为
 }

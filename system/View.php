@@ -18,5 +18,15 @@ class View {
      */
     public static function init($type, $config = []) {
         self::$view = Factory::CreateTemplates($type, $config);
+        self::register();
+    }
+
+    /**
+     * 注册smarty解析
+     * @return null
+     */
+    protected static function register() {
+        self::$view->register_prefilter('smarty_preFilterConstants');
+        self::$view->register_function('constant', 'functionHash');
     }
 }

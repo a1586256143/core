@@ -21,7 +21,7 @@ return [
     'CSRF'                     => false,        // 是否开启CSRF
 
     //目录设置
-    'PUBLIC_DIR'               => '/publics',    //公共文件地址
+    'PUBLIC_DIR'               => '/public',    //公共文件地址
 
     //session设置
     'SESSION_START'            => 1,                        //开启session
@@ -36,7 +36,7 @@ return [
     'DEFAULT_MODEL_LAYER'      => 'models',         //默认模型目录名
 
     //模板引擎设置
-    'TPL_MODEL'                => 'smarty',                    //模板引擎
+    'TPL_MODEL'                => 'smartyBC',                    //模板引擎
     'TPL_TYPE'                 => '.html',                //模板类型
     'TPL_DIR'                  => APP_DIR . 'views/',                //模板文件存放目录
     'TPL_C_DIR'                => RunTime . '/templates_c/',    //编译文件存放目录
@@ -55,8 +55,7 @@ return [
 
     //日志设置
     'LOGDIR'                   => RunTime . '/logs',        //日志文件夹
-    'LOG_NAME_FORMAT'          => 'Ymd',                    //日志名称格式，使用date() 参数
-    'LOG_SQL_FORMAT'           => 'SQLYmd',                    //SQL日志名称格式，使用date() 参数
+    'LOG_SQL'                  => true, // SQL记录开启
     'LOG_SUFFIX'               => '.log',                //日志后缀
 
     //上传配置

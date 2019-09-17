@@ -6,9 +6,7 @@
 
 namespace system\Route;
 
-use system\IO\File\Log;
 use system\Url;
-use system\Route\CSRF;
 
 class Route {
     //路由规则
@@ -265,7 +263,6 @@ class Route {
         if (file_exists($controller_path)) {
             // 解析className
             $controller = new $classname;
-            $isExists   = method_exists($controller, $defaultMethod);
             $method     = $defaultMethod;
         } else {
             $method = array_pop($routes);
@@ -294,15 +291,28 @@ class Route {
     protected static function getControllerPath($routes) {
         // 是不是模块
         $addonsUrlVar = Config('ADDONS_URL_VAR') ? Config('ADDONS_URL_VAR') : 'a';
-        $isAddons     = $routes[1] == $addonsUrlVar ? true : false;
-        $layer        = $isAddons ? Config('DEFAULT_ADDONS_LAYER') : Config('DEFAULT_CONTROLLER_LAYER');
+        if (count(array_filter($routes)) == 0) {
+            $routes = ['', ''];
+        }
+        $isAddons = $routes[1] == $addonsUrlVar ? true : false;
+        $layer    = $isAddons ? Config('DEFAULT_ADDONS_LAYER') : Config('DEFAULT_CONTROLLER_LAYER');
         if ($isAddons) {
             unset($routes[1]);
         }
         // 尝试解析index方法
-        //拼接路径，并自动将路由中的index转换成Index
-        $controller_path = APP_DIR . $layer . '/' . ltrim(implode('/', $routes), '/') . Config('DEFAULT_CLASS_SUFFIX');
-        $classname       = '\\' . $layer . implode('\\', $routes);
+        // 拼接路径，并自动将路由中的index转换成Index
+        $controller_path   = _getFileName(APP_DIR . $layer . '/' . ltrim(implode('/', $routes), '/'));
+        $extraRoute        = $routes;
+        $defaultController = Config('DEFAULT_CONTROLLER');
+        array_push($extraRoute, $defaultController);
+        $extraRoutePath = _getFileName(APP_DIR . $layer . '/' . ltrim(implode('/', $extraRoute), '/'));
+        $classname      = implode('\\', $routes);
+        // 如果文件不存在，尝试加载目录下的默认文件
+        if (!file_exists($controller_path) && $routes[ count($routes) - 1 ] != strtolower($defaultController)) {
+            $controller_path = $extraRoutePath;
+            $classname       = implode('\\', $extraRoute);
+        }
+        $classname = '\\' . $layer . $classname;
 
         return [$controller_path, $classname];
     }
