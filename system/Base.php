@@ -103,9 +103,21 @@ class Base {
         if ($data) {
             self::assign($data);
         }
+        if (is_array($filename)) {
+            self::assign($filename);
+            $filename = null;
+        }
         $filename = _parseFileName($filename);
-
-        return self::$view->display($filename, ViewDIR);
+        try {
+            return self::$view->display($filename, ViewDIR);
+        } catch (\SmartyException $e) {
+            preg_match('/Unable to load template\s+\'file:(.*)\'/', $e->getMessage(), $match);
+            if (count($match) > 0) {
+                E('模板不存在 ' . ViewDIR . $match[1]);
+            } else {
+                E($e->getMessage());
+            }
+        }
     }
 
     /**

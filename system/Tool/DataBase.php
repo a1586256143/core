@@ -18,6 +18,7 @@ class DataBase {
     protected $attr;                        //字段组，字段信息组
     protected $tables   = null;                //选中数据表名，可带全缀，可不带
     protected $prefix   = null;                //数据表前缀
+    protected $action;                          // 行为
 
     /**
      * 构造方法初始化
@@ -171,14 +172,27 @@ class DataBase {
      *
      * @author Colin <15070091894@163.com>
      */
-    public function createFields($fields = []) {
+    public function createFields($fields = [], $action = 'ADD') {
         if (empty($this->tables)) {
             throw new \system\MyError('请先选择数据库。在进行操作');
         }
-        $this->attr = $fields;
+        $this->attr   = $fields;
+        $this->action = strtoupper($action);
         $this->_parse_fieldinfo();
 
         return $this->execute($this->sql);
+    }
+
+    /**
+     * 更改字段
+     *
+     * @param array $fields
+     *
+     * @return mixed
+     * @throws \system\MyError
+     */
+    public function changeFields($fields = []) {
+        $this->createFields($fields, 'MODIFY');
     }
 
     /**
@@ -262,12 +276,13 @@ class DataBase {
      * @param string $comment   字段备注
      * @param string $extra     额外值。例如unsigned
      * @param string $separator 是否拥有分隔符例如,
+     * @param string $action    行为，ADD和MODIFY
      *
      * @author Colin <15070091894@163.com>
      */
-    protected function merge_sql($field = 'id', $type = 'int', $length = 11, $null = 'NULL', $default = null, $comment = null, $extra = null, $separator = null) {
+    protected function merge_sql($field = 'id', $type = 'int', $length = 11, $null = 'NULL', $default = null, $comment = null, $extra = null, $separator = null, $action = 'ADD') {
         //检查字段是否存在
-        if (!$this->db->CheckFields($this->tables, $field)) {
+        if ($this->action == 'ADD' && !$this->db->CheckFields($this->tables, $field)) {
             throw new \system\MyError($this->tables . '表中已存在该字段' . $field);
         }
         //解析null值
@@ -276,25 +291,27 @@ class DataBase {
         }
         //解析default值
         if (!is_null($default)) {
-            $default = 'DEFAULT ' . is_string($default) && $default ? "'$default'" : $default;
+            $default = 'DEFAULT ' . (is_string($default) && $default ? "'$default'" : $default);
+        } else {
+            $default = 'DEFAULT ' . ($type == 'int' ? 0 : 'null');
         }
         //解析comment值
         if (!is_null($comment)) {
             $comment = "COMMENT '$comment'";
         }
-        //解析额外参数
-        if (!is_null($extra)) {
-            $length = $length . ' ' . $extra;
-        }
         //解析length参数
         if (!is_null($length)) {
             $length = '(' . $length . ')';
+        }
+        //解析额外参数
+        if (!is_null($extra)) {
+            $length = $length . ' ' . $extra;
         }
         //解析分隔符
         if ($separator == ',') {
             $this->sql .= "`$field` $type$length $null $default $comment$separator";
         } else {
-            $this->sql .= "ALTER TABLE `$this->tables` ADD `$field` $type$length $null $default $comment$separator";
+            $this->sql .= "ALTER TABLE `$this->tables` $this->action COLUMN `$field` $type$length $null $default $comment$separator";
         }
     }
 }
