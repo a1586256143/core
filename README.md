@@ -35,7 +35,7 @@ http://域名/hello
 ```
 
 ## 在线文档
-[点我](http://lebook.me/book/142769)
+[点我](https://www.kancloud.cn/amcolin/myclassphp_3_2_0/1325215)
 
 ## 声明
 
