@@ -7,7 +7,7 @@ git clone完成后，执行
 composer install
 ```
 
-例如：在app/controllers 建立Index.php，代码如下
+例如：在controllers 建立Index.php，代码如下
 ```
 namespace controllers;
 use system\Base;
@@ -17,21 +17,21 @@ class Hello extends Base{
     }
 }
 ```
-打开 globals/routes.php，追加一条路由
+打开 config/routes.php，追加一条路由
 ```
-'/hello' => '\controllers\Hello@index'
+'/hello' => 'Hello@index'
 ```
 配置完成如下
 ```
 Route::add(array(
-    '/' => '\controllers\Index@index' , 
-    '/hello' => '\controllers\Hello@index'
+    '/' => 'Index@index' , 
+    '/hello' => 'Hello@index'
 ))
 ```
 
-最后打开浏览器，进行访问
+运行
 ```
-http://域名/index.php/hello
+http://域名/hello
 ```
 
 ## 在线文档
