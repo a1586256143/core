@@ -19,7 +19,7 @@ abstract class Storage {
      * @param null $storage
      *
      * @throws \system\MyError
-     * @return \system\IO\Storage\Drivers\RedisStorage
+     * @return \system\IO\Storage\Drivers\FileStorage
      */
     public static function getIns($storage = null) {
         if (self::$ins) {
@@ -28,20 +28,16 @@ abstract class Storage {
         !$storage && $storage = Config('STORAGE_TYPE');
         $storage   = ucfirst($storage);
         $className = 'system\IO\Storage\Drivers\\' . $storage . 'Storage';
-        try {
-            /**
-             * @var $class \system\IO\Storage\Drivers\RedisStorage
-             */
-            $class = new $className;
-            if (!$class->connect()) {
-                throw new MyError($class->getLastError());
-            }
-            self::$ins = $class;
-
-            return self::$ins;
-        } catch (\Exception $e) {
-            throw new MyError($e->getMessage());
+        /**
+         * @var $class \system\IO\Storage\Drivers\FileStorage
+         */
+        $class = new $className;
+        if (!$class->connect()) {
+            throw new MyError($class->getLastError());
         }
+        self::$ins = $class;
+
+        return self::$ins;
     }
 
     /**

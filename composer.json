@@ -10,12 +10,18 @@
     ],
     "require": {
         "php": ">=5.5.0",
-        "smarty/smarty": "~3.1.33"
+        "smarty/smarty": "~3.1.33",
+        "ext-json": "*",
+        "ext-redis": "*",
+        "ext-mysqli": "*",
+        "ext-pdo": "*",
+        "ext-gd": "*",
+        "ext-mbstring": "*"
     },
     "autoload": {
         "files": [
             "system/bootstrap.php"
         ]
-    } , 
+    },
     "minimum-stability": "dev"
 }

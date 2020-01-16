@@ -2,11 +2,10 @@
 
 namespace system\Command;
 
-use system\Factory;
 use system\IO\Build\Build;
 
 class CommandParse {
-    public $namescount;
+    public $namesCount;
     public $namespace;
     public $names;
     public $dirname;
@@ -17,42 +16,38 @@ class CommandParse {
     /**
      * 构造方法
      *
-     * @param [type] $argv [description]
+     * @param array $argv 指令集
      */
     public function __construct($argv) {
-        list($cli, $action, $name) = $argv;
+        list(, $action, $name) = $argv;
         $this->action     = $action;
         $this->names      = explode('/', $name);
-        $this->namescount = count($this->names);
+        $this->namesCount = count($this->names);
     }
 
     /**
      * 控制器初始化
-     * @return [type] [description]
      */
     public function getController() {
-        $this->setvalue(ControllerDIR);
+        $this->setValue(ControllerDIR);
     }
 
     /**
      * 模型初始化
-     * @return [type] [description]
      */
     public function getModel() {
-        $this->setvalue(ModelDIR);
+        $this->setValue(ModelDIR);
     }
 
     /**
      * 参数封装
      *
-     * @param  [type] $value [description]
-     *
-     * @return [type]        [description]
+     * @param string $value
      */
-    private function setvalue($value) {
+    private function setValue($value) {
         $this->dirname   = APP_DIR . $value;
         $this->namespace = $value;
-        if ($this->namescount > 1) {
+        if ($this->namesCount > 1) {
             $names = $this->names;
             array_pop($names);
             $namespace       = implode('\\', $names);
@@ -62,10 +57,9 @@ class CommandParse {
 
     /**
      * 设置参数
-     * @return [type] [description]
      */
-    private function seting() {
-        $lastChild                 = $this->namescount - 1;
+    private function setting() {
+        $lastChild                 = $this->namesCount - 1;
         $this->className           = ucfirst($this->names[ $lastChild ]);
         $this->names[ $lastChild ] = $this->className;
         $this->names               = implode('/', $this->names);
@@ -74,15 +68,10 @@ class CommandParse {
 
     /**
      * 生成文件
-     *
-     * @param  [type] $dirname    [description]
-     * @param  [type] $names      [description]
-     *
-     * @return [type]             [description]
      */
-    public function createdata() {
+    public function createData() {
         $basePath = dirname($this->path);
-        if ($this->namescount > 1 && !is_dir($basePath)) {
+        if ($this->namesCount > 1 && !is_dir($basePath)) {
             mkdir($basePath, 0755, true);
         }
     }
@@ -90,17 +79,17 @@ class CommandParse {
     /**
      * 生成文件
      *
-     * @param string $dir 生成的目录
+     * @param string $namespace 命名空间
+     * @param string $buildType 生成类型名
      *
      * @return bool
      */
-    public function generateFile($namespace = null, $buildType) {
-        $this->setvalue($namespace);
+    public function generateFile($namespace, $buildType) {
+        $this->setValue($namespace);
         // 设置参数
-        $this->seting();
+        $this->setting();
         // 生成文件
-        $this->createdata();
-        $file  = Factory::File();
+        $this->createData();
         $build = Build::getInstance();
         $build->addBuild('module', new $buildType([
             'namespace' => $this->namespace,

@@ -4,7 +4,7 @@ namespace system\IO\File;
 
 use system\Factory;
 
-class Log {
+class Log extends Factory {
 
     protected static $file;
     // 日志内容器
@@ -47,6 +47,9 @@ class Log {
 
     /**
      * 生成日志
+     *
+     * @param string $msg 日志内容
+     *
      * @return bool
      */
     public static function generator($msg = null) {
@@ -66,7 +69,9 @@ class Log {
         self::$logs[] = '[RunTime] ' . self::timeRecord(1);
         self::$logs[] = '[Memory] ' . self::memoryRecord();
         $logs         = implode(PHP_EOL, self::$logs);
-        self::$file->appendFileContent($logPath, $logs . PHP_EOL . PHP_EOL, false);
+        self::$file->appendFileContent($logPath, $logs . PHP_EOL . PHP_EOL);
+
+        return true;
     }
 
     /**
@@ -84,14 +89,14 @@ class Log {
      *
      * @param int $mode
      *
-     * @return string|void
+     * @return string
      */
     public static function timeRecord($mode = 0) {
         static $timestamp;
         if (!$mode) {
             $timestamp = microtime();
 
-            return;
+            return '';
         }
         $endTimestamp = microtime();
         $start        = array_sum(explode(" ", $timestamp));

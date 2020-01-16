@@ -6,44 +6,71 @@
 
 namespace system;
 
-use system\Validate;
+use system\Model\Select\DynamicQuery;
+use system\Tool\Validate;
 
-class Model {
-    protected $db               = '';                    //数据库句柄
-    protected $db_prefix        = '';            //获取数据表前缀
-    protected $DataName         = '';            //获取数据库名
-    protected $Tables;                    //多表查询数据库名，必须带数据前缀
-    protected $TableName        = '';
-    protected $From;                    //From表名
-    protected $Fields           = '*';            //多表查询字段名
-    protected $TrueTables       = '';            //数据表的真实名字
-    protected $DataNameName     = '';        //数据表判断后存放的字段
-    protected $Where            = [];            //where字段
-    protected $value            = [];            //where value
-    protected $WhereOR          = "AND";            //where 条件的 OR and
-    protected $Sql              = '';                //sql语句
-    protected $ParKey           = '';                //解析后存放的字段
-    protected $Parvalue         = '';            //解析后存放的字段
-    protected $Alias            = '';                //字符别名
-    protected $Limit            = '';                //limit
-    protected $Order            = '';                //order
-    protected $auto             = [];            //自动完成
-    protected $validate         = [];        //自动验证
-    protected $data             = [];            //保存数据
-    protected $callback         = '';            //回调时使用的操作句柄
-    protected $Join             = [];            //join
-    protected $startTransaction = 0;    //开启事务
-    protected $map              = [];   // 查询时默认加入的条件
-    const MODEL_INSERT = 1;                //新增时操作
-    const MODEL_UPDATE = 2;                //修改时操作
-    const MODEL_BOTH   = 3;                //所有操作
+class Model implements \ArrayAccess {
+    //数据库句柄
+    protected $db = '';
+    //获取数据表前缀
+    protected $db_prefix = '';
+    //获取数据库名
+    protected $DataName = '';
+    //多表查询数据库名，必须带数据前缀
+    protected $Tables;
+    protected $TableName = '';
+    //From表名
+    protected $From;
+    //多表查询字段名
+    protected $Fields = '*';
+    //数据表的真实名字
+    protected $TrueTables = '';
+    //数据表判断后存放的字段
+    protected $DataNameName = '';
+    //where字段
+    protected $Where = [];
+    //where value
+    protected $value = [];
+    //where 条件的 OR and
+    protected $WhereOR = "AND";
+    //sql语句
+    protected $Sql = '';
+    //解析后存放的字段
+    protected $ParKey = '';
+    //解析后存放的字段
+    protected $Parvalue = '';
+    //字符别名
+    protected $Alias = '';
+    //limit
+    protected $Limit = '';
+    //order
+    protected $Order = '';
+    //自动完成
+    protected $auto = [];
+    //自动验证
+    protected $validate = [];
+    //保存数据
+    protected $data = [];
+    //join
+    protected $Join = [];
+    //开启事务
+    protected $startTransaction = 0;
+    // 查询的结果
+    protected $result = [];
+    //新增时操作
+    const MODEL_INSERT = 1;
+    //修改时操作
+    const MODEL_UPDATE = 2;
+    //所有操作
+    const MODEL_BOTH = 3;
 
     /**
      * 构造方法
      *
-     * @param
+     * @param null $tables 被使用的表名或类名
      *
      * @author Colin <15070091894@163.com>
+     * @throws
      */
     final public function __construct($tables = null) {
         //设置类成员
@@ -56,6 +83,7 @@ class Model {
         if (empty($tables) && !$this->TableName) {
             // 处理是否有实例化类名
             $this->TableName  = array_pop(explode('\\', get_class($this)));
+            $this->TableName  = str_replace('Model', '', $this->TableName);
             $currentModelName = array_pop(explode('\\', __CLASS__));
             if ($this->TableName == $currentModelName) {
                 return $this;
@@ -68,9 +96,7 @@ class Model {
         //执行判断表方法
         $this->TablesType($tables);
         //确认表是否存在
-        $this->db->CheckTables($this->db_prefix . $this->DataName, $this->db_tabs);
-        //初始化回调函数的句柄
-        $this->callback = $tables;
+        $this->db->CheckTables($this->db_prefix . $this->DataName, null);
 
         return $this;
     }
@@ -78,7 +104,7 @@ class Model {
     /**
      * From函数
      *
-     * @param  tables 表名
+     * @param string tables 表名
      *
      * @author Colin <15070091894@163.com>
      * @return \system\Model
@@ -94,7 +120,7 @@ class Model {
     /**
      * field方法
      *
-     * @param field 字段名
+     * @param string field 字段名
      *
      * @author Colin <15070091894@163.com>
      * @return \system\Model
@@ -110,7 +136,7 @@ class Model {
     /**
      * create方法
      *
-     * @param  data 创建对象的数据
+     * @param array $data 创建对象的数据
      *
      * @author Colin <15070091894@163.com>
      * @return array
@@ -118,7 +144,8 @@ class Model {
     public function create($data = []) {
         if (!$data) $data = values('post.');
         //获取表所有字段
-        $fields = $this->getFields();
+        $fields    = $this->getFields();
+        $fieldData = [];
         foreach ($fields as $key => $value) {
             if (isset($data[ $value ])) {
                 if ($data[ $value ] === null || $data[ $value ] == '') {
@@ -147,29 +174,17 @@ class Model {
     /**
      * 条件
      *
-     * @param string|array $field      字段名称
-     * @param string       $wherevalue 字段值
-     * @param string       $whereor    OR和AND
-     * @param string       $sub        操作符号 可以为 =,!=,in,not in,between,not between
+     * @param string|array $field 字段名称
+     * @param string       $value 字段值
+     * @param string       $or    OR和AND
      *
      * @author Colin <15070091894@163.com>
      * @return \system\Model
      */
-    public function where($field, $wherevalue = null, $whereor = null, $sub = '=') {
-        $fieldlen = count($field);
-        if ($whereor !== null) $this->WhereOR = $whereor;
+    public function where($field = '', $value = null, $or = null) {
+        if ($or !== null) $this->WhereOR = $or;
         if ($field == null) return $this;
-        //遍历字段
-        if (is_array($field)) {
-            //判断是否为多条数据
-            $fieldlen > 1 ? extract($this->parseWhere($field, true, $sub)) : extract($this->parseWhere($field, false, $sub));
-        } else {
-            //非数组
-            extract($this->parseWhere([$field => [$sub, $wherevalue]], false, $sub));
-        }
-        if ($tmp) {
-            $this->Where[] = $tmp;
-        }
+        $this->parseWhere($field, $value);
 
         return $this;
     }
@@ -181,7 +196,8 @@ class Model {
     public function getpk() {
         $pk = S('TABLE_PK_FOR_' . $this->DataName);
         if (empty($pk)) {
-            $pk = $this->execute("SELECT COLUMN_NAME FROM information_schema.`KEY_COLUMN_USAGE` WHERE TABLE_SCHEMA = '$this->db_tabs' AND TABLE_NAME = '$this->db_prefix$this->DataName' LIMIT 1");
+            $sql = "SELECT COLUMN_NAME FROM information_schema.`KEY_COLUMN_USAGE` WHERE TABLE_SCHEMA = '$this->db_tabs' AND TABLE_NAME = '$this->db_prefix$this->DataName' LIMIT 1";
+            $pk  = $this->execute($sql);
             S('TABLE_PK_FOR_' . $this->DataName, $pk);
         }
 
@@ -191,7 +207,7 @@ class Model {
     /**
      * 执行源生的sql语句
      *
-     * @param sql sql语句
+     * @param string $sql sql语句
      *
      * @author Colin <15070091894@163.com>
      * @return array
@@ -207,44 +223,71 @@ class Model {
      * 查询函数
      * @author Colin <15070091894@163.com>
      *
-     * @param bool $each 遍历
+     * @param bool $each 是否自行遍历
+     *
+     * @return array|\system\Model
      */
     public function select($each = false) {
         $this->getSql();
+        $data = $this->getResult(null, true);
         if ($each) {
             return $this;
         }
 
-        return $this->getResult(null, true);
+        return $data;
     }
 
     /**
      * 遍历数组
      *
      * @param \Closure $callback
+     *
+     * @return array
      */
     public function each(\Closure $callback) {
-        $list = $this->getResult(null, true);
-        foreach ($list as $key => &$value) {
+        foreach ($this->result as $key => &$value) {
             if ($return = $callback($value, $key)) {
                 $value = $return;
             }
         }
 
-        return $list;
+        return $this->result;
+    }
+
+    /**
+     * 转换数组
+     *
+     * @param string $key 新数组下标
+     * @param string $var 新数组的值
+     *
+     * @return array
+     */
+    public function toArray($key = '', $var = '') {
+        if (!$var && !$key) {
+            return $this->result;
+        }
+        if ($key && !$var) {
+            return array_column($this->result, $key);
+        }
+        $array = [];
+        foreach ($this->result as $k => $value) {
+            $array[ $value[ $key ] ] = $var ? $value[ $var ] : $value;
+        }
+
+        return $array;
     }
 
     /**
      * 查询一条数据
      *
-     * @param string $pk 主键名
+     * @param string $id 主键值
      *
      * @author Colin <15070091894@163.com>
      * @return array
      */
-    public function find($pk = null) {
-        if ($pk) {
-            $value = !is_numeric($pk) ? "'$pk'" : $pk;
+    public function find($id = null) {
+        if ($id) {
+            $value = !is_numeric($id) ? "'$id'" : $id;
             $this->where($this->getPk(), $value);
         }
         $this->getSql();
@@ -255,7 +298,7 @@ class Model {
     /**
      * 执行之后
      *
-     * @param $data
+     * @param array $data 原封不动的数据
      *
      * @return bool
      */
@@ -294,13 +337,13 @@ class Model {
     /**
      * 插入数据
      *
-     * @param values   要插入的数据
+     * @param array $datas 要插入的数据
      *
      * @author Colin <15070091894@163.com>
      * @return int
      */
-    public function insert($values = null) {
-        $values = myclass_filter($values);
+    public function insert($datas = null) {
+        $values = myclass_filter($datas);
         if (!$values) {
             $values = $this->data['create'];
         }
@@ -313,8 +356,8 @@ class Model {
     /**
      * 删除函数
      *
-     * @param field 被删除的字段
-     * @param value 唯一标示符
+     * @param string $field 被删除的字段
+     * @param string $value 唯一标示符
      *
      * @author Colin <15070091894@163.com>
      * @return int
@@ -333,8 +376,8 @@ class Model {
     /**
      * 修改函数
      *
-     * @param field    要被修改的字段
-     * @param value    要被修改的值
+     * @param string|array $field 要被修改的字段
+     * @param string|array $value 要被修改的值
      *
      * @author Colin <15070091894@163.com>
      * @return int
@@ -345,6 +388,7 @@ class Model {
                 $this->ParKey = ' SET ' . '`' . $field . '`' . "='" . $value . "'";
             }
         } else if (is_array($field)) {
+            $data = [];
             foreach ($field as $key => $value) {
                 if ($value === '') {
                     continue;
@@ -355,6 +399,7 @@ class Model {
         }
         $where     = $this->getWhere();
         $this->Sql = "UPDATE " . $this->TablesName . $this->ParKey . $where;
+        var_dump($this->Sql);
 
         return $this->ADUP($this->Sql, 'upd');
     }
@@ -375,7 +420,11 @@ class Model {
     }
 
     /**
-     * 增加字段值
+     * 对某一字段自增
+     *
+     * @param string $field 字段名
+     * @param int    $num   自增值
+     *
      * @return int
      */
     public function incField($field, $num = 1) {
@@ -385,7 +434,11 @@ class Model {
     }
 
     /**
-     * 减少字段值
+     * 对某一字段递减
+     *
+     * @param string $field 字段名
+     * @param int    $num   递减值
+     *
      * @return int
      */
     public function decField($field, $num = 1) {
@@ -395,7 +448,7 @@ class Model {
     }
 
     /**
-     * limt
+     * 限制查询N条记录
      *
      * @param int $start 查询结果集的数量 0
      * @param int $end   10
@@ -501,82 +554,9 @@ class Model {
     }
 
     /**
-     * in
-     *
-     * @param string $field  字段
-     * @param string $values 值
-     *
-     * @author Colin <15070091894@163.com>
-     * @return \system\Model
-     */
-    public function in($field, $values) {
-        $this->in_common($field, $values, 'in ');
-
-        return $this;
-    }
-
-    /**
-     * not in
-     *
-     * @param string $field  字段
-     * @param string $values 值
-     *
-     * @author Colin <15070091894@163.com>
-     * @return \system\Model
-     */
-    public function notin($field, $values) {
-        $this->in_common($field, $values, 'not in ');
-
-        return $this;
-    }
-
-    /**
-     * like
-     *
-     * @param string $field 要被like的字段名
-     * @param string $value like的值
-     *
-     * @author Colin <15070091894@163.com>
-     * @return string
-     */
-    public function like($field, $value) {
-        return $this->where($field, $value, null, 'LIKE ');
-    }
-
-    /**
-     * between
-     *
-     * @param field 要被between的字段名
-     * @param between between的值 格式为 1,2
-     *
-     * @author Colin <15070091894@163.com>
-     * @return \system\Model
-     */
-    public function between($field, $between) {
-        $this->between_common($field, $between, 'BETWEEN');
-
-        return $this;
-    }
-
-    /**
-     * between
-     *
-     * @param field 要被between的字段名
-     * @param between between的值 格式为 1,2
-     *
-     * @author Colin <15070091894@163.com>
-     * @return \system\Model
-     */
-    public function notbetween($field, $between) {
-        $this->between_common($field, $between, 'NOT BETWEEN');
-
-        return $this;
-    }
-
-    /**
      * 执行源生sql语句并返回结果
      *
-     * @param sql 要执行的sql语句
+     * @param string $sql 要执行的sql语句
      *
      * @author Colin <15070091894@163.com>
      * @return bool
@@ -588,7 +568,7 @@ class Model {
     /**
      * 执行原声sql语句，返回资源类型
      *
-     * @param sql 要执行的sql语句
+     * @param string $sql 要执行的sql语句
      *
      * @author Colin <15070091894@163.com>
      * @return int
@@ -607,20 +587,28 @@ class Model {
      * @return array
      */
     public function next($id, $field = '*') {
-        return $this->field($field)->where('id', $id, null, '>')->find();
+        $map = [
+            'id >' => $id,
+        ];
+
+        return $this->field($field)->where($map)->find();
     }
 
     /**
      * 获取上一条数据
      *
-     * @param  id 获取下一条数据的ID
-     * @param  field 查询字段
+     * @param string $id    获取下一条数据的ID
+     * @param string $field 查询字段
      *
      * @author Colin <15070091894@163.com>
      * @return array
      */
     public function prev($id, $field = '*') {
-        return $this->field($field)->where('id', $id, null, '<')->find();
+        $map = [
+            'id <' => $id,
+        ];
+
+        return $this->field($field)->where($map)->find();
     }
 
     /**
@@ -662,7 +650,7 @@ class Model {
         if (is_array($id)) {
             $map = $id;
         } else {
-            $map = ['id' => $id];
+            $map = [$this->getpk() => $id];
         }
         $find = $this->field($field)->where($map);
         if ($desc) {
@@ -685,10 +673,11 @@ class Model {
      * @param string $fun
      * @param string $param
      *
+     * @throws
      * @author Colin <15070091894@163.com>
      */
     public function __call($fun, $param = null) {
-        ShowMessage($fun . '()这个方法不存在！');
+        E(get_called_class() . '->' . $fun . '()这个方法不存在！');
     }
 
     /**
@@ -697,27 +686,30 @@ class Model {
      * @param string $fun
      * @param string $param
      *
+     * @throws
+     *
      * @author Colin <15070091894@163.com>
      */
     static public function __callStatic($fun, $param = null) {
-        ShowMessage(__METHOD__ . '()这个方法不存在！');
+        E(get_called_class() . '->' . __METHOD__ . '()这个方法不存在！');
     }
 
     /**
      * invoke方法  处理把类当成函数来使用
      * @author Colin <15070091894@163.com>
+     * @throws
      */
     public function __invoke() {
-        ShowMessage(__CLASS__ . '这不是一个函数');
+        E(__CLASS__ . '这不是一个函数');
     }
 
     /**
      * 获取所有字段
      *
-     * @param  tables 表名
+     * @param string $tables 表名
      *
      * @author Colin <15070091894@163.com>
-     * @return string
+     * @return array
      */
     protected function getFields($tables = null) {
         if (!$tables) $tables = $this->DataName;
@@ -762,6 +754,9 @@ class Model {
 
     /**
      * 判断类型
+     *
+     * @param string $tables 表名
+     *
      * @author Colin <15070091894@163.com>
      */
     protected function TablesType($tables) {
@@ -781,7 +776,11 @@ class Model {
 
     /**
      * 解析表名的大写
+     *
+     * @param string $tables 表名
+     *
      * @author Colin <15070091894@163.com>
+     * @return string
      */
     protected function parTableName($tables) {
         $tablename = myclass_filter(preg_split('/(?=[A-Z])/', $tables));
@@ -796,8 +795,9 @@ class Model {
      * @author Colin <15070091894@163.com>
      */
     protected function _parse_auto() {
-        $fields  = $this->getFields();
-        $primary = $this->getPk();
+        $fields   = $this->getFields();
+        $primary  = $this->getPk();
+        $isUpdate = array_key_exists($primary, $this->data['create']);
         //遍历自动完成属性
         foreach ($this->auto as $key => $value) {
             //查找是否符合字段需求
@@ -805,25 +805,14 @@ class Model {
                 $value[2] = $value[2] ? $value[2] : self::MODEL_INSERT;
                 //解析处理状态
                 if (!empty($value[2]) && $value[2] != self::MODEL_BOTH) {
-                    switch ($value[2]) {
-                        case self::MODEL_INSERT :
-                            //查找主键是否存在，存在则是新增，不存在则是更改
-                            if (array_key_exists($primary, $this->data['create'])) {
-                                $this->data['auto'][ $value[0] ] = null;
-
-                                return null;
-                            }
-                            break;
-                        //解析类型
-                        case self::MODEL_UPDATE :
-                            //查找主键是否存在，存在则是更改，不存在则是新增
-                            if (!array_key_exists($primary, $this->data['create'])) {
-                                $this->data['auto'][ $value[0] ] = null;
-
-                                return null;
-                            }
-                            break;
+                    if ($isUpdate) {
+                        if ($value[2] != self::MODEL_UPDATE) continue;
+                    } else {
+                        if ($value[2] != self::MODEL_INSERT) continue;
                     }
+                }
+                if (!isset($value[3])) {
+                    $value[3] = 'function';
                 }
                 //解析类型
                 if (!empty($value[3])) {
@@ -833,12 +822,12 @@ class Model {
                             $value[1] = $value[1]();
                             break;
                         case 'callback':
+                            $name = $value[1];
                             //回调当前模型的一个方法
-                            $value[1] = $this->$value[1]();
+                            $value[1] = $this->$name();
                             break;
                         default:
-                            //默认做字符串处理
-                            $value[1] = $value[1];
+                            //默认做字符串处理，$value[1] = $value[1]; 等于本身，不处理
                             break;
                     }
                 }
@@ -850,21 +839,37 @@ class Model {
 
     /**
      * 解析validate参数
-     * array('表单名' , '验证规则' , '错误提示' , '验证类型' , '附加规则'),
+     * array('表单名' , '验证方法' , '错误提示' , '自定义正则' , '验证方式 validate和callback'),
+     *  ['age', 'required', '年龄必须填写'],
+     * ['name', 'pattern', '姓名只能为英文', '/[0-9]+/'],
+     * 或['name', 'pattern', '姓名只能为英文', '/[0-9]+/','callback'],
      * @author Colin <15070091894@163.com>
      */
     protected function _parse_validate() {
         $validate = new Validate();
         foreach ($this->validate as $key => $value) {
-            switch ($value[3]) {
+            $string = '';
+            !isset($value[3]) && $value[3] = 1;
+            !isset($value[4]) && $value[4] = 'validate';
+            $createValue = $this->data['create'][ $value[0] ];
+            switch ($value[4]) {
                 case 'validate':
                     $string = $validate->Validate($value[0], [
                         [
-                            'string'  => $value[0],
-                            $value[4] => $value[1],
-                            'info'    => $value[2]
+                            'name'    => $value[0],
+                            $value[1] => $value[3],
+                            'info'    => $value[2],
+                            'value'   => $createValue
                         ]
                     ]);
+                    break;
+                case 'callback':
+                    $name = $value[1];
+                    //回调当前模型的一个方法
+                    if (!$this->$name($createValue, $value[3])) {
+                        E($value[2] ? $value[2] : '此字段为必填');
+                    }
+                    $string = $createValue;
                     break;
             }
             //保存自动验证属性
@@ -894,11 +899,19 @@ class Model {
     protected function _clearThis() {
         $this->Where = [];
         $this->Join  = [];
+        $this->Limit = '';
+        $this->Order = '';
     }
 
     /**
      * 执行sql语句函数
+     *
+     * @param string $sql 执行的SQL语句
+     * @param string $ist insert和update
+     *
      * @author Colin <15070091894@163.com>
+     * @return int
+     * @throws
      */
     protected function ADUP($sql = null, $ist = null) {
         $sql = $sql === null ? $this->Sql : $sql;
@@ -923,11 +936,10 @@ class Model {
     /**
      * 解析函数
      *
-     * @param type 解析的类型
-     * @param array 要被解析的数据
+     * @param string $type  解析的类型
+     * @param array  $array 要被解析的数据
      *
      * @author Colin <15070091894@163.com>
-     * @return string
      * @throws
      */
     protected function ParData($type, $array) {
@@ -938,8 +950,8 @@ class Model {
             case 'ist':
                 if (is_array($array)) {
                     foreach ($array as $key => $value) {
-                        $setKey   .= '`' . $key . '`' . ',';
-                        $setValue .= "'" . addslashes($value) . "',";
+                        $setKey   .= '`' . $key . '`,';
+                        $setValue .= $this->filter($value) . ',';
                     }
                     $this->ParKey   = substr($setKey, 0, -1);
                     $this->Parvalue = substr($setValue, 0, -1);
@@ -954,7 +966,7 @@ class Model {
                     if ($key == $pk) {
                         continue;
                     }
-                    $setKey .= '`' . $key . '`=\'' . addslashes($value) . "',";
+                    $setKey .= '`' . $key . '`=' . $this->filter($value) . ',';
                 }
                 //解析主键
                 if ($this->Where[0] === null) {
@@ -966,46 +978,69 @@ class Model {
     }
 
     /**
-     * 解析where参数
+     * 解析where条件值
      *
-     * @param array   $field  字段数组
-     * @param boolean $showOr 是否显示and 或 $this->whereOr
-     * @param string  $sub    条件操作符
-     *
-     * @return array
+     * @param        $field
+     * @param        $val
      */
-    protected function parseWhere($field = null, $showOr = false, $sub = null) {
-        $field = myclass_filter($field);
-        //遍历字段
-        foreach ($field as $key => $value) {
-            //处理数组传递区间符号
-            if (is_array($value)) {
-                //得到 $value[0] 和 $value[1];
-                list($sub, $tmpValue) = $value;
-                //增加一个空格
-                $sub   = ' ' . $sub . ' ';
-                $value = $tmpValue;
+    protected function parseWhere($field, $val) {
+        $template = '`%s` = %s';
+        // 是否为单个的字段，直接赋值的，假如 where('id' , 1)
+        if (!is_array($field)) {
+            if (!is_array($val)) {
+                $this->Where[] = sprintf($template, $field, $this->filter($val));
             }
-            // 数据过滤
-            if (!is_numeric($value) && !is_float($value) && !is_bool($value)) {
-                $value = mysqli_real_escape_string($value);
-            }
-            if (strpos($key, '.') !== false) {
-                //处理使用array('p.name' => '工' , 'p.id' => 111) 中文''问题
-                if ($value) {
-                    $value = (is_numeric($value) || is_numeric($value)) && !empty($value) ? $value : "'$value'";
+        } else {
+            foreach ($field as $key => $value) {
+                $query = new DynamicQuery();
+                // 解析key中的oper
+                list($explodeField, $explode) = explode(' ', $key);
+                // 解析字段为 'name >' => '2'
+                if ($explode) {
+                    // 有操作符号
+                    $query->autoBind($explodeField, $value, $explode);
+                    $this->Where[] = $query->fetch();
+                } else {
+                    if (is_array($value)) {
+                        // 数组操作
+                        list($oper, $val) = $value;
+                        // 验证是否在dynamic中
+                        if (is_string($oper)) {
+                            if (method_exists($query, $oper)) {
+                                $query->$oper($key, $val);
+                            } else {
+                                // 尝试查找是否可绑定
+                                if ($query->isBind($oper)) {
+                                    $query->autoBind($key, $val, $oper);
+                                }
+                            }
+                            $this->Where[] = $query->fetch();
+                            continue;
+
+                        }
+                    }
+                    $this->Where[] = sprintf($template, $key, $this->filter($value));
                 }
-                $tmp .= $key . $sub . $value . ' ' . $this->WhereOR . ' ';
-            } else {
-                //处理between，in操作
-                $tmp .= $value !== '' && $value !== null ? "`$key` $sub '$value' $this->WhereOR " : "`$key` $sub $this->WhereOR ";
             }
         }
-        $end = strlen($this->WhereOR) + 1;
-        //截取掉$this->WhereOr
-        $tmp = mb_substr($tmp, 0, -$end, 'utf-8');
+    }
 
-        return ['tmp' => $tmp, 'value' => $value, 'sub' => $sub];
+    /**
+     * 过滤数据
+     *
+     * @param $value
+     *
+     * @return string
+     */
+    protected function filter($value) {
+        if (is_numeric($value) || is_int($value)) {
+            return $value;
+        }
+        if (is_string($value)) {
+            return '\'' . addslashes($value) . '\'';
+        }
+
+        return '';
     }
 
     /**
@@ -1049,39 +1084,15 @@ class Model {
             $data = $this->db->fetch_array($result);
             $this->afterFind($data);
         }
+        $this->result = $data;
 
         return $data;
     }
 
     /**
-     * between公共模块
-     *
-     * @param field 要被between的字段名
-     * @param between between的值 格式为 1,2
-     * @param keyword 关键词 BETWEEN 或者 NOT BETWEEN
-     *
-     * @author Colin <15070091894@163.com>
-     */
-    protected function between_common($field, $between, $keyword) {
-        list($betweenleft, $betweenright) = explode(',', $between);
-        $between = $keyword . ' ' . $betweenleft . ' AND ' . $betweenright . ' ';
-        $this->where($field, null, null, $between);
-    }
-
-    /**
-     * in操作公共方法
-     * @return string
-     */
-    protected function in_common($field, $in, $keyword) {
-        if (is_array($in)) {
-            $in = implode(',', $in);
-        }
-        $this->where($field, null, null, $keyword . '(' . $in . ')');
-    }
-
-    /**
      * 验证数据库信息是否填写
      * @author Colin <15070091894@163.com>
+     * @throws
      */
     protected static function CheckConnectInfo() {
         if (!Config('DB_TYPE') || !Config('DB_HOST') || !Config('DB_USER') || !Config('DB_TABS')) {
@@ -1091,9 +1102,6 @@ class Model {
 
     /**
      * 设置类成员
-     *
-     * @param tables 要验证的表名
-     *
      * @author Colin <15070091894@163.com>
      */
     protected function setClassMember() {
@@ -1105,5 +1113,18 @@ class Model {
             $member        = strtolower($match[0]);
             $this->$member = $value;
         }
+    }
+
+    public function offsetExists($offset) {
+    }
+
+    public function offsetGet($offset) {
+        return $this->result[ $offset ];
+    }
+
+    public function offsetSet($offset, $value) {
+    }
+
+    public function offsetUnset($offset) {
     }
 }

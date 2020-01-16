@@ -4,6 +4,7 @@ namespace system\IO\Storage\Drivers;
 
 use system\IO\Storage\Storage;
 use system\IO\Storage\StorageInterface;
+use system\MyError;
 
 class RedisStorage extends Storage implements StorageInterface {
     /**
@@ -14,12 +15,17 @@ class RedisStorage extends Storage implements StorageInterface {
     /**
      * 设置key
      *
-     * @param $key
-     * @param $value
+     * @param string       $key   保存名
+     * @param string|array $value 保存值
+     * @param int          $time  过期时间，单位秒
      *
      * @return bool
+     * @throws
      */
     public function set($key, $value, $time = 0) {
+        if (is_array($value)) {
+            throw new MyError('Expected value mismatch, character required');
+        }
         self::$storage->set($key, $value);
         $time && $this->expire($key, $time);
 
@@ -29,7 +35,7 @@ class RedisStorage extends Storage implements StorageInterface {
     /**
      * 删除
      *
-     * @param $key
+     * @param string $key 名称
      *
      * @return int
      */
@@ -44,9 +50,9 @@ class RedisStorage extends Storage implements StorageInterface {
     /**
      * 连接
      *
-     * @param $config
+     * @param array $config 配置
      *
-     * @return bool
+     * @return mixed
      */
     public function connect($config = []) {
         if (self::$storage instanceof \Redis) {
@@ -72,6 +78,7 @@ class RedisStorage extends Storage implements StorageInterface {
 
             return false;
         }
+        !$config['pass'] && $config['pass'] = Config('REDIS_PASS');
         if ($config['pass'] && !$redis->auth($config['pass'])) {
             $this->error = $redis->getLastError();
 
@@ -86,7 +93,7 @@ class RedisStorage extends Storage implements StorageInterface {
     /**
      * 获取存储的值
      *
-     * @param $key
+     * @param string $key 名称
      *
      * @return bool|string
      */
@@ -105,9 +112,9 @@ class RedisStorage extends Storage implements StorageInterface {
     /**
      * 键是否存在
      *
-     * @param $key
+     * @param string $key 名称
      *
-     * @return mixed|void
+     * @return bool
      */
     public function exists($key) {
         if (!$key) {
@@ -126,10 +133,10 @@ class RedisStorage extends Storage implements StorageInterface {
     /**
      * 设置过期时间
      *
-     * @param     $key
-     * @param int $time
+     * @param string $key  名称
+     * @param int    $time 过期时间，单位秒
      *
-     * @return bool|mixed
+     * @return bool
      */
     public function expire($key, $time = 0) {
         if (!$this->exists($key)) {
@@ -144,7 +151,7 @@ class RedisStorage extends Storage implements StorageInterface {
 
     /**
      * 清理当前数据库的所有数据
-     * @return bool|mixed
+     * @return bool
      */
     public function clear() {
         self::$storage->flushDB();

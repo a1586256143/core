@@ -60,8 +60,8 @@ class Auth {
     /**
      * 验证权限，不支持参数验证
      *
-     * @param  uid 用户权限id
-     * @param model 模式 1=>url模式,2=>权限id模式,3=>权限名称模式
+     * @param string $uid   用户权限id
+     * @param int    $model 模式 1=>url模式,2=>权限id模式,3=>权限名称模式
      *
      * @author Colin <15070091894@163.com>
      * @return bool
@@ -93,7 +93,7 @@ class Auth {
     /**
      * 获取用户权限列表
      *
-     * @param  uid 用户权限id
+     * @param string $uid 用户权限id
      *
      * @author Colin <15070091894@163.com>
      * @return array

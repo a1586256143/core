@@ -9,6 +9,9 @@ namespace system\Model;
 use system\MyError;
 
 abstract class Db {
+    /**
+     * @var $db \system\Model\Drivers\Mysqli
+     */
     protected static $db;
     // $_db 供子类存储用
     protected $_db;
@@ -17,6 +20,7 @@ abstract class Db {
      * 获取数据库类
      * @author Colin <15070091894@163.com>
      * @return \system\Model\Drivers\Mysqli
+     * @throws
      */
     public static function getIns() {
         if (self::$db) {
@@ -52,6 +56,7 @@ abstract class Db {
      *
      * @param string $tables  验证表名
      * @param string $db_tabs 验证数据库
+     * @param bool   $throw   是否抛出错误
      *
      * @author Colin <15070091894@163.com>
      * @throws
@@ -60,7 +65,8 @@ abstract class Db {
         if (empty($db_tabs)) {
             $db_tabs = Config('DB_TABS');
         }
-        $result = $this->execute("select `TABLE_NAME` from `INFORMATION_SCHEMA`.`TABLES` where `TABLE_SCHEMA`='$db_tabs' and `TABLE_NAME`='$tables' ");
+        $sql    = "select `TABLE_NAME` from `INFORMATION_SCHEMA`.`TABLES` where `TABLE_SCHEMA`='$db_tabs' and `TABLE_NAME`='$tables' limit 1";
+        $result = $this->execute($sql);
         if (empty($result)) {
             $throw && E('数据表不存在！' . $tables);
             if (!$throw) throw new MyError('数据表不存在！' . $tables);
@@ -103,7 +109,7 @@ abstract class Db {
     /**
      * 获取结果集
      *
-     * @param  \ResourceBundle $query [query执行后结果]
+     * @param  mixed $query query执行后结果
      *
      * @author Colin <15070091894@163.com>
      * @return array
@@ -152,9 +158,10 @@ abstract class Db {
     /**
      * 获取表所有字段
      *
-     * @param string $table [表名]
+     * @param string $table 表名
      *
      * @author Colin <15070091894@163.com>
+     * @return mixed
      */
     public function getFields($table) {
         $prefix = Config('DB_PREFIX') . $table;

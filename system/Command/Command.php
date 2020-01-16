@@ -2,10 +2,8 @@
 
 namespace system\Command;
 
-use system\Factory;
 use system\Facade;
-use system\Command\Drivers\ControllerCommand;
-use system\Command\Drivers\ModelCommand;
+use system\Factory;
 
 class Command extends Facade {
 
@@ -39,7 +37,7 @@ class Command extends Facade {
 
     /**
      * 获取门面名
-     * @return [type] [description]
+     * @return mixed
      */
     public static function getFacadeAccessor() {
         return self::$container->make(self::$argv[1], self::$argv);
@@ -50,13 +48,16 @@ class Command extends Facade {
      *
      * @param  Facade $command [description]
      *
-     * @return [type]          [description]
+     * @return string
      */
     public static function generate(Facade $command) {
         $status = self::commandValidate();
         if (!$status) {
             return false;
         }
+        /**
+         * @var $command \system\Command\Drivers\ModelCommand
+         */
         if (!self::$name && $command::requireName()) {
             self::putMsg('command faild , sample ' . $command::getHelp());
         }
@@ -69,10 +70,10 @@ class Command extends Facade {
 
     /**
      * 指令校验
-     * @return [type] [description]
+     * @return bool
      */
     public static function commandValidate() {
-        list($cli, $action, $name) = self::$argv;
+        list(, $action, $name) = self::$argv;
         $helps = self::bindContainer();
         if (!$action || !in_array($action, self::$helpCommands) || in_array($action, self::$notCommand)) {
             self::echoHelp($helps);
@@ -115,7 +116,10 @@ class Command extends Facade {
         $helpCommand = array_diff(self::$helpCommands, self::$notCommand);
         $helps       = [];
         foreach ($helpCommand as $value) {
-            $name    = 'system\Command\Drivers\\' . $value . 'Command';
+            $name = 'system\Command\Drivers\\' . $value . 'Command';
+            /**
+             * @var $command \system\Command\Drivers\ModelCommand
+             */
             $command = new $name();
             $helps[] = [
                 'command' => $command->getCommand(),

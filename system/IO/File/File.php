@@ -14,7 +14,7 @@ class File extends Factory {
 
     /**
      * 获取单例对象
-     * @return \system\File
+     * @return \system\IO\File\File
      */
     public static function getInstance() {
         return self::applyIns(self::class, new self);
@@ -23,9 +23,11 @@ class File extends Factory {
     /**
      * 打开文件
      *
-     * @param filename 文件名
+     * @param string $filename 文件名
+     * @param int    $time     保存时间，单位秒
      *
      * @author Colin <15070091894@163.com>
+     * @return string
      */
     public function getFileContent($filename, $time = 0) {
         if ($time && (fileatime($filename) + $time) <= time()) {
@@ -34,40 +36,41 @@ class File extends Factory {
             return null;
         }
         //获取文件内容
-        $file_resoule = file_get_contents($filename);
-        if (!$file_resoule) {
+        $fileResource = file_get_contents($filename);
+        if (!$fileResource) {
             return null;
         }
 
-        return $file_resoule;
+        return $fileResource;
     }
 
     /**
      * 打开目录
      *
-     * @param path 要打开的目录
+     * @param string $path 要打开的目录
      *
      * @author Colin <15070091894@163.com>
+     * @return resource|bool
      */
     public function getDirFiles($path) {
         //打开目录
-        $dir_soule = opendir($path);
+        $dirResource = opendir($path);
 
-        return $dir_soule;
+        return $dirResource;
     }
 
     /**
      * 清除目录内所有的数据
      *
-     * @param path 要打开的目录
+     * @param string $path 要打开的目录
      *
      * @author Colin <15070091894@163.com>
      */
     public function removeAll($path) {
         //打开目录
-        $dir_soule = $this->getDirFiles($path);
+        $dirResource = $this->getDirFiles($path);
         //读取目录内容
-        while ($filename = readdir($dir_soule)) {
+        while ($filename = readdir($dirResource)) {
             //屏蔽. 和 .. 特殊操作符
             if (in_array($filename, ['.', '..'])) continue;
             //删除文件
@@ -78,15 +81,17 @@ class File extends Factory {
     /**
      * 获取目录下的所有文件
      *
-     * @param path 要打开的目录
-     * @param path 返回指定格式的文件
+     * @param string $path   要打开的目录
+     * @param string $suffix 返回指定格式的文件
      *
      * @author Colin <15070091894@163.com>
+     * @return array
      */
     public function getDirAllFile($path = null, $suffix = null) {
         //打开目录
-        $dir_soule = $this->getDirFiles($path);
-        while ($filename = readdir($dir_soule)) {
+        $dirResource = $this->getDirFiles($path);
+        $file        = [];
+        while ($filename = readdir($dirResource)) {
             $filepath = $path . '/' . $filename;
             //获取文件信息，主要获取文件后缀
             $info = pathinfo($filename);
@@ -110,11 +115,12 @@ class File extends Factory {
     /**
      * 写入文件
      *
-     * @param filename 文件名
-     * @param data 数据
-     * @param isJson 是否json编码
+     * @param string       $filename 文件名
+     * @param string|array $data     数据
+     * @param bool         $isJson   是否json编码
      *
      * @author Colin <15070091894@163.com>
+     * @return bool
      */
     public function putFileContent($filename, $data, $isJson = true) {
         if ($isJson) {
@@ -122,8 +128,8 @@ class File extends Factory {
             $data = json_encode($data);
         }
         //生成$filename文件
-        $fileobj = file_put_contents($filename, $data);
-        if ($fileobj) {
+        $status = file_put_contents($filename, $data);
+        if ($status) {
             return true;
         } else {
             return false;
@@ -133,20 +139,24 @@ class File extends Factory {
     /**
      * 追加文件
      *
-     * @param filename 文件名
-     * @param data 数据
+     * @param string       $filename 文件名
+     * @param string|array $data     数据
      *
      * @author Colin <15070091894@163.com>
      */
     public function appendFileContent($filename, $data) {
-        $fopen = fopen($filename, 'a');
-        fwrite($fopen, $data);
-        fclose($fopen);
+        $f = fopen($filename, 'a');
+        fwrite($f, $data);
+        fclose($f);
     }
 
     /**
      * 删除文件
+     *
+     * @param string $filename 文件名
+     *
      * @author Colin <15070091894@163.com>
+     * @return bool
      */
     public function removeFile($filename) {
         //删除文件
@@ -156,11 +166,11 @@ class File extends Factory {
     /**
      * 是否是一个文件
      *
-     * @param $filename
+     * @param string $filename 文件名
      *
      * @return bool
      */
-    public function isExsits($filename) {
+    public function isExists($filename) {
         if (!is_file($filename)) {
             return false;
         }

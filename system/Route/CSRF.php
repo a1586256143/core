@@ -28,6 +28,7 @@ class CSRF {
     /**
      * 执行csrf
      * @author Colin <15070091894@163.com>
+     * @throws \system\MyError
      */
     public static function execCSRF() {
         if (POST && Config('CSRF') == 1) {

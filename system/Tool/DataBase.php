@@ -43,6 +43,10 @@ class DataBase {
 
     /**
      * get方法
+     *
+     * @param string $key 名称
+     *
+     * @return string
      */
     public function __get($key) {
         return $this->$key;
@@ -54,6 +58,8 @@ class DataBase {
      * @param string $table 选择的数据表
      *
      * @author Colin <15070091894@163.com>
+     * @return \system\Tool\DataBase
+     * @throws
      */
     public function useTable($table = null) {
         $this->tables = $this->prefix . $table;
@@ -69,6 +75,7 @@ class DataBase {
      *
      * @return int 返回创建状态
      * @author Colin <15070091894@163.com>
+     * @throws
      */
     public function createDatabase($database = null) {
         $this->sql = "CREATE DATABASE `$database` DEFAULT CHARACTER SET $this->charset COLLATE $this->encoding;";
@@ -83,6 +90,7 @@ class DataBase {
      *
      * @return bool 返回删除状态
      * @author Colin <15070091894@163.com>
+     * @throws
      */
     public function dropDatabase($database = null) {
         $this->sql = "DROP DATABASE `$database`";
@@ -97,6 +105,7 @@ class DataBase {
      *
      * @return bool 返回删除状态
      * @author Colin <15070091894@163.com>
+     * @throws
      */
     public function dropTable($table = null) {
         $this->sql = "DROP TABLE `$this->prefix$table`";
@@ -110,19 +119,20 @@ class DataBase {
      * @param string $tablename 表名
      * @param array  $fields    字段数组
      *
-     * @return 无返回值
+     * @return int
      * @author Colin <15070091894@163.com>
+     * @throws
      */
     public function createTable($tablename = null, $fields = null) {
         $this->sql = "CREATE TABLE IF NOT EXISTS `$this->prefix$tablename`(";
         if (is_array($fields) && !is_null($fields)) {
-            $this->sql    .= $this->key('id', 'int', 11, true, ',');
+            $this->key('id', 'int', 11, true, ',');
             $this->attr   = $fields;
             $this->tables = $this->prefix . $tablename;
-            $this->_parse_fieldinfo(',');
+            $this->_parseFieldInfo(',');
             $this->sql = substr($this->sql, 0, -1);
         } else {
-            $this->sql .= $this->key();
+            $this->key();
         }
         $this->sql .= ") ENGINE='$this->engine' DEFAULT CHARSET=$this->charset COMMENT='$this->comment' AUTO_INCREMENT=1";
 
@@ -132,16 +142,16 @@ class DataBase {
     /**
      * 表是否存在
      *
-     * @param $tablename
-     * @param $db_tabs
-     * @param $throw
+     * @param string $tableName 表名
+     * @param string $db_tabs
+     * @param bool   $throw
      *
      * @return bool
      */
-    public function isTable($tablename, $db_tabs = null, $throw = true) {
+    public function isTable($tableName, $db_tabs = null, $throw = true) {
         try {
-            $tablename = $this->prefix . $tablename;
-            $this->db->CheckTables($tablename, $db_tabs, $throw);
+            $tableName = $this->prefix . $tableName;
+            $this->db->CheckTables($tableName, $db_tabs, $throw);
 
             return true;
         } catch (MyError $e) {
@@ -153,10 +163,11 @@ class DataBase {
     /**
      * 创建主键
      *
-     * @param string $name           主键名称
-     * @param string $type           主键类型
-     * @param int    $len            主键长度
-     * @param boolen $auto_increment 主键是否自动增长
+     * @param string  $name           主键名称
+     * @param string  $type           主键类型
+     * @param int     $len            主键长度
+     * @param bool    $auto_increment 主键是否自动增长
+     * @param  string $separator      其它信息
      */
     public function key($name = 'id', $type = 'int', $len = 11, $auto_increment = true, $separator = null) {
         $this->sql .= "`$name` $type($len) not null primary key ";
@@ -167,18 +178,21 @@ class DataBase {
     /**
      * 创建字段
      *
-     * @param string $fields 字段属性数组
-     * @param 格式为 array('字段名' , '字段类型' , '字段长度' , '是否为空' , '是否有默认值' , '字段注释' , '额外属性')
+     * @param array  $fields 字段属性数组
+     * @params 格式为 array('字段名' , '字段类型' , '字段长度' , '是否为空' , '是否有默认值' , '字段注释' , '额外属性')
+     * @param string $action 操作行为 ADD,UPDATE,MODIFY
      *
+     * @throws
      * @author Colin <15070091894@163.com>
+     * @return bool
      */
     public function createFields($fields = [], $action = 'ADD') {
         if (empty($this->tables)) {
-            throw new \system\MyError('请先选择数据库。在进行操作');
+            throw new MyError('请先选择数据库。在进行操作');
         }
         $this->attr   = $fields;
         $this->action = strtoupper($action);
-        $this->_parse_fieldinfo();
+        $this->_parseFieldInfo();
 
         return $this->execute($this->sql);
     }
@@ -188,7 +202,6 @@ class DataBase {
      *
      * @param array $fields
      *
-     * @return mixed
      * @throws \system\MyError
      */
     public function changeFields($fields = []) {
@@ -201,7 +214,8 @@ class DataBase {
      * @param string $field 字段名
      *
      * @author Colin <15070091894@163.com>
-     * @return boolen 删除状态
+     * @return bool 删除状态
+     * @throws
      */
     public function dropField($field) {
         $this->sql = "ALTER TABLE `$this->tables` DROP `$field`;";
@@ -216,6 +230,7 @@ class DataBase {
      * @param string $table 清空的表名
      *
      * @author Colin <15070091894@163.com>
+     * @throws
      */
     public function truncate($table = null) {
         $this->sql = "TRUNCATE $table";
@@ -228,6 +243,8 @@ class DataBase {
      * @param string $sql 被执行的sql语句
      *
      * @author Colin <15070091894@163.com>
+     * @return mixed
+     * @throws
      */
     public function execute($sql = null) {
         if (!empty($sql)) {
@@ -237,7 +254,7 @@ class DataBase {
         foreach ($separator as $key => $value) {
             $query = $this->db->query($value);
             if (!$query) {
-                throw new \system\MyError('sql解析错误：' . $this->db->showerror());
+                throw new MyError('sql解析错误：' . $this->db->showerror());
             }
         }
 
@@ -246,10 +263,13 @@ class DataBase {
 
     /**
      * 解析创建字段信息
-     * @return null
+     *
+     * @param string $separator 字段的其它信息
+     *
      * @author Colin <15070091894@163.com>
+     * @throws
      */
-    protected function _parse_fieldinfo($separator = ';') {
+    protected function _parseFieldInfo($separator = ';') {
         //sql 创建字段语句
         // ALTER TABLE `表名` ADD `字段名` int(10) not null default 0 comment '字段备注';
         //array('字段名' , '字段类型' , '字段长度' , '是否为空' , '是否有默认值' , '字段注释' , '额外属性')
@@ -276,14 +296,14 @@ class DataBase {
      * @param string $comment   字段备注
      * @param string $extra     额外值。例如unsigned
      * @param string $separator 是否拥有分隔符例如,
-     * @param string $action    行为，ADD和MODIFY
      *
      * @author Colin <15070091894@163.com>
+     * @throws
      */
-    protected function merge_sql($field = 'id', $type = 'int', $length = 11, $null = 'NULL', $default = null, $comment = null, $extra = null, $separator = null, $action = 'ADD') {
+    protected function merge_sql($field = 'id', $type = 'int', $length = 11, $null = 'NULL', $default = null, $comment = null, $extra = null, $separator = null) {
         //检查字段是否存在
         if ($this->action == 'ADD' && !$this->db->CheckFields($this->tables, $field)) {
-            throw new \system\MyError($this->tables . '表中已存在该字段' . $field);
+            throw new MyError($this->tables . '表中已存在该字段' . $field);
         }
         //解析null值
         if (!is_null($null)) {

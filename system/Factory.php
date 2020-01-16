@@ -20,7 +20,7 @@ class Factory {
      * @param  [type] $name [description]
      * @param  [type] $class [description]
      *
-     * @return [type]       [description]
+     * @return mixed
      */
     public static function applyIns($name, $class) {
         if (!isset(self::$regIns[ $name ])) {
@@ -34,6 +34,7 @@ class Factory {
      * 创建数据库对象
      * @author Colin <15070091894@163.com>
      * @return \system\Model\Drivers\Mysqli
+     * @throws
      */
     public static function getIns() {
         return Db::getIns();
@@ -42,7 +43,8 @@ class Factory {
     /**
      * 创建缓存类
      * @author Colin <15070091894@163.com>
-     * @return \system\IO\Storage\Drivers\RedisStorage
+     * @return \system\IO\Storage\Drivers\FileStorage
+     * @throws
      */
     public static function CreateCache() {
         return Storage::getIns();
@@ -55,7 +57,7 @@ class Factory {
      * @param array  $config 配置
      *
      * @author Colin <15070091894@163.com>
-     * @return Templates
+     * @return \system\View
      */
     public static function CreateTemplates($type = null, $config = []) {
         //实例化第三方模板类
@@ -73,10 +75,10 @@ class Factory {
     /**
      * 创建模型类
      *
-     * @param name 控制器名称
+     * @param string $name 控制器名称
      *
      * @author Colin <15070091894@163.com>
-     * @return class
+     * @return \system\Model
      */
     public static function CreateModel($name) {
         $modelexplode = explode('\\', $name);
@@ -89,10 +91,10 @@ class Factory {
     /**
      * 创建系统模型类
      *
-     * @param tables 表名
+     * @param string tables 表名
      *
      * @author Colin <15070091894@163.com>
-     * @return system\Model
+     * @return \system\Model
      */
     public static function CreateSystemModel($tables = null) {
         return new Model($tables);
@@ -101,7 +103,7 @@ class Factory {
     /**
      * 验证码类
      * @author Colin <15070091894@163.com>
-     * @return \system\Code\Code
+     * @return Tool\Code
      */
     public static function CreateCode() {
         return new Tool\Code();

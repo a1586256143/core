@@ -13,7 +13,7 @@ class Url {
      *
      * @param string $url 被解析的地址，转换成路由，为空，则默认当前
      *
-     * @return [type] [description]
+     * @return string
      */
     public static function parseUrl($url = null) {
         $pathinfo = PHP_SAPI !== 'cli' ? $_SERVER['REQUEST_URI'] : '';
@@ -49,14 +49,13 @@ class Url {
      * @param boolean $is_return_current_url 是否返回当前地址
      * @param boolean $is_return_array       是否返回数组
      *
-     * @return array
+     * @return array|string
      * @author Colin <15070091894@163.com>
      * @throws
      */
     public static function getCurrentUrl($is_return_current_url = false, $is_return_array = false) {
         $current_url = self::getSiteUrl();
         $parse_url   = parse_url($current_url);
-        $path_array  = explode('/', ROOT_PATH);
         $patten      = '/\./';
         //匹配是否是index.php
         if (!empty($parse_path)) {

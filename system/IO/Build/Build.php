@@ -17,6 +17,9 @@ class Build extends Factory {
 
     /**
      * 获取单例句柄
+     *
+     * @param array $args 配置值
+     *
      * @return mixed
      */
     public static function getInstance($args = []) {
@@ -29,7 +32,7 @@ class Build extends Factory {
      *
      * @param $args
      */
-    public function __construct($args = []) {
+    private function __construct($args = []) {
         if ($args) {
             $this->args = $args;
         }
@@ -71,17 +74,17 @@ class Build extends Factory {
         foreach ($this->build as $key => $value) {
             $path    = $value->getPath();
             $content = $value->getBuildContent();
-            !$file->isExsits($path) && $file->putFileContent($path, $content, false);
+            !$file->isExists($path) && $file->putFileContent($path, $content, false);
         }
     }
 
     /**
      * 添加一个Build
      *
-     * @param                        $name
-     * @param \system\IO\Build\Build $build
+     * @param  string                $name  Build名字
+     * @param \system\IO\Build\Build $build 实体类
      *
-     * @throws \system\MyError
+     * @return mixed
      */
     public function addBuild($name, Build $build) {
         if (isset($this->build[ $name ]) && $this->build[ $name ]) {

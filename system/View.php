@@ -6,15 +6,19 @@
 
 namespace system;
 class View {
-    //静态成员
+    /**
+     * @var $view \SmartyBC
+     */
     public static $view;
 
     /**
      * 初始化成员信息
      *
-     * @param type 类型
+     * @param string type 类型
+     * @param array $config 视图的配置
      *
      * @author Colin <15070091894@163.com>
+     * @throws \SmartyException
      */
     public static function init($type, $config = []) {
         self::$view = Factory::CreateTemplates($type, $config);
@@ -24,6 +28,7 @@ class View {
     /**
      * 注册smarty解析
      * @return null
+     * @throws \SmartyException
      */
     protected static function register() {
         self::$view->register_prefilter('smarty_preFilterConstants');

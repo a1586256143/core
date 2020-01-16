@@ -2,18 +2,17 @@
 
 namespace system\Command\Drivers;
 
-use system\IO\Build\Task\ModelBuild;
-use system\View;
 use system\Command\CommandInterface;
 use system\Command\CommandParse;
+use system\IO\Build\Task\ModelBuild;
 
 class ModelCommand implements CommandInterface {
     /**
      * 执行
      *
-     * @param  [type] $argv [description]
+     * @param array $argv 指令集
      *
-     * @return [type]       [description]
+     * @return mixed
      */
     public function exec($argv = null) {
         return $this->generate($argv);
@@ -24,7 +23,7 @@ class ModelCommand implements CommandInterface {
      *
      * @param  [type] $argv [description]
      *
-     * @return [type]       [description]
+     * @return bool
      */
     public function generate($argv = null) {
         $common = new CommandParse($argv);

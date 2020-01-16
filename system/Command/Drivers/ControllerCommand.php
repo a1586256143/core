@@ -2,19 +2,18 @@
 
 namespace system\Command\Drivers;
 
-use system\IO\Build\Task\ControllerBuild;
-use system\View;
 use system\Command\CommandInterface;
 use system\Command\CommandParse;
+use system\IO\Build\Task\ControllerBuild;
 
 class ControllerCommand implements CommandInterface {
 
     /**
      * 执行
      *
-     * @param  [type] $argv [description]
+     * @param array $argv 指令集
      *
-     * @return [type]       [description]
+     * @return mixed
      */
     public function exec($argv = null) {
         return $this->generate($argv);
@@ -23,9 +22,9 @@ class ControllerCommand implements CommandInterface {
     /**
      * 生成
      *
-     * @param  [type] $argv [description]
+     * @param array $argv 指令集
      *
-     * @return [type]       [description]
+     * @return bool
      */
     public function generate($argv = null) {
         $common = new CommandParse($argv);

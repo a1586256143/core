@@ -29,7 +29,7 @@ interface DBInterface {
     /**
      * 获取结果集 以数组格式获取
      *
-     * @param  string $query [query后的结果集]
+     * @param  mixed $query query后的结果集
      *
      * @author Colin <15070091894@163.com>
      */
@@ -38,24 +38,31 @@ interface DBInterface {
     /**
      * 获取新增的ID
      * @author Colin <15070091894@163.com>
+     * @return mixed
      */
     public function insert_id();
 
     /**
      * 获取执行影响的记录数
+     *
+     * @param mixed $prepare
+     *
      * @author Colin <15070091894@163.com>
+     * @return mixed
      */
-    public function affected_rows();
+    public function affected_rows($prepare = null);
 
     /**
      * 关闭数据库
      * @author Colin <15070091894@163.com>
+     * @return mixed
      */
     public function close();
 
     /**
      * 返回最近的一条sql语句错误信息
      * @author Colin <15070091894@163.com>
+     * @return mixed
      */
     public function showerror();
 }

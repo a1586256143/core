@@ -3,10 +3,10 @@
 namespace system;
 class Container {
     // 向容器中绑定服务对象
-    protected $binds = array();
+    protected $binds = [];
 
     // 是一个简单的服务容器里面有bind,make两个方法
-    protected $instances = array();
+    protected $instances = [];
 
     // 单例的对象
     protected static $instance;
@@ -28,8 +28,6 @@ class Container {
      *
      * @param  [type] $abstract [description]
      * @param  [type] $concrete [description]
-     *
-     * @return [type]           [description]
      */
     public function bind($abstract, $concrete) {
         if ($concrete instanceof \Closure) {
@@ -42,12 +40,12 @@ class Container {
     /**
      * 取对象
      *
-     * @param  [type] $abstract [description]
-     * @param  array $params [description]
+     * @param       $abstract
+     * @param array $params
      *
-     * @return [type]           [description]
+     * @return mixed
      */
-    public function make($abstract, $params = array()) {
+    public function make($abstract, $params = []) {
         if (isset($this->instances[ $abstract ])) {
             return $this->instances[ $abstract ];
         }

@@ -8,14 +8,14 @@ use system\IO\Storage\StorageInterface;
 
 class FileStorage extends Storage implements StorageInterface {
     /**
-     * @var $storage \system\File
+     * @var $storage \system\IO\File\File
      */
     protected static $storage;
 
     /**
      * 连接
      *
-     * @param array $config
+     * @param array $config 配置值
      *
      * @return bool|mixed
      */
@@ -36,15 +36,15 @@ class FileStorage extends Storage implements StorageInterface {
     /**
      * 删除文件
      *
-     * @param $key
+     * @param string $key 名称
      *
-     * @return mixed|void
+     * @return bool
      */
     public function remove($key) {
         if (!$this->exists($key)) {
             return false;
         }
-        $name = $this->_generFileName($name);
+        $name = $this->_generateFileName($key);
 
         return self::$storage->removeFile($name);
     }
@@ -52,12 +52,12 @@ class FileStorage extends Storage implements StorageInterface {
     /**
      * 获取一个数据
      *
-     * @param $key
+     * @param string $key 名称
      *
-     * @return false|mixed|string|null
+     * @return mixed
      */
     public function get($key) {
-        $name = $this->_generFileName($key);
+        $name = $this->_generateFileName($key);
         $data = self::$storage->getFileContent($name);
         if ($data) {
             $data = unserialize(json_decode($data, true));
@@ -74,13 +74,14 @@ class FileStorage extends Storage implements StorageInterface {
     /**
      * 设置一个值
      *
-     * @param $key
-     * @param $value
+     * @param string       $key   保存名称
+     * @param string|array $value 保存值
+     * @param int          $time  过期时间，单位秒
      *
      * @return bool|mixed
      */
     public function set($key, $value, $time = 0) {
-        $name = $this->_generFileName($key);
+        $name = $this->_generateFileName($key);
         $data = [
             'data'   => $value,
             'expire' => $time ? (time() + $time) : 0,
@@ -93,13 +94,13 @@ class FileStorage extends Storage implements StorageInterface {
     /**
      * 是否存在
      *
-     * @param $key
+     * @param string $key 名称
      *
-     * @return mixed|void
+     * @return bool
      */
     public function exists($key) {
-        $name = $this->_generFileName($key);
-        if (!self::$storage->isExsits($name)) {
+        $name = $this->_generateFileName($key);
+        if (!self::$storage->isExists($name)) {
             $this->error = '文件不存在';
 
             return false;
@@ -111,13 +112,13 @@ class FileStorage extends Storage implements StorageInterface {
     /**
      * 设置有效期
      *
-     * @param     $key
-     * @param int $time
+     * @param string $key  名称
+     * @param int    $time 过期时间，单位秒
      *
-     * @return mixed|void
+     * @return bool
      */
     public function expire($key, $time = 0) {
-        $name = $this->_generFileName($key);
+        $name = $this->_generateFileName($key);
         if (!$this->exists($name)) {
             return false;
         }
@@ -136,7 +137,7 @@ class FileStorage extends Storage implements StorageInterface {
 
     /**
      * 清理
-     * @return mixed|void
+     * @return bool
      */
     public function clear() {
         self::$storage->removeAll($this->config['savePath']);
@@ -169,11 +170,11 @@ class FileStorage extends Storage implements StorageInterface {
     /**
      * 生成文件名
      *
-     * @param $name
+     * @param string $name 名称
      *
      * @return string
      */
-    protected function _generFileName($name) {
+    protected function _generateFileName($name) {
         if (empty($this->config['prefix'])) {
             $this->config['prefix'] = substr(date('Y'), 2, 2) . '_';
         }

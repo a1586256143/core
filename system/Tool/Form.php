@@ -105,14 +105,14 @@ class Form {
     /**
      * select下拉框
      *
-     * @param  array  $args  select 框的下拉选择项
      * @param  string $name  select的名称
+     * @param  array  $args  select 框的下拉选择项
      * @param  string $value select的值
      * @param  array  $attr  表单的属性，可以为任意属性
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function select($args = [], $name = null, $value = null, $attr = []) {
+    public static function select($name = null, $args = [], $value = null, $attr = []) {
         $attr       = walkFormAttr($attr);
         self::$form = "\t\t<select name='$name' $attr>\n";
         foreach ($args as $k => $v) {
@@ -141,14 +141,14 @@ class Form {
     /**
      * 按钮
      *
-     * @param  string $type  button的类型，支持的有button、submit、reset
      * @param  string $name  button的名称
+     * @param  string $type  button的类型，支持的有button、submit、reset
      * @param  string $value button的值
      * @param  array  $attr  表单的属性，可以为任意属性
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function button($type = null, $name = null, $value = '确定', $attr = []) {
+    public static function button($name = null, $type = null, $value = '确定', $attr = []) {
         $attr       = walkFormAttr($attr);
         self::$form = "\t\t<button type='$type' name='$name' $attr>$value</button>\n";
         self::echoForm();

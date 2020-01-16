@@ -13,33 +13,26 @@ class MyError extends \Exception {
 
     /**
      * 构造方法
+     *
+     * @param string $message 错误信息
+     *
      * @author Colin <15070091894@163.com>
      */
     public function __construct($message) {
+        parent::__construct();
         $this->message = $message;
         $this->file    = Debug ? $this->file : '未知';
         $this->line    = Debug ? $this->line : '未知';
     }
 
     /**
-     * 显示错误消息
-     * @author Colin <15070091894@163.com>
-     */
-    public function __toString() {
-        self::set_error_show();
-        self::info_initialize($this->getCode(), $this->getMessage(), $this->getFile(), $this->getLine(), $this->getTraceAsString());
-
-        return self::$info;
-    }
-
-    /**
      * 错误处理
      *
-     * @param $errno   错误等级
-     * @param $errstr  错误信息
-     * @param $errfile 错误文件
-     * @param $errline 错误行数
-     * @param $detail  错误流程详情
+     * @param string $errno   错误等级
+     * @param string $errstr  错误信息
+     * @param string $errfile 错误文件
+     * @param string $errline 错误行数
+     * @param string $detail  错误流程详情
      *
      * @author Colin <15070091894@163.com>
      */
@@ -55,7 +48,6 @@ class MyError extends \Exception {
         } else {
             self::info_initialize(7, Config('ERROR_MESSAGE'), '未知', '未知', null);
         }
-
         exit(self::$info);
     }
 
@@ -92,11 +84,11 @@ class MyError extends \Exception {
     /**
      * info初始化
      *
-     * @param $code    错误等级
-     * @param $message 错误信息
-     * @param $file    错误文件
-     * @param $line    错误行数
-     * @param $detail  错误流程详情
+     * @param string $code    错误等级
+     * @param string $message 错误信息
+     * @param string $file    错误文件
+     * @param string $line    错误行数
+     * @param string $detail  错误流程详情
      *
      * @author Colin <15070091894@163.com>
      */
@@ -105,7 +97,7 @@ class MyError extends \Exception {
         self::$info = "<div style='width:85%;height:100%;margin:0 auto;font-family:微软雅黑'>";
         self::$info .= "<ul style='list-style:none;width:100%;height:100%;'>";
         self::$info .= "<li style='height:40px;line-height:40px;font-size:20px;color:#333;word-break: break-all;'>错误级别：" . $code . "</li>";
-        self::$info .= "<li style='line-height:40px;font-size:20px;color:#333;word-break: break-all;'>错误信息：<font color='red' style='word-break: break-all;'>" . $message . "</font></li>";
+        self::$info .= "<li style='line-height:40px;font-size:20px;color:#333;word-break: break-all;'>错误信息：<pre style='width:100%;overflow-x:auto;font-size:13px'>" . $message . "</pre></li>";
         self::$info .= "<li style='height:40px;line-height:40px;font-size:20px;color:#333;word-break: break-all;'>错误文件：" . $file . "</li>";
         self::$info .= "<li style='height:40px;line-height:40px;font-size:20px;color:#333;word-break: break-all;'>错误行数：" . $line . "</li>";
         self::$info .= "<li style='height:40px;line-height:40px;font-size:20px;color:#333;word-break: break-all;'>";

@@ -5,19 +5,39 @@
  */
 
 namespace system\Tool;
-class Validate {
-    protected $string          = '';        //要处理的字符串
-    protected $require         = 0;        //是否必填
-    protected $parstring       = [];//处理后的字符串
-    protected $config          = [];    //配置信息
-    protected $maxlength       = '';        //最大长度
-    protected $minlength       = '';        //最小长度
-    protected $info            = '';            //提示消息
-    protected $charset         = 'utf-8';    //长度判断编码
-    protected $validate_patten = '';//验证正则
-    protected $type            = 'showMessage';//提示使用的函数
-    protected $returnValue     = '';    //返回值
 
+class Validate {
+    //是否必填
+    protected $required = 0;
+    //配置信息
+    protected $config = [];
+    //最大长度
+    protected $maxlength = '';
+    //最小长度
+    protected $minlength = '';
+    //名称
+    protected $name = '';
+    //字段的值
+    protected $value = '';
+    //提示消息
+    protected $info = '';
+    //正则
+    protected $pattern = '';
+    //长度判断编码
+    protected $charset = 'utf-8';
+    //验证正则
+    protected $validate_patten = '';
+    //提示使用的函数
+    protected $type = 'default';
+    //返回值
+    protected $returnValue = '';
+
+    /**
+     * 初始化方法
+     *
+     * @param array $config 配置值
+     * @param null  $type   类型
+     */
     public function __construct($config = null, $type = null) {
         $this->config = $config;
         if (!empty($type)) {
@@ -28,55 +48,94 @@ class Validate {
     /**
      * 开始验证
      *
-     * @param string 要处理的字符串
-     * @param config 自定义配置
+     * @param string $name 要处理的字段名
+     * @param array config 自定义配置
      *
      * @author Colin <15070091894@163.com>
      * @return string
+     * @throws
      */
-    public function Validate($string = null, $config = null) {
-        $this->string = $string;
+    public function Validate($name = null, $config = null) {
+        $this->name = $name;
         //系统配置 为空
         $config = !empty($this->config) ? $this->config : $config;
         //遍历
         foreach ($config as $key => $value) {
             //解析配置信息
             $this->_parseConfig($value);
-            //解析字符串
-            $this->_parstring($value['string']);
             //解析函数。开始验证
-            $this->_parsefunction($value);
+            $this->_parseFunction($value);
         }
 
         return $this->returnValue();
     }
 
     /**
-     * 解析函数体内的方法
+     * 解析配置信息
+     *
+     * @param      $config
+     *
      * @author Colin <15070091894@163.com>
      */
-    protected function _parsefunction($name, $string = null) {
-        $method = '';
-        foreach ($name as $key => $value) {
-            switch ($key) {
-                case 'require':
-                    $method = 'required';
-                    break;
-                case 'minlength':
-                    $method = 'minlength';
-                    break;
-                case 'maxlength':
-                    $method = 'maxlength';
-                    break;
-                case 'validate':
-                    $method = $value;
-                    break;
-                case 'validate_patten':
-                    $this->validate_patten = $value;
-                    break;
+    protected function _parseConfig($config) {
+        if (!empty($config)) {
+            if (is_array($config)) {
+                foreach ($config as $key => $value) {
+                    $this->setKey($key, $value);
+                }
             }
         }
-        $string = empty($string) ? $this->string : $string;
+    }
+
+    /**
+     * 设置值
+     *
+     * @param null $key
+     * @param null $value
+     *
+     * @author Colin <15070091894@163.com>
+     */
+    protected function setKey($key = null, $value = null) {
+        if (isset($this->$key)) {
+            $this->$key = $value;
+        }
+    }
+
+    /**
+     * isset
+     *
+     * @param string $key
+     *
+     * @author Colin <15070091894@163.com>
+     * @return string
+     */
+    public function __isset($key) {
+        if (isset($this->$key)) {
+            return $this->$key;
+        }
+
+        return '';
+    }
+
+    /**
+     * 解析函数体内的方法
+     *
+     * @param array $rules  解析的规则列表
+     * @param null  $string 解析的值
+     *
+     * @author Colin <15070091894@163.com>
+     *
+     * @throws \system\MyError
+     */
+    protected function _parseFunction($rules, $string = null) {
+        $method  = '';
+        $methods = ['required', 'minlength', 'maxlength', 'pattern'];
+        foreach ($rules as $key => $value) {
+            if (in_array($key, $methods)) {
+                $method = $key;
+            }
+        }
+        $string = empty($string) ? $this->value : $string;
         if (method_exists($this, $method)) {
             $this->$method($string);
         } else {
@@ -85,10 +144,24 @@ class Validate {
     }
 
     /**
+     * 正则校验
+     *
+     * @param $value
+     */
+    public function pattern($value) {
+        $pattern = $this->pattern;
+        if (!preg_match($pattern, $value)) {
+            $this->error($this->info ? $this->info : '匹配不正确');
+        }
+        $this->setreturnValue($this->name, $value);
+    }
+
+    /**
      * 内置函数 email
      *
-     * @param  str 验证字符串
-     * @param  patten 验证规则
+     * @param string $str 验证的字符串
+     *
+     * @throws
      */
     public function email($str = null) {
         if (empty($this->validate_patten)) {
@@ -101,78 +174,32 @@ class Validate {
     }
 
     /**
-     * 解析配置信息
-     * @author Colin <15070091894@163.com>
-     */
-    protected function _parseConfig($config, $name = null, $savevalue = null) {
-        if (!empty($config)) {
-            if (is_array($config)) {
-                foreach ($config as $key => $value) {
-                    $this->setKey($key, $value);
-                }
-            }
-        }
-    }
-
-    /**
-     * 设置值
-     * @author Colin <15070091894@163.com>
-     */
-    protected function setKey($key = null, $value = null) {
-        if (isset($this->$key)) {
-            $this->$key = $value;
-        }
-    }
-
-    /**
-     * isset
-     * @author Colin <15070091894@163.com>
-     */
-    public function __isset($key) {
-        if (isset($this->$key)) {
-            return $this->$key;
-        }
-    }
-
-    /**
-     * 解析字符串
-     *
-     * @param  string 要处理的值
-     *
-     * @author Colin <15070091894@163.com>
-     */
-    protected function _parstring($string) {
-        if (empty($string)) {
-            $string = $this->string;
-        }
-        //获取值
-        $this->string = values('request', $string);
-        //设置name
-        $this->name = $string;
-    }
-
-    /**
      * 验证是否为空
      *
-     * @param  string 要处理的值
+     * @param string $value 要处理的值
+     * @param string $name  处理的字段名
      *
+     * @throws
      * @author Colin <15070091894@163.com>
      */
-    public function required($string, $name = null) {
+    public function required($value, $name = null) {
         $name = empty($name) ? $this->name : $name;
-        if ($this->require) {
-            if (empty($string) && strlen($string) == 0) {
+        if ($this->required) {
+            if (empty($string) && strlen($value) == 0) {
                 $this->error($this->info ? $this->info : $name . '不能为空！');
             }
         }
-        $this->setreturnValue($this->name, $string);
+        $this->setreturnValue($this->name, $value);
     }
 
     /**
      * 验证最大长度
      *
-     * @param  string 要处理的值
+     * @param string $string    要处理的值
+     * @param int    $maxlength 最大长度
+     * @param int    $name      字段名
      *
+     * @throws
      * @author Colin <15070091894@163.com>
      */
     public function maxlength($string, $maxlength = null, $name = null) {
@@ -188,6 +215,10 @@ class Validate {
      * 验证最小长度
      *
      * @param  string 要处理的值
+     * @param int $minlength 最小长度
+     * @param int $name      字段名
+     *
+     * @throws
      *
      * @author Colin <15070091894@163.com>
      */
@@ -202,6 +233,9 @@ class Validate {
 
     /**
      * 返回值设置
+     *
+     * @param string $name   字段名
+     * @param string $string 字段值
      */
     public function setreturnValue($name, $string = null) {
         $this->returnValue[ $name ] = htmlspecialchars(trim($string));
@@ -217,21 +251,19 @@ class Validate {
     /**
      * 错误信息
      *
-     * @param  info 要显示的消息
+     * @param string $info 要显示的消息
      *
+     * @throws
      * @author Colin <15070091894@163.com>
      */
     public function error($info = null) {
         $this->info = $info;
         switch ($this->type) {
-            case 'showMessage':
-                showMessage($this->info);
+            case 'default':
+                E($this->info);
                 break;
             case 'ajaxReturn':
                 ajaxReturn(['info' => $this->info, 'url' => null, 'status' => 0]);
-                break;
-            default :
-                $this->type($this->info);
                 break;
         }
     }

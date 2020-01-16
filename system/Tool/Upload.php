@@ -20,7 +20,7 @@ class Upload {
     /**
      * 初始化
      *
-     * @param file 上传名称 例如 values('files' , 'img')
+     * @param array $file 上传的实例，包含tmp_name,name等原始信息
      */
     public function __construct($file) {
         $this->path       = Config('UPLOAD_DIR');
@@ -114,7 +114,7 @@ class Upload {
         if (move_uploaded_file($this->file['tmp_name'], $this->newFileName)) {
             $this->file['path'] = ltrim($this->newFileName, '.');
 
-            return $this->UploadError(1, $this->file);;
+            return $this->UploadError(1, $this->file);
         } else {
             return $this->UploadError(-4);
         }
@@ -122,9 +122,15 @@ class Upload {
 
     /**
      * 输出上传错误信息
+     *
+     * @param int   $code 错误代码
+     * @param array $info 错误信息
+     *
      * @author Major <1450494434@qq.com>
+     * @return array
      */
     public function UploadError($code, $info = []) {
+        $message = '';
         switch ($code) {
             case 1 :
                 $message = '上传成功！';

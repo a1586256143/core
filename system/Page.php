@@ -6,23 +6,36 @@
 
 namespace system;
 class Page {
-    private $total;                    //总记录
-    private $pagesize;                //每页显示多少条
-    private $limit;                    //LIMIT
-    private $page;                    //当前页码
-    private $pagenum;                //总页数
-    private $url;                    //页面地址
-    private $bothnum;                //两边数字保留的量
-    private $page_url;                //整体URL
-    private $url_model;                //URL模式
+    //总记录
+    private $total;
+    //每页显示多少条
+    private $pagesize;
+    //LIMIT
+    private $limit;
+    //当前页码
+    private $page;
+    //总页数
+    private $pagenum;
+    //页面地址
+    private $url;
+    //两边数字保留的量
+    private $bothnum;
+    //整体URL
+    private $page_url;
+    //URL模式
+    private $url_model;
 
     /**
      * 构造方法
+     *
+     * @param int $total    总条数
+     * @param int $pageSize 每页多少条
+     *
      * @author Colin <15070091894@163.com>
      */
-    public function __construct($total, $pagesize) {
+    public function __construct($total, $pageSize) {
         $this->total     = $total ? $total : 1;
-        $this->pagesize  = $pagesize;
+        $this->pagesize  = $pageSize;
         $this->pagenum   = ceil($this->total / $this->pagesize);
         $this->url_model = Config('URL_MODEL');
         //处理url
@@ -35,7 +48,11 @@ class Page {
 
     /**
      * 拦截器
+     *
+     * @param string $key 获取的key
+     *
      * @author Colin <15070091894@163.com>
+     * @return string
      */
     public function __get($key) {
         return $this->$key;
@@ -104,6 +121,8 @@ class Page {
         if ($this->page > $this->bothnum + 1) {
             return ' <a href="' . $this->url . '">1</a> ...';
         }
+
+        return '';
     }
 
     /**
@@ -139,6 +158,8 @@ class Page {
         if ($this->pagenum - $this->page > $this->bothnum) {
             return ' ...<a href="' . $this->url . sprintf($this->page_url, $this->pagenum) . '">' . $this->pagenum . '</a> ';
         }
+
+        return '';
     }
 
     /**

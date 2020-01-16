@@ -228,7 +228,6 @@ class Base {
      * 删除session
      *
      * @param $name
-     * @param $data
      *
      * @return bool|null
      * @throws \system\MyError

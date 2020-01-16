@@ -21,7 +21,8 @@ function ajaxReturn($array = null) {
 /**
  * 返回成功状态
  *
- * @param $msg
+ * @param string $msg  提示信息
+ * @param int    $code 代码值
  */
 function success($msg, $code = 200) {
     $item = ['code' => $code, 'msg' => $msg];
@@ -29,25 +30,25 @@ function success($msg, $code = 200) {
         $item['data'] = $msg;
         unset($item['msg']);
     }
-
-    return ajaxReturn($item);
+    ajaxReturn($item);
 }
 
 /**
  * 返回失败|错误状态
  *
- * @param $msg
+ * @param string $msg  提示信息
+ * @param int    $code 代码值
  */
 function error($msg, $code = 404) {
     $item = ['code' => $code, 'msg' => $msg];
 
-    return ajaxReturn($item);
+    ajaxReturn($item);
 }
 
 /**
  * M方法实例化模型
  *
- * @param name 模型名称
+ * @param string $name 模型名称
  *
  * @author Colin <15070091894@163.com>
  * @return \system\Model
@@ -59,16 +60,17 @@ function M($name = null) {
 /**
  * E方法对错误进行提醒
  *
- * @param message 地址
+ * @param string $message 地址
  *
  * @author Colin <15070091894@163.com>
+ * @throws
  */
 function E($message) {
     $debug = Debug;
     //记录日志
     \system\IO\File\Log::generator($message);
     if (AJAX) {
-        return error($message);
+        error($message);
     }
     if ($debug) {
         throw new \system\MyError($message);
@@ -78,12 +80,14 @@ function E($message) {
 }
 
 /**
- * 引入常规文件    没有返回值
+ * 引入常规文件
  *
- * @param path 文件路径
- * @param modules 加载的模块
+ * @param string|array $path    文件路径
+ * @param string       $modules 加载的模块
+ * @param bool         $return  是否需要返回值
  *
  * @author Colin <15070091894@163.com>
+ * @return string|array
  */
 function require_file($path, $modules = '', $return = true) {
     $content = [];
@@ -110,11 +114,12 @@ function require_file($path, $modules = '', $return = true) {
 /**
  * 合并配置值
  *
- * @param name1 第一个需合并的数组
- * @param name2 第二个需合并的数组
- * @param name3 第三个需合并的数组
+ * @param string $name1 第一个需合并的数组
+ * @param string $name2 第二个需合并的数组
+ * @param string $name3 第三个需合并的数组
  *
  * @author Colin <15070091894@163.com>
+ * @return array
  */
 function replace_recursive_params($name1, $name2 = null, $name3 = null) {
     $var1 = require_file($name1);
@@ -136,9 +141,10 @@ function replace_recursive_params($name1, $name2 = null, $name3 = null) {
 /**
  * 创建文件夹 支持批量创建
  *
- * @param param 文件夹数组
+ * @param string $param 文件夹数组
  *
  * @author Colin <15070091894@163.com>
+ * @return array
  */
 function outdir($param) {
     $result = [];
@@ -171,7 +177,7 @@ function dump($array) {
 
 /**
  * 生成url
- * @return [type] [description]
+ * @return string
  */
 function url($url) {
     return getSiteUrl(false) . '/' . ltrim($url, '/');
@@ -180,19 +186,21 @@ function url($url) {
 /**
  * 设置session
  *
- * @param name session的名称
- * @param value session要保存的值
+ * @param string $name  session的名称
+ * @param string $value session要保存的值
  *
  * @author Colin <15070091894@163.com>
+ * @throws
+ * @return mixed
  */
 function session($name = '', $value = '') {
     if (Config('SESSION_START')) {
         //session名称为空 返回所有
         if ($name === '') {
             return $_SESSION;
-        } else if ($name == 'null') {                    //清空session
+        } else if ($name == 'null') {//清空session
             return session_destroy();
-        } else if (!empty($name) && $value === '') {    //session值为空
+        } else if (!empty($name) && $value === '') {//session值为空
             return $_SESSION["$name"] !== 'null' ? $_SESSION["$name"] : null;
         } else if (!empty($name) && !empty($value)) {    //session名称和值都不为空
             $_SESSION["$name"] = $value;
@@ -202,19 +210,23 @@ function session($name = '', $value = '') {
     } else {
         throw new \system\MyError('session未打开！请检查配置文件');
     }
+
+    return '';
 }
 
 /**
  * 接收post和get值函数
  *
- * @param type 要获取的POST或GET
- * @param formname 要获取的POST或type的表单名
- * @param function 要使用的函数
- * @param default 默认值
+ * @param string $type     要获取的POST或GET
+ * @param string $formname 要获取的POST或type的表单名
+ * @param string $function 要使用的函数
+ * @param string $default  默认值
  *
  * @author Colin <15070091894@163.com>
+ * @return string|array
  */
 function values($type, $formname = null, $function = 'trim', $default = null) {
+    $string = '';
     switch ($type) {
         case 'get':
             $string = isset($_GET[ $formname ]) ? $_GET[ $formname ] : '';
@@ -280,10 +292,12 @@ function values($type, $formname = null, $function = 'trim', $default = null) {
 /**
  * 缓存管理
  *
- * @param name 存储的名称
- * @param value 存储的value
+ * @param string $name  存储的名称
+ * @param string $value 存储的value
+ * @param int    $time  有效期，单位秒
  *
  * @author Colin <15070091894@163.com>
+ * @return string
  */
 function S($name = '', $value = '', $time = 0) {
     //实例化一个缓存句柄
@@ -294,18 +308,24 @@ function S($name = '', $value = '', $time = 0) {
         //移除缓存
         $cache->remove($name);
     } else if (!empty($name) && !empty($value)) {
+        if (is_array($value)) {
+            $value = json_encode($value);
+        }
         //生成缓存
         $cache->set($name, $value, $time);
 
         return $value;
     } else if (!empty($name) && empty($value)) {
         //读取缓存
-        return $cache->get($name, $time);
+        return json_decode($cache->get($name), true);
     }
 }
 
 /**
  * 日志
+ *
+ * @param string $message 记录内容
+ *
  * @author Colin <15070091894@163.com>
  */
 function WriteLog($message) {
@@ -315,10 +335,11 @@ function WriteLog($message) {
 /**
  * 系统配置
  *
- * @param name 存储的名称
- * @param value 存储的value
+ * @param string $name  存储的名称
+ * @param string $value 存储的value
  *
  * @author Colin <15070091894@163.com>
+ * @return string|array
  */
 function Config($name = null, $value = '') {
     static $config = [];
@@ -332,6 +353,8 @@ function Config($name = null, $value = '') {
     } else if (is_string($name) && !empty($value)) {
         $config[ $name ] = $value;
     }
+
+    return '';
 }
 
 /**
@@ -344,7 +367,11 @@ function getCurrentUrl() {
 
 /**
  * 获取站点地址
+ *
+ * @param bool $isIndex 是否获取域名
+ *
  * @author Colin <15070091894@163.com>
+ * @return string
  */
 function getSiteUrl($isIndex = false) {
     return \system\Url::getSiteUrl($isIndex);
@@ -353,9 +380,10 @@ function getSiteUrl($isIndex = false) {
 /**
  * 设置Public地址
  *
- * @param  public public目录的相对地址 可以直接填写Public
+ * @param string $public public目录的相对地址 可以直接填写Public
  *
  * @author Colin <15070091894@163.com>
+ * @return string
  */
 function setPublicUrl($public) {
     return getSiteUrl(false) . $public;
@@ -364,23 +392,13 @@ function setPublicUrl($public) {
 /**
  * 设置URL地址
  *
- * @param  url url目录的相对地址
+ * @param string $url url目录的相对地址
  *
  * @author Colin <15070091894@163.com>
+ * @return string
  */
 function setUrl($url) {
     return setPublicUrl($url);
-}
-
-/**
- * 获取当前时间
- *
- * @param prc 时间区域
- *
- * @author Colin <15070091894@163.com>
- */
-function getTime($prc = null) {
-    return \system\Date::getDate($prc);
 }
 
 /**
@@ -417,9 +435,11 @@ function timeFormat($timestamp, $model = 'a', $mode = '') {
 /**
  * 第三方类库调用
  *
- * @param name 第三方类库名称
+ * @param string $name 第三方类库名称
  *
  * @author Colin <15070091894@163.com>
+ * @return mixed
+ * @throws
  */
 function library($name = null) {
     list($filedir, $filename) = explode('/', $name);
@@ -453,9 +473,14 @@ function library($name = null) {
 
 /**
  * 处理Model类的 array_filter 过滤 0 操作
+ *
+ * @param array $array 过滤的元素
+ *
  * @author Colin <15070091894@163.com>
+ * @return array
  */
 function myclass_filter($array = []) {
+    $result = [];
     foreach ($array as $key => $value) {
         if ($value === null || $value === '') {
             continue;
@@ -472,6 +497,8 @@ function myclass_filter($array = []) {
  * @param string $secur_number 表单提交的安全码
  *
  * @author Colin <15070091894@163.com>
+ * @return bool
+ * @throws
  */
 function checkSecurity($secur_number = null) {
     if (!$secur_number) {
@@ -491,7 +518,7 @@ function checkSecurity($secur_number = null) {
  *
  * @param boolean $token 是否返回token
  *
- * @return [type] [description]
+ * @return string
  */
 function _token($token = false) {
     return system\Tool\Form::security($token);
@@ -499,7 +526,10 @@ function _token($token = false) {
 
 /**
  * 获取类名称
- * @return [type] [description]
+ *
+ * @param string $name 控制器名
+ *
+ * @return string
  */
 function _getFileName($name) {
     return $name . Config('DEFAULT_CLASS_SUFFIX');
@@ -510,8 +540,6 @@ function _getFileName($name) {
  *
  * @param  [type] $item  [description]
  * @param  [type] $item2 [description]
- *
- * @return [type]        [description]
  */
 function maps($item, $item2) {
     if ($item != $item2) {
@@ -522,19 +550,21 @@ function maps($item, $item2) {
 
 /**
  * array_walk转换换成html标签属性
- * @return [type] [description]
+ *
+ * @param string  $item 属性值
+ * @param  string $key  属性名
  */
-function walkParams(&$item, $key, $value) {
+function walkParams(&$item, $key) {
     $item = $key . '="' . $item . '" ';
 }
 
 /**
  * 把数组转换成html标签属性
  *
- * @param  [type] $attrs         属性值数组
- * @param  [type] $walk_function 回掉函数
+ * @param array  $attrs         属性值数组
+ * @param string $walk_function 回调函数
  *
- * @return [type]                [description]
+ * @return string
  */
 function walkFormAttr($attrs, $walk_function = 'walkParams') {
     array_walk($attrs, $walk_function);
@@ -546,7 +576,7 @@ function walkFormAttr($attrs, $walk_function = 'walkParams') {
 /**
  * 显示信息
  *
- * @param message 信息内容
+ * @param string $message 信息内容
  *
  * @author Colin <15070091894@163.com>
  */
@@ -616,7 +646,7 @@ function _parseFileName($filename) {
  *
  * @param  [type] $url [description]
  *
- * @return [type]      [description]
+ * @return string
  */
 function smarty_modifier_url($url) {
     return url($url);

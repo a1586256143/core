@@ -6,6 +6,7 @@
 
 namespace system\Route;
 
+use system\MyError;
 use system\Url;
 
 class Route {
@@ -15,6 +16,7 @@ class Route {
     /**
      * 初始化路由
      * @author Colin <15070091894@163.com>
+     * @throws \system\MyError
      */
     public static function init() {
         self::setRunMethod();
@@ -26,7 +28,9 @@ class Route {
     /**
      * 设置路由
      *
-     * @param [type] $item [description]
+     * @param string $key   路由名
+     * @param array  $value 路由选项，由add方法获取的item
+     * @param bool   $group 是否为一个组
      */
     protected static function setRoutes($key, $value, $group = false) {
         if (is_array($value)) {
@@ -45,7 +49,12 @@ class Route {
 
     /**
      * 组装明名空间
-     * @return [type] [description]
+     *
+     * @param string $key        暂时未用上
+     * @param null   $url        访问URL
+     * @param bool   $middleware 中间价
+     *
+     * @return string|null
      */
     protected static function compleNamespace($key, $url = null, $middleware = false) {
         $layer  = Config('DEFAULT_CONTROLLER_LAYER');
@@ -65,6 +74,9 @@ class Route {
 
     /**
      * 添加路由规则
+     *
+     * @param array $item 路由 array('/' => 'Index@index')
+     *
      * @author Colin <15070091894@163.com>
      */
     public static function add($item) {
@@ -83,7 +95,6 @@ class Route {
      * @throws
      */
     public static function group($groupName, $attr = []) {
-        $parse_url = Url::parseUrl();
         //处理attr路由规则
         if (!$attr || !$attr['routes']) {
             E("请设置 $groupName 路由组的属性");
@@ -112,6 +123,9 @@ class Route {
 
     /**
      * 是否是一个组
+     *
+     * @param string $route 路由名
+     *
      * @return boolean [description]
      */
     protected static function isGroup($route = null) {
@@ -126,6 +140,7 @@ class Route {
 
     /**
      * 开启Route
+     * @throws \system\MyError
      */
     public static function enableRoute() {
         self::parseRoutes();
@@ -134,6 +149,7 @@ class Route {
     /**
      * 解析路由
      * @author Colin <15070091894@163.com>
+     * @throws \system\MyError
      */
     public static function parseRoutes() {
         $parse_url = self::getRoute();
@@ -200,6 +216,10 @@ class Route {
 
     /**
      * 失败的路由
+     *
+     * @param $url
+     *
+     * @throws \system\MyError
      */
     protected static function faildRoute($url) {
         // 验证是否为一个文件
@@ -217,7 +237,6 @@ class Route {
      * @param array $route 当前执行的路由
      *
      * @author Colin <15070091894@163.com>
-     * @return string
      * @throws
      */
     public static function execRoute($route) {
@@ -241,6 +260,9 @@ class Route {
         }
         //执行中间件
         if (isset($route['middleware']) && !$route['middleware']) {
+            /**
+             * @var $middleware Middleware
+             */
             $middleware = new $route['middleware'];
             $middleware->execMiddleware($controller, new self());
         }
@@ -269,10 +291,13 @@ class Route {
             list($controller_path, $classname) = self::getControllerPath($routes);
             //是否存在控制器
             if (!file_exists($controller_path)) {
-                E($get_class_name . ' 控制器不存在！');
+                E($classname . ' 控制器不存在！');
             }
         }
         self::setFields(array_pop($routes), $method);
+        /**
+         * @var $controller \system\Base
+         */
         !$controller && $controller = new $classname;
         //控制器方法是否存在
         if (!method_exists($controller, $method)) {
@@ -348,12 +373,16 @@ class Route {
      * @param object $controller 被执行的控制器实体类
      * @param string $method     被执行的控制器方法名
      *
-     * @throws \ReflectionException
+     * @throws \system\MyError
      */
     protected static function reflection($controller, $method) {
-        //反射
-        $ReflectionMethod = new \ReflectionMethod($controller, $method);
-        $method_params    = $ReflectionMethod->getParameters($method);
+        try {
+            //反射
+            $ReflectionMethod = new \ReflectionMethod($controller, $method);
+        } catch (\ReflectionException $e) {
+            throw new MyError($e->getMessage());
+        }
+        $method_params = $ReflectionMethod->getParameters();
         //处理参数返回
         $get   = values('get.');
         $post  = values('post.');
@@ -368,6 +397,7 @@ class Route {
         $param = array_merge($param, $post);
         if (!empty($param)) {
             if (!empty($method_params)) {
+                $var = [];
                 foreach ($method_params as $key => $value) {
                     $var[ $value->name ] = $param[ $value->name ];
                 }
@@ -387,6 +417,8 @@ class Route {
 
     /**
      * 显示视图
+     *
+     * @param mixed $result
      */
     protected static function showView($result = '') {
         \system\IO\File\Log::generator();

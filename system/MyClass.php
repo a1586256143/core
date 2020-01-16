@@ -6,36 +6,32 @@
 
 namespace system;
 
-use system\Date;
 use system\IO\Build\Build;
 
 class MyClass {
     /**
      * 运行方法
      * @author Colin <15070091894@163.com>
+     * @throws
      */
     public static function run() {
-        try {
-            //加载配置文件
-            self::loadConfig();
-            //注册autoload方法
-            spl_autoload_register('system\\MyClass::autoload');
-            //收集错误
-            MyError::traceError();
-            // Build
-            $build = Build::getInstance();
-            $build->exec();
-            // 启动
-            self::start();
-        } catch (MyError $m) {
-            die($m);
-        }
+        //加载配置文件
+        self::loadConfig();
+        //注册autoload方法
+        spl_autoload_register('system\\MyClass::autoload');
+        //收集错误
+        MyError::traceError();
+        // Build
+        $build = Build::getInstance();
+        $build->exec();
+        // 启动
+        self::start();
     }
 
     /**
      * 自动加载
      *
-     * @param ClassName 类名
+     * @param string $ClassName 类名
      *
      * @author Colin <15070091894@163.com>
      */
@@ -79,7 +75,8 @@ class MyClass {
 
     /**
      * 执行一系列操作
-     * @return mixed
+     * @throws \SmartyException
+     * @throws \system\MyError
      */
     public static function start() {
         //加载配置文件
