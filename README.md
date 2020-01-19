@@ -1,8 +1,19 @@
 # MyClassPHP
 MyClassPHP是一个开源、免费的学习框架。官方交流群 [438695935](https://shang.qq.com/wpa/qunwpa?idkey=1331030787e315dd0026359c55c757b439562acd0f1ee51855b709faf0e4652d)
 
-## composer
-git clone完成后，执行 
+## 在线文档
+[传送](https://www.kancloud.cn/amcolin/myclassphp_3_2_0/1325215)
+
+## 更新日志
+[查看](https://github.com/a1586256143/core/blob/master/UPDATE.md)
+
+
+## 安装、使用
+安装框架
+```
+git clone https://github.com/a1586256143/MyClassPHP.git
+```
+下拉composer所需组件
 ```
 composer install
 ```
@@ -33,10 +44,3 @@ Route::add(array(
 ```
 http://域名/hello
 ```
-
-## 在线文档
-[点我](https://www.kancloud.cn/amcolin/myclassphp_3_2_0/1325215)
-
-## 声明
-
-MyClassPHP是一个开源免费的学习框架，免费开源

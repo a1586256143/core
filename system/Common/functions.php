@@ -680,3 +680,14 @@ function functionHash($args, $objSmarty = false) {
 
     return $c; // 默认的行为
 }
+
+/**
+ * 解决特殊的sql语法
+ *
+ * @param string $field
+ *
+ * @return \system\Model\Select\FieldQuery
+ */
+function field($field = '') {
+    return new \system\Model\Select\FieldQuery($field);
+}

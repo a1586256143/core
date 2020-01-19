@@ -32,7 +32,7 @@ class Model implements \ArrayAccess {
     //where value
     protected $value = [];
     //where 条件的 OR and
-    protected $WhereOR = "AND";
+    protected $WhereOR = [];
     //sql语句
     protected $Sql = '';
     //解析后存放的字段
@@ -407,14 +407,15 @@ class Model implements \ArrayAccess {
     /**
      * 左连接
      *
-     * @param string $join   表名
+     * @param string $table  表名
+     * @param string $on     关联条件
      * @param string $method 连接名
      *
      * @return \system\Model
      */
-    public function join($join, $method = 'LEFT') {
-        $join         = $this->_parse_prefix($join);
-        $this->Join[] = ' ' . $method . ' JOIN ' . $join;
+    public function join($table, $on = '', $method = 'LEFT') {
+        $join         = $this->_parse_prefix($table);
+        $this->Join[] = ' ' . $method . ' JOIN ' . $join . ' ON ' . $on;
 
         return $this;
     }
@@ -980,26 +981,36 @@ class Model implements \ArrayAccess {
     /**
      * 解析where条件值
      *
-     * @param        $field
-     * @param        $val
+     * @param string $field
+     * @param string $val
+     * @param int    $index 第$index次执行parse
      */
-    protected function parseWhere($field, $val) {
-        $template = '`%s` = %s';
+    protected function parseWhere($field, $val = null, $index = 0) {
+        $template = '%s = %s';
         // 是否为单个的字段，直接赋值的，假如 where('id' , 1)
         if (!is_array($field)) {
             if (!is_array($val)) {
-                $this->Where[] = sprintf($template, $field, $this->filter($val));
+                $this->Where[ $index ][] = sprintf($template, $this->parseJoinField($field), $this->filter($val));
             }
         } else {
             foreach ($field as $key => $value) {
+                if (is_numeric($key)) {
+                    $index += 1;
+                    $this->parseWhere($value, null, $index);
+                    continue;
+                }
+                if ($key == '_logic') {
+                    $this->WhereOR[ $index ] = $value;
+                    continue;
+                }
                 $query = new DynamicQuery();
-                // 解析key中的oper
+                // 解析key中的操作符号
                 list($explodeField, $explode) = explode(' ', $key);
                 // 解析字段为 'name >' => '2'
                 if ($explode) {
                     // 有操作符号
                     $query->autoBind($explodeField, $value, $explode);
-                    $this->Where[] = $query->fetch();
+                    $this->Where[ $index ][] = $query->fetch();
                 } else {
                     if (is_array($value)) {
                         // 数组操作
@@ -1014,15 +1025,30 @@ class Model implements \ArrayAccess {
                                     $query->autoBind($key, $val, $oper);
                                 }
                             }
-                            $this->Where[] = $query->fetch();
+                            $this->Where[ $index ][] = $query->fetch();
                             continue;
 
                         }
                     }
-                    $this->Where[] = sprintf($template, $key, $this->filter($value));
+                    $this->Where[ $index ][] = sprintf($template, $this->parseJoinField($key), $this->filter($value));
                 }
             }
         }
+    }
+
+    /**
+     * 解析join的字段信息
+     *
+     * @param $field
+     *
+     * @return string
+     */
+    protected function parseJoinField($field) {
+        if (strpos($field, '.') !== false) {
+            return $field;
+        }
+
+        return '`' . $field . '`';
     }
 
     /**
@@ -1055,7 +1081,15 @@ class Model implements \ArrayAccess {
             $where = $this->Where;
             //否则处理后返回
         } else if (is_array($this->Where) && $whereCount > 0) {
-            $where = ' WHERE ' . implode(' ' . $this->WhereOR . ' ', $this->Where);
+            $format = [];
+            foreach ($this->Where as $key => $value) {
+                $logic    = isset($this->WhereOR[ $key ]) ? $this->WhereOR[ $key ] : 'AND';
+                $format[] = '(' . implode(' ' . $logic . ' ', $value) . ')';
+            }
+            if (count($this->Where) == 1) {
+                $format[0] = rtrim(ltrim($format[0], '('), ')');
+            }
+            $where = ' WHERE ' . implode(' OR ', $format);
         }
 
         return $where;
