@@ -399,7 +399,6 @@ class Model implements \ArrayAccess {
         }
         $where     = $this->getWhere();
         $this->Sql = "UPDATE " . $this->TablesName . $this->ParKey . $where;
-        var_dump($this->Sql);
 
         return $this->ADUP($this->Sql, 'upd');
     }

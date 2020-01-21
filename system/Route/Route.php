@@ -364,7 +364,8 @@ class Route {
         define('GET', $request_method == 'GET' ? true : false);
         $httpRequest = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ? $_SERVER['HTTP_X_REQUESTED_WITH'] : '';
         define('AJAX', $httpRequest == 'XMLHttpRequest' ? true : false);
-        header('X-Powered-By:MyClassPHP');
+        // header('X-Powered-By:MyClassPHP');
+        header_remove('X-Powered-By');
     }
 
     /**

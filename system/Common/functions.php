@@ -14,7 +14,7 @@
  * @author Colin <15070091894@163.com>
  */
 function ajaxReturn($array = null) {
-    echo json_encode($array);
+    echo json_encode($array, JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -346,12 +346,15 @@ function Config($name = null, $value = '') {
     if (empty($name)) {
         return $config;
     } else if (is_array($name)) {
+        foreach ($name as $key => &$value) {
+            $value = trim($value);
+        }
         //设置
         $config = array_merge($config, $name);
     } else if (is_string($name) && $value == '') {
         return isset($config[ $name ]) ? $config[ $name ] : '';
     } else if (is_string($name) && !empty($value)) {
-        $config[ $name ] = $value;
+        $config[ $name ] = trim($value);
     }
 
     return '';
