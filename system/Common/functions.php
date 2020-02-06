@@ -9,7 +9,7 @@
 /**
  * 返回json数据
  *
- * @param array 要返回的数据
+ * @param mixed 要返回的数据
  *
  * @author Colin <15070091894@163.com>
  */
@@ -21,8 +21,8 @@ function ajaxReturn($array = null) {
 /**
  * 返回成功状态
  *
- * @param string $msg  提示信息
- * @param int    $code 代码值
+ * @param mixed $msg  提示信息
+ * @param int   $code 代码值
  */
 function success($msg, $code = 200) {
     $item = ['code' => $code, 'msg' => $msg];
@@ -36,8 +36,8 @@ function success($msg, $code = 200) {
 /**
  * 返回失败|错误状态
  *
- * @param string $msg  提示信息
- * @param int    $code 代码值
+ * @param mixed $msg  提示信息
+ * @param int   $code 代码值
  */
 function error($msg, $code = 404) {
     $item = ['code' => $code, 'msg' => $msg];
@@ -347,14 +347,14 @@ function Config($name = null, $value = '') {
         return $config;
     } else if (is_array($name)) {
         foreach ($name as $key => &$value) {
-            $value = trim($value);
+            $value = !is_string($value) ? $value : trim($value);
         }
         //设置
         $config = array_merge($config, $name);
     } else if (is_string($name) && $value == '') {
         return isset($config[ $name ]) ? $config[ $name ] : '';
     } else if (is_string($name) && !empty($value)) {
-        $config[ $name ] = trim($value);
+        $config[ $name ] = !is_string($value) ? $value : trim($value);
     }
 
     return '';

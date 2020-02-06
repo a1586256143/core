@@ -82,9 +82,11 @@ class Model implements \ArrayAccess {
         //如果表名为空，并且TableName为空
         if (empty($tables) && !$this->TableName) {
             // 处理是否有实例化类名
-            $this->TableName  = array_pop(explode('\\', get_class($this)));
+            $explode          = explode('\\', get_class($this));
+            $this->TableName  = array_pop($explode);
             $this->TableName  = str_replace('Model', '', $this->TableName);
-            $currentModelName = array_pop(explode('\\', __CLASS__));
+            $className        = explode('\\', __CLASS__);
+            $currentModelName = array_pop($className);
             if ($this->TableName == $currentModelName) {
                 return $this;
             }
@@ -1017,7 +1019,7 @@ class Model implements \ArrayAccess {
                         // 验证是否在dynamic中
                         if (is_string($oper)) {
                             if (method_exists($query, $oper)) {
-                                $query->$oper($key, $val);
+                                $query->autoBind($key, $val, $oper);
                             } else {
                                 // 尝试查找是否可绑定
                                 if ($query->isBind($oper)) {
@@ -1086,7 +1088,7 @@ class Model implements \ArrayAccess {
                 $format[] = '(' . implode(' ' . $logic . ' ', $value) . ')';
             }
             if (count($this->Where) == 1) {
-                $format[0] = rtrim(ltrim($format[0], '('), ')');
+                $format[0] = mb_substr($format[0], 1, -1);
             }
             $where = ' WHERE ' . implode(' OR ', $format);
         }

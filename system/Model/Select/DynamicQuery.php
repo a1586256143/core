@@ -33,6 +33,7 @@ class DynamicQuery extends Factory {
      * @return bool
      */
     public function in($field, $value) {
+        $value     = is_string($value) ? [$value] : $value;
         $this->sql .= sprintf('%s in (%s)', $field, implode(',', $value));
 
         return true;
@@ -47,6 +48,7 @@ class DynamicQuery extends Factory {
      * @return bool
      */
     public function notIn($field, $value) {
+        $value     = is_string($value) ? [$value] : $value;
         $this->sql .= sprintf('%s not in (%s)', $field, implode(',', $value));
 
         return true;
@@ -114,6 +116,14 @@ class DynamicQuery extends Factory {
 
             return true;
         } else {
+            if (is_array($value)) {
+                foreach ($value as $key => &$val) {
+                    $val = self::getValue($val);
+                }
+            } else {
+                $value = self::getValue($value);
+            }
+
             return $this->$oper($field, $value);
         }
     }
