@@ -53,6 +53,8 @@ class Model implements \ArrayAccess {
     protected $data = [];
     //join
     protected $Join = [];
+    // 查询锁
+    protected $Lock = false;
     //开启事务
     protected $startTransaction = 0;
     // 查询的结果
@@ -127,7 +129,7 @@ class Model implements \ArrayAccess {
      * @author Colin <15070091894@163.com>
      * @return \system\Model
      */
-    public function field($field) {
+    public function field($field = '*') {
         if (!empty($field)) {
             $this->Fields = $field;
         }
@@ -459,11 +461,16 @@ class Model implements \ArrayAccess {
      * @return \system\Model
      */
     public function limit($start = 0, $end = null) {
+        if (!$start && !$end) {
+            return $this;
+        }
         if (!empty($start) && $end) {
             $start = ($start - 1) * $end;
             $str   = $start . ',' . $end;
-        } else {
-            $str = $start;
+        } else if ($start == 0 && $end > 0) {
+            $str = $start . ',' . $end;
+        } else if ($start && !$end) {
+            $str = 0 . ',' . $start;
         }
         $this->Limit = " LIMIT " . $str;
 
@@ -481,6 +488,19 @@ class Model implements \ArrayAccess {
      */
     public function order($field, $desc = null) {
         $this->Order = " ORDER BY " . $field . " " . $desc . " ";
+
+        return $this;
+    }
+
+    /**
+     * 查询锁 FOR UPDATE
+     *
+     * @param bool $lock
+     *
+     * @return \system\Model
+     */
+    public function lock($lock = false) {
+        $this->Lock = $lock;
 
         return $this;
     }
@@ -750,6 +770,9 @@ class Model implements \ArrayAccess {
         }
         $where     = $this->getWhere();
         $this->Sql = $prefix . implode(' ', $this->Join) . $where . $this->Order . $this->Limit;
+        if ($this->Lock) {
+            $this->Sql .= ' FOR UPDATE';
+        }
 
         return $this->Sql;
     }

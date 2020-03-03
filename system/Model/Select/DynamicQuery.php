@@ -83,7 +83,7 @@ class DynamicQuery extends Factory {
             }
         } else {
             if (strpos($value, '%') !== 0) {
-                $value = '\'%' . $value . '%\'';
+                $value = '\'%' . ltrim(rtrim($value, '\''), '\'') . '%\'';
             }
             // TODO 多条[1,2]时会出问题
             $this->sql = sprintf('%s LIKE %s', $field, $value);
