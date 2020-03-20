@@ -376,7 +376,7 @@ class Route {
      *
      * @throws \system\MyError
      */
-    protected static function reflection($controller, $method) {
+    public static function reflection($controller, $method) {
         try {
             //反射
             $ReflectionMethod = new \ReflectionMethod($controller, $method);
