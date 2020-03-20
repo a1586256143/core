@@ -27,7 +27,7 @@ define('Common', APP_DIR . 'config');
 //系统公共目录
 define('CommonDIR', Core . 'Common');
 //定义版本信息
-define('VERSION', '3.2.0');
+define('VERSION', '3.2.2');
 //引入MyClass核心文件
 require Core . 'MyClass.php';
 //执行run方法
