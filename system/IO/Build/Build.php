@@ -149,6 +149,7 @@ class Build extends Factory {
             $cacheTmp,            //缓存临时文件
             Common,                //全局目录
             Library,                //第三方目录
+            APP_DIR . config('ADDON_PATH'), // 插件目录
         ];
         outdir($dir);
 
