@@ -425,7 +425,7 @@ class Route {
         \system\IO\File\Log::generator();
         switch (true) {
             case is_array($result) || is_object($result) :
-                ajaxReturn($result);
+                echo ajaxReturn($result);
                 break;
             default:
                 if (AJAX) {
@@ -433,8 +433,8 @@ class Route {
                     exit;
                 }
                 echo($result === null ? '' : $result);
-                exit;
                 break;
         }
+        exit;
     }
 }

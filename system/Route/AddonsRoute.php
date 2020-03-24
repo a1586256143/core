@@ -26,6 +26,7 @@ class AddonsRoute extends Base {
         $m = values('get', 'm');
         $a = values('get', 'a');
         unset($_GET['m'], $_GET['a']);
+        $m          = str_replace('-', '/', $m);
         $default    = config('DEFAULT_CONTROLLER_LAYER');
         $method     = $a ? $a : config('DEFAULT_METHOD');
         $controller = config('DEFAULT_CONTROLLER');
