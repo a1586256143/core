@@ -8,17 +8,19 @@ class FieldQuery extends Factory {
     protected $field;
 
     /**
-     * 获取单例对象
-     * @return \system\Model\Select\DynamicQuery
+     * 初始化
+     * FieldQuery constructor.
+     *
+     * @param string $field
      */
-    public static function getInstance() {
-        return self::applyIns(self::class, new self);
-    }
-
     public function __construct($field = '') {
         $this->field = $field;
     }
 
+    /**
+     * 获取信息
+     * @return string
+     */
     public function getField() {
         return $this->field;
     }

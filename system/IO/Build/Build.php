@@ -16,23 +16,12 @@ class Build extends Factory {
     protected $args = [];
 
     /**
-     * 获取单例句柄
-     *
-     * @param array $args 配置值
-     *
-     * @return mixed
-     */
-    public static function getInstance($args = []) {
-        return self::applyIns(self::class, new self($args));
-    }
-
-    /**
      * 初始化
      * Build constructor.
      *
      * @param $args
      */
-    private function __construct($args = []) {
+    public function __construct($args = []) {
         if ($args) {
             $this->args = $args;
         }

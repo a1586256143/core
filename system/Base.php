@@ -37,7 +37,7 @@ class Base {
      * @throws
      */
     protected static function init() {
-        self::$view    = new View();
+        self::$view    = View::getInstance();
         self::$is_get  = GET;
         self::$is_post = POST;
         self::$session = session();

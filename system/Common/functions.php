@@ -15,6 +15,7 @@
  */
 function ajaxReturn($array = null) {
     header('content-type:application/json');
+
     return json_encode($array, JSON_UNESCAPED_UNICODE);
 }
 

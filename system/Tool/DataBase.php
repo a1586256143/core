@@ -30,6 +30,14 @@ class DataBase {
     }
 
     /**
+     * 获取DB句柄
+     * @return \system\Model\Drivers\Mysqli
+     */
+    public function getDB() {
+        return $this->db;
+    }
+
+    /**
      * 内部set方法
      *
      * @param string $key   键。相对应的本类的成员

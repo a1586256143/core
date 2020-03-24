@@ -9,15 +9,7 @@ class Log extends Factory {
     protected static $file;
     // 日志内容器
     protected static $logs;
-
-    /**
-     * 获取单例句柄
-     * @return mixed
-     */
-    public static function getInstance() {
-        return self::applyIns(self::class, new self);
-    }
-
+    
     /**
      * 添加记录条数
      *

@@ -1,28 +1,13 @@
 <?php
 
 namespace system;
-class Container {
+class Container extends Factory {
     // 向容器中绑定服务对象
     protected $binds = [];
 
     // 是一个简单的服务容器里面有bind,make两个方法
     protected $instances = [];
-
-    // 单例的对象
-    protected static $instance;
-
-    /**
-     * 获取单例对象
-     * @return \system\Container
-     */
-    public static function getInstance() {
-        if (!self::$instance instanceof self) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
-    }
-
+    
     /**
      * 注入容器
      *

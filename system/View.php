@@ -5,7 +5,7 @@
  */
 
 namespace system;
-class View {
+class View extends Factory {
     /**
      * @var $view \SmartyBC
      */
@@ -61,7 +61,7 @@ class View {
             self::extractVars($filename);
             $filename = null;
         }
-        $addons = config('ADDON_PATH');
+        $addons   = config('ADDON_PATH');
         $filename = _parseFileName($filename);
         if (strpos($class, $addons . '\\') === 0) {
             $class = str_replace('\\', '/', str_replace(config('DEFAULT_CONTROLLER_LAYER') . '\\', '', $class));
