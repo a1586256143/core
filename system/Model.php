@@ -18,15 +18,12 @@ class Model implements \ArrayAccess {
     protected $DataName = '';
     //多表查询数据库名，必须带数据前缀
     protected $Tables;
+    //数据表的真实名字，可指定模型的表名
     protected $TableName = '';
     //From表名
     protected $From;
     //多表查询字段名
     protected $Fields = '*';
-    //数据表的真实名字
-    protected $TrueTables = '';
-    //数据表判断后存放的字段
-    protected $DataNameName = '';
     //where字段
     protected $Where = [];
     //where value
@@ -57,6 +54,8 @@ class Model implements \ArrayAccess {
     protected $Lock = false;
     //开启事务
     protected $startTransaction = 0;
+    // 查询时设置此值可跨表查询
+    protected $dbName = '';
     // 查询的结果
     protected $result = [];
     //新增时操作
@@ -85,11 +84,11 @@ class Model implements \ArrayAccess {
         if (empty($tables) && !$this->TableName) {
             // 处理是否有实例化类名
             $explode          = explode('\\', get_class($this));
-            $this->TableName  = array_pop($explode);
-            $this->TableName  = str_replace('Model', '', $this->TableName);
+            $tables           = array_pop($explode);
+            $tables           = str_replace('Model', '', $tables);
             $className        = explode('\\', __CLASS__);
             $currentModelName = array_pop($className);
-            if ($this->TableName == $currentModelName) {
+            if ($tables == $currentModelName) {
                 return $this;
             }
         }
@@ -100,7 +99,7 @@ class Model implements \ArrayAccess {
         //执行判断表方法
         $this->TablesType($tables);
         //确认表是否存在
-        $this->db->CheckTables($this->db_prefix . $this->DataName, null);
+        $this->db->CheckTables($this->dbName ? $this->DataName : $this->db_prefix . $this->DataName, $this->dbName);
 
         return $this;
     }
@@ -115,7 +114,7 @@ class Model implements \ArrayAccess {
      */
     public function from($tables = null) {
         $tables     = $tables === null ? $this->TablesName : $tables;
-        $tables     = $this->_parse_prefix($tables);
+        $tables     = $this->dbName ? $this->dbName . '.' . $tables : $this->_parse_prefix($tables);
         $this->From = ' FROM ' . $tables;
 
         return $this;
@@ -164,12 +163,12 @@ class Model implements \ArrayAccess {
         if (!empty($this->auto)) {
             $this->_parse_auto();
             //合并自动完成数据
-            $this->data['create'] = myclass_filter(array_merge($this->data['auto'], $this->data['create']));
+            $this->data['create'] = myclass_filter(array_merge($this->data['create'], $this->data['auto']));
         }
         if (!empty($this->validate)) {
             $this->_parse_validate();
             //合并自动验证数据
-            $this->data['create'] = myclass_filter(array_merge($this->data['validate'], $this->data['create']));
+            $this->data['create'] = myclass_filter(array_merge($this->data['create'], $this->data['validate']));
         }
 
         return $this->data['create'];
@@ -366,7 +365,7 @@ class Model implements \ArrayAccess {
      * @author Colin <15070091894@163.com>
      * @return int
      */
-    public function delete($value, $field = null) {
+    public function delete($value = '', $field = null) {
         $field = $field === null ? $this->getpk() : $field;
         if ($this->Where[0] === null) {
             $this->where($field, $value);
@@ -795,7 +794,7 @@ class Model implements \ArrayAccess {
             $as             = substr($this->DataName, $spaceIndex);
             $this->DataName = substr($this->DataName, 0, $spaceIndex);
         }
-        $this->TablesName = empty($this->TrueTables) ? '`' . $this->db_prefix . $this->DataName . '`' : '`' . $this->TrueTables . '`';
+        $this->TablesName = empty($this->TableName) ? '`' . $this->db_prefix . $this->DataName . '`' : '`' . $this->TableName . '`';
         $this->from($this->TablesName . $as);
     }
 

@@ -27,7 +27,10 @@ function ajaxReturn($array = null) {
  *
  * @return string
  */
-function success($msg, $code = 200) {
+function success($msg, $code = '') {
+    if (!$code) {
+        $code = Config('SUCCESS_CODE');
+    }
     $item = ['code' => $code, 'msg' => $msg];
     if (is_array($msg)) {
         $item['data'] = $msg;
@@ -45,7 +48,10 @@ function success($msg, $code = 200) {
  *
  * @return string
  */
-function error($msg, $code = 404) {
+function error($msg, $code = '') {
+    if (!$code) {
+        $code = Config('ERROR_CODE');
+    }
     $item = ['code' => $code, 'msg' => $msg];
 
     return ajaxReturn($item);

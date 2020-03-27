@@ -1,9 +1,9 @@
 <?php
 /*
-	Author : Colin,
-	Creation time : 2015-8-1
-	FileType : 配置文件
-	FileName : config.php
+    Author : Colin,
+    Creation time : 2015-8-1
+    FileType : 配置文件
+    FileName : config.php
 */
 return [
     //数据库配置信息
@@ -62,7 +62,6 @@ return [
     'UPLOAD_DIR'               => './uploads',                //上传文件的目录
     'UPLOAD_TYPE'              => 'image/jpg,image/jpeg,image/png,image/gif',            //上传文件类型
     'UPLOAD_MAXSIZE'           => 2097152,                   //上传文件大小
-    'UPLOAD_RANDNAME'          => true,                    //设置是否随机文件名
 
     //验证码配置
     'CODE_CHARSET'             => 'abcdefghkmnprstuvwxyz23456789',//验证码随机因子
@@ -92,6 +91,10 @@ return [
     'REDIS_PORT'   => 6379,
     'REDIS_PASS'   => '',
 
-    'TIMEZONE' => 'Asia/Shanghai'
+    'TIMEZONE'     => 'Asia/Shanghai',
+
+    // success和error的默认响应码
+    'SUCCESS_CODE' => 200,
+    'ERROR_CODE'   => 404,
 
 ];

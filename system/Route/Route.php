@@ -387,8 +387,8 @@ class Route {
         //处理参数返回
         $get   = values('get.');
         $post  = values('post.');
-        $param = array_filter($get ? $get : []);
-        $post  = array_filter($post ? $post : []);
+        $param = $get ? $get : [];
+        $post  = $post ? $post : [];
         if (!$param) {
             $param = [];
         }
@@ -402,7 +402,7 @@ class Route {
                 foreach ($method_params as $key => $value) {
                     $var[ $value->name ] = $param[ $value->name ];
                 }
-                self::showView($ReflectionMethod->invokeArgs($controller, array_filter($var)));
+                self::showView($ReflectionMethod->invokeArgs($controller, $var));
             }
         }
         self::showView($controller->$method());
