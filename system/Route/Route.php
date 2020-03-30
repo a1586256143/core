@@ -376,7 +376,7 @@ class Route {
      *
      * @throws \system\MyError
      */
-    protected static function reflection($controller, $method) {
+    public static function reflection($controller, $method) {
         try {
             //反射
             $ReflectionMethod = new \ReflectionMethod($controller, $method);
@@ -387,8 +387,8 @@ class Route {
         //处理参数返回
         $get   = values('get.');
         $post  = values('post.');
-        $param = array_filter($get ? $get : []);
-        $post  = array_filter($post ? $post : []);
+        $param = $get ? $get : [];
+        $post  = $post ? $post : [];
         if (!$param) {
             $param = [];
         }
@@ -402,7 +402,7 @@ class Route {
                 foreach ($method_params as $key => $value) {
                     $var[ $value->name ] = $param[ $value->name ];
                 }
-                self::showView($ReflectionMethod->invokeArgs($controller, array_filter($var)));
+                self::showView($ReflectionMethod->invokeArgs($controller, $var));
             }
         }
         self::showView($controller->$method());
@@ -425,7 +425,7 @@ class Route {
         \system\IO\File\Log::generator();
         switch (true) {
             case is_array($result) || is_object($result) :
-                ajaxReturn($result);
+                echo ajaxReturn($result);
                 break;
             default:
                 if (AJAX) {
@@ -433,8 +433,8 @@ class Route {
                     exit;
                 }
                 echo($result === null ? '' : $result);
-                exit;
                 break;
         }
+        exit;
     }
 }

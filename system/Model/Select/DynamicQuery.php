@@ -17,14 +17,6 @@ class DynamicQuery extends Factory {
     ];
 
     /**
-     * 获取单例对象
-     * @return \system\Model\Select\DynamicQuery
-     */
-    public static function getInstance() {
-        return self::applyIns(self::class, new self);
-    }
-
-    /**
      * IN操作
      *
      * @param string $field 字段名

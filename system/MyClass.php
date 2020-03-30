@@ -89,7 +89,7 @@ class MyClass {
         //批量引入
         require_file($requires);
         //初始化视图工厂
-        View::init(Config('TPL_MODEL'), Config('TPL_CONFIG'));
+        (View::getInstance())::init(Config('TPL_MODEL'), Config('TPL_CONFIG'));
         //执行路由
         Route\Route::init();
     }

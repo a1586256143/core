@@ -255,6 +255,7 @@ class Validate {
      *
      * @throws
      * @author Colin <15070091894@163.com>
+     * @return string|mixed
      */
     public function error($info = null) {
         $this->info = $info;
@@ -263,7 +264,7 @@ class Validate {
                 E($this->info);
                 break;
             case 'ajaxReturn':
-                ajaxReturn(['info' => $this->info, 'url' => null, 'status' => 0]);
+                return ajaxReturn(['info' => $this->info, 'url' => null, 'status' => 0]);
                 break;
         }
     }

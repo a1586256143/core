@@ -13,14 +13,6 @@ class File extends Factory {
     protected static $instance;
 
     /**
-     * 获取单例对象
-     * @return \system\IO\File\File
-     */
-    public static function getInstance() {
-        return self::applyIns(self::class, new self);
-    }
-
-    /**
      * 打开文件
      *
      * @param string $filename 文件名

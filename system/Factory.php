@@ -12,22 +12,23 @@ use system\Model\Db;
 
 class Factory {
     protected static $ins;
-    protected static $regIns = [];
+    /**
+     * @var static
+     */
+    protected static $instance = [];
 
     /**
-     * 使用一个单例对象
+     * 获取一个单例模式
      *
-     * @param  [type] $name [description]
-     * @param  [type] $class [description]
-     *
-     * @return mixed
+     * @return
      */
-    public static function applyIns($name, $class) {
-        if (!isset(self::$regIns[ $name ])) {
-            self::$regIns[ $name ] = $class;
+    final public static function getInstance() {
+        $class = get_called_class();
+        if (!self::$instance[ $class ]) {
+            self::$instance[ $class ] = new static();
         }
 
-        return self::$regIns[ $name ];
+        return self::$instance[ $class ];
     }
 
     /**
@@ -70,22 +71,6 @@ class Factory {
         }
 
         return $templateobject;
-    }
-
-    /**
-     * 创建模型类
-     *
-     * @param string $name 控制器名称
-     *
-     * @author Colin <15070091894@163.com>
-     * @return \system\Model
-     */
-    public static function CreateModel($name) {
-        $modelexplode = explode('\\', $name);
-        //得到最后一个值
-        $modelname = array_pop($modelexplode);
-
-        return new $name($modelname);
     }
 
     /**

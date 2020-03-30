@@ -5,30 +5,24 @@
  */
 
 namespace system\Tool;
+
 class Upload {
-    public $path;                        //上传文件保存路径
-    public $allowtype;                    //设置上传文件类型
-    public $maxsize;                    //限制文件上传大小
-    public $israndname;                    //设置是否随机重命名文件
-    public $newFileName;                //新文件名
-    public $errorNum = 0;                //错误号
-    public $errorMess;                    //错误报告消息
-    public $file;                    //错误报告消息
-    public $fileName;
-    public $fileDir;
+    public static $path;                    //上传文件保存路径
+    public        $allowtype;               //设置上传文件类型
+    public        $maxsize;                 //限制文件上传大小
+    public        $file;                    //文件对象
 
     /**
      * 初始化
      *
      * @param array $file 上传的实例，包含tmp_name,name等原始信息
+     * @param bool  $tmp  临时模式，开启临时模式后，上传的文件将会存储到临时目录
      */
-    public function __construct($file) {
-        $this->path       = Config('UPLOAD_DIR');
-        $this->allowtype  = explode(',', Config('UPLOAD_TYPE'));
-        $this->maxsize    = Config('UPLOAD_MAXSIZE');
-        $this->israndname = Config('UPLOAD_RANDNAME');
-        //检查上传目录是否存在
-        $this->checkFilePath();
+    public function __construct($file, $tmp = false) {
+        $upload          = Config('UPLOAD_DIR');
+        $this->path      = $tmp ? $upload . '/tmp' : $upload;
+        $this->allowtype = explode(',', Config('UPLOAD_TYPE'));
+        $this->maxsize   = Config('UPLOAD_MAXSIZE');
         //初始化文件信息
         $this->file = $file;
     }
@@ -39,18 +33,21 @@ class Upload {
      */
     public function upload() {
         if (empty($this->file['tmp_name'])) {
-            return $this->UploadError(-5);
+            return $this->getErrorMsg(-5);
+        }
+        //检查上传目录是否存在
+        if (!$this->checkFilePath()) {
+            return $this->getErrorMsg(-6);
         }
         //检测文件类型是否正确
         if (!$this->checkFileType()) {
-            return $this->UploadError(-1);
+            return $this->getErrorMsg(-1);
         }
         if (!$this->checkSize()) {
-            return $this->UploadError(-2);
+            return $this->getErrorMsg(-2);
         }
-        $this->proRandName();
 
-        return $this->start_upload();
+        return $this->startUpload();
     }
 
     /**
@@ -62,7 +59,7 @@ class Upload {
             return false;
         }
         if (!file_exists($this->path) || !is_writable($this->path)) {
-            if (!@mkdir($this->path, 0777)) {
+            if (!@mkdir($this->path, 0777, true)) {
                 return false;
             }
         }
@@ -73,18 +70,14 @@ class Upload {
     /**
      * 设置随机文件名
      * @author Major <1450494434@qq.com>
+     * @return string
      */
-    public function proRandName() {
-        $this->fileName = date('YmdHis') . "_" . rand(100, 999);
-        $this->fileDir  = $this->path . '/' . date('Ymd');
-        $patten         = '/(\.[a-z]+)/';
-        preg_match($patten, $this->file['name'], $match);
-        if (!is_dir($this->fileDir)) mkdir($this->fileDir);
-        if (empty($match[0])) {
-            $this->newFileName = $this->fileDir . '/' . $this->fileName . '.jpg';
-        } else {
-            $this->newFileName = $this->fileDir . '/' . $this->fileName . $match[0];
-        }
+    public static function getRandName($filename = '', $uploaddir = '') {
+        $dir       = $uploaddir . '/' . date('Ymd');
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+        if (!is_dir($dir)) mkdir($dir);
+
+        return $dir . '/' . sha1($filename) . '.' . $extension;
     }
 
     /**
@@ -107,17 +100,36 @@ class Upload {
      * 开始上传图片
      * @author Major <1450494434@qq.com>
      */
-    public function start_upload() {
+    public function startUpload() {
+        $saveName = self::getRandName($this->file['name'], $this->path);
         if (!is_uploaded_file($this->file['tmp_name'])) {
-            return $this->UploadError(-3);
+            return $this->getErrorMsg(-3);
         }
-        if (move_uploaded_file($this->file['tmp_name'], $this->newFileName)) {
-            $this->file['path'] = ltrim($this->newFileName, '.');
+        if (move_uploaded_file($this->file['tmp_name'], $saveName)) {
+            $this->file['path'] = ltrim($saveName, '.');
 
-            return $this->UploadError(1, $this->file);
+            return $this->getErrorMsg(1, $this->file);
         } else {
-            return $this->UploadError(-4);
+            return $this->getErrorMsg(-4);
         }
+    }
+
+    /**
+     * 从$path移动到$topath
+     *
+     * @param string $path   被移动的文件
+     * @param string $topath 将要移动到的目录或文件
+     */
+    public static function moveUpload($path, $topath = '') {
+        if (!$topath) {
+            $topath = self::getRandName($path, Config('UPLOAD_DIR'));
+        }
+
+        if (rename($path, $topath)) {
+            return ltrim('.', $topath);
+        }
+
+        return false;
     }
 
     /**
@@ -129,26 +141,29 @@ class Upload {
      * @author Major <1450494434@qq.com>
      * @return array
      */
-    public function UploadError($code, $info = []) {
+    public function getErrorMsg($code, $info = []) {
         $message = '';
         switch ($code) {
             case 1 :
-                $message = '上传成功！';
+                $message = '上传成功';
                 break;
             case -1:
-                $message = '上传类型不正确！';
+                $message = '上传类型不正确';
                 break;
             case -2:
-                $message = '上传大小不能超过' . ceil($this->maxsize / 1024 / 1024) . 'M！';
+                $message = '上传大小不能超过' . ceil($this->maxsize / 1024 / 1024) . 'M';
                 break;
             case -3:
-                $message = '非法上传文件！';
+                $message = '非法上传文件';
                 break;
             case -4:
-                $message = '上传文件失败！';
+                $message = '上传文件失败';
                 break;
             case -5:
-                $message = '没有文件被上传！';
+                $message = '没有文件被上传';
+                break;
+            case -6 :
+                $message = '上传目录不存在';
                 break;
         }
 

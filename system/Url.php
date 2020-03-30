@@ -19,7 +19,7 @@ class Url {
         $pathinfo = PHP_SAPI !== 'cli' ? $_SERVER['REQUEST_URI'] : '';
         // 解析地址，得到path和query
         $parse    = parse_url($pathinfo);
-        $pathinfo = $parse['path'];
+        $pathinfo = rtrim($parse['path'], '/');
         if (isset($parse['query'])) {
             // 把query解析成数组
             parse_str($parse['query'], $query);
@@ -34,8 +34,8 @@ class Url {
             }
         }
         // 去除当前访问的文件名
-        $scriptName = $_SERVER['SCRIPT_NAME'];
-        $pathinfo   = str_replace($scriptName, '', $pathinfo);
+        $scriptName = basename($_SERVER['SCRIPT_FILENAME']);
+        $pathinfo   = str_replace('/' . $scriptName, '', $pathinfo);
         if (strpos($pathinfo, '/') === 0) {
             return $pathinfo;
         }

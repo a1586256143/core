@@ -1,9 +1,9 @@
 <?php
 /*
-	Author : Colin,
-	Creation time : 2015-8-1
-	FileType : 函数库
-	FileName : function.php
+    Author : Colin,
+    Creation time : 2015-8-1
+    FileType : 函数库
+    FileName : function.php
 */
 
 /**
@@ -14,8 +14,9 @@
  * @author Colin <15070091894@163.com>
  */
 function ajaxReturn($array = null) {
-    echo json_encode($array, JSON_UNESCAPED_UNICODE);
-    exit;
+    header('content-type:application/json');
+
+    return json_encode($array, JSON_UNESCAPED_UNICODE);
 }
 
 /**
@@ -23,14 +24,20 @@ function ajaxReturn($array = null) {
  *
  * @param mixed $msg  提示信息
  * @param int   $code 代码值
+ *
+ * @return string
  */
-function success($msg, $code = 200) {
+function success($msg, $code = '') {
+    if (!$code) {
+        $code = Config('SUCCESS_CODE');
+    }
     $item = ['code' => $code, 'msg' => $msg];
     if (is_array($msg)) {
         $item['data'] = $msg;
         unset($item['msg']);
     }
-    ajaxReturn($item);
+
+    return ajaxReturn($item);
 }
 
 /**
@@ -38,11 +45,16 @@ function success($msg, $code = 200) {
  *
  * @param mixed $msg  提示信息
  * @param int   $code 代码值
+ *
+ * @return string
  */
-function error($msg, $code = 404) {
+function error($msg, $code = '') {
+    if (!$code) {
+        $code = Config('ERROR_CODE');
+    }
     $item = ['code' => $code, 'msg' => $msg];
 
-    ajaxReturn($item);
+    return ajaxReturn($item);
 }
 
 /**
@@ -594,9 +606,9 @@ function ShowMessage($message) {
     $info .= '[ 返回 ]</a></dd></dd></dl>';
     $info .= '</div><script>';
     $info .= 'var back = document.getElementById("back");
-			back.onclick = function(){
-				window.history.back();
-			}';
+            back.onclick = function(){
+                window.history.back();
+            }';
     $info .= '</script>';
     die($info);
 }

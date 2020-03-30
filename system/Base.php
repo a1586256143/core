@@ -19,7 +19,9 @@ class Base {
     protected static $get;
     //存储post字段
     protected static $post;
-    //视图
+    /**
+     * @var \system\View
+     */
     protected static $view;
 
     /**
@@ -35,7 +37,7 @@ class Base {
      * @throws
      */
     protected static function init() {
-        self::$view    = View::$view;
+        self::$view    = View::getInstance();
         self::$is_get  = GET;
         self::$is_post = POST;
         self::$session = session();
@@ -54,7 +56,7 @@ class Base {
      * @author Colin <15070091894@163.com>
      *
      */
-    public static function redirect($url, $info = '正在跳转.....', $time = 3) {
+    public static function redirect($url, $info = '', $time = 3) {
         if (!empty($info)) {
             echo "<meta http-equiv='refresh' content='$time; url=$url'/>";
             exit($info);
@@ -82,13 +84,14 @@ class Base {
      * @param int status  信息状态
      *
      * @author Colin <15070091894@163.com>
+     * @return string
      */
     public static function ajaxReturn($message, $url = null, $status = 0) {
         $return['info']   = $message;
         $return['url']    = $url;
         $return['status'] = $status;
-        ajaxReturn($return);
-        exit;
+
+        return ajaxReturn($return);
     }
 
     /**
@@ -100,24 +103,7 @@ class Base {
      * @return \system\View
      */
     protected static function view($filename = null, $data = []) {
-        if ($data) {
-            self::assign($data);
-        }
-        if (is_array($filename)) {
-            self::assign($filename);
-            $filename = null;
-        }
-        $filename = _parseFileName($filename);
-        try {
-            return self::$view->display($filename, ViewDIR);
-        } catch (\SmartyException $e) {
-            preg_match('/Unable to load template\s+\'file:(.*)\'/', $e->getMessage(), $match);
-            if (count($match) > 0) {
-                E('模板不存在 ' . ViewDIR . $match[1]);
-            } else {
-                E($e->getMessage());
-            }
-        }
+        self::$view->render($filename, $data, get_called_class());
     }
 
     /**
@@ -127,13 +113,7 @@ class Base {
      * @param string|array $value 变量值
      */
     protected static function assign($name, $value = null) {
-        if (is_array($name)) {
-            foreach ($name as $key => $value) {
-                self::$view->assign($key, $value);
-            }
-        } else {
-            self::$view->assign($name, $value);
-        }
+        self::$view->extractVars($name, $value);
     }
 
     /**
@@ -156,9 +136,8 @@ class Base {
             'param'   => $param,
             'message' => $message,
         ];
-        self::assign($data);
 
-        return self::$view->display($tpl);
+        return self::$view->render($tpl, $data);
     }
 
     /**
