@@ -37,7 +37,9 @@ class MyError extends \Exception {
      * @author Colin <15070091894@163.com>
      */
     public static function customError($errno, $errstr, $errfile, $errline, $detail) {
-        self::set_error_show();
+        if ($errno == E_NOTICE || $errno == E_WARNING) {
+            return;
+        }
         if (E_USER_WARNING !== $errno && !(error_reporting() & $errno)) {
             Log::error($errfile . ' ' . $errstr . ' line:' . $errline);
 
@@ -65,6 +67,8 @@ class MyError extends \Exception {
      * @author Colin <15070091894@163.com>
      */
     public static function traceError() {
+        // 解决有时会出现错误的问题
+        self::set_error_show();
         Log::addRecord(Url::getFullUrl(), true);
         error_reporting(E_PARSE | E_RECOVERABLE_ERROR | E_ERROR);
         //设置错误处理
