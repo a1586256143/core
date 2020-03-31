@@ -37,6 +37,9 @@ class MyError extends \Exception {
      * @author Colin <15070091894@163.com>
      */
     public static function customError($errno, $errstr, $errfile, $errline, $detail) {
+        if ($errno == E_NOTICE || $errno == E_WARNING) {
+            return;
+        }
         if (E_USER_WARNING !== $errno && !(error_reporting() & $errno)) {
             Log::error($errfile . ' ' . $errstr . ' line:' . $errline);
 
