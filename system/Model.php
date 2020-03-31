@@ -329,9 +329,13 @@ class Model implements \ArrayAccess {
      * 查询数据库条数
      * @author Colin <15070091894@163.com>
      */
-    public function count() {
-        $pk           = $this->getpk();
-        $result       = $this->field('count(' . $pk . ') as count')->find();
+    public function count($map = []) {
+        $pk     = $this->getpk();
+        $result = $this->field('count(' . $pk . ') as count');
+        if ($map) {
+            $result->where($map);
+        }
+        $result       = $result->find();
         $this->Fields = '*';
 
         return $result['count'] ? $result['count'] : 0;
@@ -385,8 +389,8 @@ class Model implements \ArrayAccess {
      * @author Colin <15070091894@163.com>
      * @return int
      */
-    public function update($field, $value = null) {
-        if (is_string($field)) {
+    public function update($field = '', $value = null) {
+        if (is_string($field) && $field !== '') {
             if (!$this->ParKey) {
                 $this->ParKey = ' SET ' . '`' . $field . '`' . "='" . $value . "'";
             }
@@ -399,6 +403,11 @@ class Model implements \ArrayAccess {
                 $data[ $key ] = addslashes($value);
             }
             $this->ParData('upd', $data);
+        } else {
+            if (!$field) {
+                $data = $this->data['create'];
+                $this->ParData('upd', $data);
+            }
         }
         $where     = $this->getWhere();
         $this->Sql = "UPDATE " . $this->TablesName . $this->ParKey . $where;
@@ -528,8 +537,9 @@ class Model implements \ArrayAccess {
      */
     public function max($field) {
         $this->setDefaultAs($field);
+        $find = $this->field("MAX($field)$this->Alias")->find();
 
-        return $this->field("MAX($field)$this->Alias")->find();
+        return $find[ $field ] ?: 0;
     }
 
     /**
@@ -542,8 +552,9 @@ class Model implements \ArrayAccess {
      */
     public function min($field) {
         $this->setDefaultAs($field);
+        $find = $this->field("MIN($field)$this->Alias")->find();
 
-        return $this->field("MIN($field)$this->Alias")->find();
+        return $find[ $field ] ?: 0;
     }
 
     /**
@@ -556,8 +567,9 @@ class Model implements \ArrayAccess {
      */
     public function sum($field) {
         $this->setDefaultAs($field);
+        $find = $this->field("SUM($field)$this->Alias")->find();
 
-        return $this->field("SUM($field)$this->Alias")->find();
+        return $find[ $field ] ?: 0;
     }
 
     /**
@@ -570,8 +582,9 @@ class Model implements \ArrayAccess {
      */
     public function avg($field) {
         $this->setDefaultAs($field);
+        $find = $this->field("AVG($field)$this->Alias")->find();
 
-        return $this->field("AVG($field)$this->Alias")->find();
+        return $find[ $field ] ?: 0;
     }
 
     /**
@@ -819,9 +832,10 @@ class Model implements \ArrayAccess {
      * @author Colin <15070091894@163.com>
      */
     protected function _parse_auto() {
-        $fields   = $this->getFields();
-        $primary  = $this->getPk();
-        $isUpdate = array_key_exists($primary, $this->data['create']);
+        $fields             = $this->getFields();
+        $primary            = $this->getPk();
+        $isUpdate           = array_key_exists($primary, $this->data['create']);
+        $this->data['auto'] = [];
         //遍历自动完成属性
         foreach ($this->auto as $key => $value) {
             //查找是否符合字段需求
@@ -870,7 +884,8 @@ class Model implements \ArrayAccess {
      * @author Colin <15070091894@163.com>
      */
     protected function _parse_validate() {
-        $validate = new Validate();
+        $validate               = new Validate();
+        $this->data['validate'] = [];
         foreach ($this->validate as $key => $value) {
             $string = '';
             !isset($value[3]) && $value[3] = 1;
