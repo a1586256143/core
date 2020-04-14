@@ -6,6 +6,7 @@
 
 namespace system;
 
+use system\IO\File\Log;
 use system\Model\Select\DynamicQuery;
 use system\Tool\Validate;
 
@@ -36,12 +37,18 @@ class Model implements \ArrayAccess {
     protected $ParKey = '';
     //解析后存放的字段
     protected $Parvalue = '';
-    //字符别名
+    //表别名
     protected $Alias = '';
+    //字段别名
+    protected $FieldAs = '';
     //limit
     protected $Limit = '';
     //order
     protected $Order = '';
+    // 分组
+    protected $Group = '';
+    // Having
+    protected $Having = '';
     //自动完成
     protected $auto = [];
     //自动验证
@@ -54,7 +61,7 @@ class Model implements \ArrayAccess {
     protected $Lock = false;
     //开启事务
     protected $startTransaction = 0;
-    // 查询时设置此值可跨表查询
+    // 查询时设置此值可跨库查询
     protected $dbName = '';
     // 查询的结果
     protected $result = [];
@@ -99,7 +106,7 @@ class Model implements \ArrayAccess {
         //执行判断表方法
         $this->TablesType($tables);
         //确认表是否存在
-        $this->db->CheckTables($this->dbName ? $this->DataName : $this->db_prefix . $this->DataName, $this->dbName);
+        $this->db->CheckTables($this->db_prefix . $this->DataName, $this->dbName);
 
         return $this;
     }
@@ -197,11 +204,13 @@ class Model implements \ArrayAccess {
      * @author Colin <15070091894@163.com>
      */
     public function getpk() {
-        $pk = S('TABLE_PK_FOR_' . $this->DataName);
+        $keyName = 'TABLE_PK_FOR_' . $this->dbName . $this->DataName;
+        $pk      = S($keyName);
         if (empty($pk)) {
-            $sql = "SELECT COLUMN_NAME FROM information_schema.`KEY_COLUMN_USAGE` WHERE TABLE_SCHEMA = '$this->db_tabs' AND TABLE_NAME = '$this->db_prefix$this->DataName' LIMIT 1";
-            $pk  = $this->execute($sql);
-            S('TABLE_PK_FOR_' . $this->DataName, $pk);
+            $tables = $this->dbName ? $this->dbName : $this->db_tabs;
+            $sql    = "SELECT COLUMN_NAME FROM information_schema.`KEY_COLUMN_USAGE` WHERE TABLE_SCHEMA = '$tables' AND TABLE_NAME = '$this->db_prefix$this->DataName' LIMIT 1";
+            $pk     = $this->execute($sql);
+            S($keyName, $pk);
         }
 
         return $pk['COLUMN_NAME'];
@@ -231,6 +240,7 @@ class Model implements \ArrayAccess {
      * @return array|\system\Model
      */
     public function select($each = false) {
+        $this->result = '';
         $this->getSql();
         $data = $this->getResult(null, true);
         if ($each) {
@@ -252,6 +262,7 @@ class Model implements \ArrayAccess {
             if ($return = $callback($value, $key)) {
                 $value = $return;
             }
+            unset($value);
         }
 
         return $this->result;
@@ -327,18 +338,35 @@ class Model implements \ArrayAccess {
 
     /**
      * 查询数据库条数
+     *
+     * @param string|array $map condition or field
+     *
      * @author Colin <15070091894@163.com>
      */
     public function count($map = []) {
-        $pk     = $this->getpk();
+        $pk     = is_string($map) && $map ? $map : $this->getpk();
         $result = $this->field('count(' . $pk . ') as count');
-        if ($map) {
+        if (is_array($map)) {
             $result->where($map);
         }
         $result       = $result->find();
         $this->Fields = '*';
 
         return $result['count'] ? $result['count'] : 0;
+    }
+
+    /**
+     * 子查询统计数量，不设立表名
+     *      比如要实现此SQL：select count(*) as count from (select id from user) as s
+     *      先生成 select id from user 这条SQL语句，然后调用任意一个Model里的subQueryCount方法
+     *
+     * @param $sql
+     */
+    public function subQueryCount($sql) {
+        $this->sql = 'SELECT COUNT(*) as count FROM (' . $sql . ') as s';
+        $data      = $this->query($this->sql);
+
+        return $data['count'] ?: 0;
     }
 
     /**
@@ -494,7 +522,15 @@ class Model implements \ArrayAccess {
      * @author Colin <15070091894@163.com>
      * @return \system\Model
      */
-    public function order($field, $desc = null) {
+    public function order($field = '', $desc = null) {
+        if (!$field) {
+            $field = values('request', 'sort');
+            $desc  = $field['order'];
+            if (!in_array($desc, ['desc', 'asc'])) {
+                return $this;
+            }
+            $field = $field['field'];
+        }
         $this->Order = " ORDER BY " . $field . " " . $desc . " ";
 
         return $this;
@@ -514,7 +550,33 @@ class Model implements \ArrayAccess {
     }
 
     /**
-     * 别名
+     * 分组查询
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function group($field = '') {
+        $this->Group = ' GROUP BY ' . $field . '';
+
+        return $this;
+    }
+
+    /**
+     * Having查询
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function having($field = '') {
+        $this->Having = ' HAVING ' . $field . ' ';
+
+        return $this;
+    }
+
+    /**
+     * 设置表别名
      *
      * @param string $as 新的别名
      *
@@ -537,7 +599,7 @@ class Model implements \ArrayAccess {
      */
     public function max($field) {
         $this->setDefaultAs($field);
-        $find = $this->field("MAX($field)$this->Alias")->find();
+        $find = $this->field("MAX($field)$this->FieldAs")->find();
 
         return $find[ $field ] ?: 0;
     }
@@ -552,7 +614,7 @@ class Model implements \ArrayAccess {
      */
     public function min($field) {
         $this->setDefaultAs($field);
-        $find = $this->field("MIN($field)$this->Alias")->find();
+        $find = $this->field("MIN($field)$this->FieldAs")->find();
 
         return $find[ $field ] ?: 0;
     }
@@ -567,7 +629,7 @@ class Model implements \ArrayAccess {
      */
     public function sum($field) {
         $this->setDefaultAs($field);
-        $find = $this->field("SUM($field)$this->Alias")->find();
+        $find = $this->field("SUM($field)$this->FieldAs")->find();
 
         return $find[ $field ] ?: 0;
     }
@@ -582,7 +644,7 @@ class Model implements \ArrayAccess {
      */
     public function avg($field) {
         $this->setDefaultAs($field);
-        $find = $this->field("AVG($field)$this->Alias")->find();
+        $find = $this->field("AVG($field)$this->FieldAs")->find();
 
         return $find[ $field ] ?: 0;
     }
@@ -702,6 +764,14 @@ class Model implements \ArrayAccess {
     }
 
     /**
+     * 获取待执行的SQL语句
+     * @return string
+     */
+    public function fetchSql() {
+        return $this->getSql();
+    }
+
+    /**
      * 容错处理机制
      *
      * @param string $fun
@@ -765,9 +835,11 @@ class Model implements \ArrayAccess {
      * @author Colin <15070091894@163.com>
      */
     protected function setDefaultAs($field = null) {
-        if (!$this->Alias) {
-            $this->Alias = ' AS ' . $field;
+        $explode = explode('.', $field);
+        if (count($explode) >= 2) {
+            $field = $explode[1];
         }
+        $this->FieldAs = ' AS ' . $field;
     }
 
     /**
@@ -781,7 +853,7 @@ class Model implements \ArrayAccess {
             $prefix = "SELECT $this->Fields " . $this->From . $this->Alias;
         }
         $where     = $this->getWhere();
-        $this->Sql = $prefix . implode(' ', $this->Join) . $where . $this->Order . $this->Limit;
+        $this->Sql = $prefix . implode(' ', $this->Join) . $where . $this->Group . $this->Having . $this->Order . $this->Limit;
         if ($this->Lock) {
             $this->Sql .= ' FOR UPDATE';
         }
@@ -926,7 +998,8 @@ class Model implements \ArrayAccess {
     protected function _parse_prefix($data = null) {
         //处理表前缀
         if (strpos($data, '@') !== false) {
-            $data = str_replace('@', $this->db_prefix, $data);
+            $prefix = $this->dbName ? ($this->dbName . '.' . $this->db_prefix) : $this->db_prefix;
+            $data   = str_replace('@', $prefix, $data);
         }
 
         return $data;
@@ -936,10 +1009,12 @@ class Model implements \ArrayAccess {
      * 清理where条件和join
      */
     protected function _clearThis() {
-        $this->Where = [];
-        $this->Join  = [];
-        $this->Limit = '';
-        $this->Order = '';
+        $this->Where  = [];
+        $this->Join   = [];
+        $this->Limit  = '';
+        $this->Order  = '';
+        $this->Group  = '';
+        $this->Having = '';
     }
 
     /**
@@ -955,8 +1030,9 @@ class Model implements \ArrayAccess {
     protected function ADUP($sql = null, $ist = null) {
         $sql = $sql === null ? $this->Sql : $sql;
         $this->_clearThis();
+        Config('LOG_SQL') && Log::timeRecord(0, 'sql');
         $query = $this->db->query($sql);
-        Config('LOG_SQL') && WriteLog($sql);
+        Config('LOG_SQL') && WriteLog($sql . ' [' . Log::timeRecord(1, 'sql') . ']');
         if (!$query) {
             if ($this->startTransaction) {
                 return false;
@@ -1152,11 +1228,11 @@ class Model implements \ArrayAccess {
                 $this->afterFind($rows);
                 $data[] = $rows;
             }
+            $this->result = $data;
         } else {
             $data = $this->db->fetch_array($result);
             $this->afterFind($data);
         }
-        $this->result = $data;
 
         return $data;
     }
@@ -1177,13 +1253,15 @@ class Model implements \ArrayAccess {
      * @author Colin <15070091894@163.com>
      */
     protected function setClassMember() {
-        $patten = '/(DB\_.*)/';
+        $patten = '/^(DB\_.*)/';
         foreach (Config() as $key => $value) {
             if (!preg_match($patten, $key, $match)) {
                 continue;
             }
-            $member        = strtolower($match[0]);
-            $this->$member = $value;
+            $member = strtolower($match[0]);
+            if ($this->$member == '') {
+                $this->$member = $value;
+            }
         }
     }
 

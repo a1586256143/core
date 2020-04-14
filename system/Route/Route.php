@@ -12,6 +12,8 @@ use system\Url;
 class Route {
     //路由规则
     protected static $routes = [];
+    protected static $method = '*';
+    protected static $prefix = '';
 
     /**
      * 初始化路由
@@ -21,55 +23,8 @@ class Route {
     public static function init() {
         self::setRunMethod();
         if (!PHP_CLI) {
-            Config('ROUTE_STATUS') ? self::enableRoute() : self::execRouteByUrl();
+            self::parseRoutes();
         }
-    }
-
-    /**
-     * 设置路由
-     *
-     * @param string $key   路由名
-     * @param array  $value 路由选项，由add方法获取的item
-     * @param bool   $group 是否为一个组
-     */
-    protected static function setRoutes($key, $value, $group = false) {
-        if (is_array($value)) {
-            self::$routes[ $key ] = [
-                'middleware' => self::compleNamespace($key, $value['middleware'], 1),
-                'route'      => self::compleNamespace($key, $value['route']),
-                'group'      => $group
-            ];
-        } else {
-            self::$routes[ $key ] = [
-                'route' => self::compleNamespace($key, $value),
-                'group' => $group
-            ];
-        }
-    }
-
-    /**
-     * 组装明名空间
-     *
-     * @param string $key        暂时未用上
-     * @param null   $url        访问URL
-     * @param bool   $middleware 中间价
-     *
-     * @return string|null
-     */
-    protected static function compleNamespace($key, $url = null, $middleware = false) {
-        $layer  = Config('DEFAULT_CONTROLLER_LAYER');
-        $prefix = '\\' . ltrim($layer, '\\');
-        $url    = '\\' . ltrim($url, '\\');
-        if (strpos($url, $prefix) === 0) {
-            return $url;
-        }
-        $url = ltrim($url, '\\');
-        // 解析有没有@字符
-        if (strpos($url, '@') === false && !$middleware) {
-            $url .= '@' . Config('DEFAULT_METHOD');
-        }
-
-        return $prefix . '\\' . $url;
     }
 
     /**
@@ -81,69 +36,65 @@ class Route {
      */
     public static function add($item) {
         foreach ($item as $key => $value) {
-            self::setRoutes($key, $value);
+            self::parseRules($key, $value, self::$method);
         }
     }
 
     /**
-     * 路由分组
+     * GET方法
      *
-     * @param string $groupName 组名
-     * @param array  $attr      属性 array('middleware' => '中间件' , 'routes' => array('/index'));
-     *
-     * @author Colin <15070091894@163.com>
-     * @throws
+     * @param string $name
+     * @param string $item
+     * @param string $middleware
      */
-    public static function group($groupName, $attr = []) {
-        //处理attr路由规则
-        if (!$attr || !$attr['routes']) {
-            E("请设置 $groupName 路由组的属性");
-        }
-        //给$groupName增加/
-        $groupName = '/' . ltrim($groupName, '/');
-        foreach ($attr['routes'] as $key => $value) {
-            //给key 增加 /
-            $route = '/' . ltrim($key, '/');
-            //处理根
-            if ($key == '/') {
-                $route = '';
-            }
-            if (!isset($value['middleware'])) {
-                //是否中间件
-                if ($attr['middleware']) {
-                    is_array($value) ? $value['middleware'] = $attr['middleware'] : $value = [
-                        'route'      => $value,
-                        'middleware' => $attr['middleware']
-                    ];
-                }
-            }
-            self::setRoutes($groupName . $route, $value, true);
-        }
+    public static function GET($name, $item, $middleware = '') {
+        self::parseRules($name, $item, 'GET', $middleware);
     }
 
     /**
-     * 是否是一个组
+     * POST方法
      *
-     * @param string $route 路由名
-     *
-     * @return boolean [description]
+     * @param string $name
+     * @param string $item
+     * @param string $middleware
      */
-    protected static function isGroup($route = null) {
-        if (isset(self::$routes[ $route ]['group'])) {
-            $route = array_filter(explode('/', $route));
-
-            return array_shift($route);
-        }
-
-        return false;
+    public static function POST($name, $item, $middleware = '') {
+        self::parseRules($name, $item, 'POST', $middleware);
     }
 
     /**
-     * 开启Route
-     * @throws \system\MyError
+     * PUT方法
+     *
+     * @param string $name
+     * @param string $item
+     * @param string $middleware
      */
-    public static function enableRoute() {
-        self::parseRoutes();
+    public static function PUT($name, $item, $middleware = '') {
+        self::parseRules($name, $item, 'PUT', $middleware);
+    }
+
+    /**
+     * 分组
+     *
+     * @param                $prefix
+     * @param array|\Closure $item
+     */
+    public static function group($prefix, $item) {
+        if (is_string($item)) {
+            self::GET($prefix, $item);
+
+            return;
+        }
+        self::$prefix .= self::getPrefix($prefix);
+        switch (true) {
+            case ($item instanceof \Closure) :
+                call_user_func($item);
+                break;
+            case is_array($item) :
+                self::add($item);
+                break;
+        }
+        self::$prefix = '';
     }
 
     /**
@@ -151,66 +102,51 @@ class Route {
      * @author Colin <15070091894@163.com>
      * @throws \system\MyError
      */
-    public static function parseRoutes() {
+    protected static function parseRoutes() {
         $parse_url = self::getRoute();
         // 验证访问的是否是一个文件
+        $routeKey    = self::getRouteName($parse_url);
+        $routeAll    = self::getRouteNameAll($parse_url);
         $equalLength = [];
         //寻找路由
-        if (array_key_exists($parse_url, self::$routes)) {
-            self::execRoute(self::$routes[ $parse_url ]);
-            //没有找到路由，开始找{}参数
+        if (array_key_exists($routeKey, self::$routes)) {
+            self::execRoute(self::$routes[ $routeKey ]);
         } else {
-            $parse_url_array = explode('/', rtrim(ltrim($parse_url, '/'), '/'));
+            if (array_key_exists($routeAll, self::$routes)) {
+                self::execRoute(self::$routes[ $routeAll ]);
+
+                return;
+            }
+            //没有找到路由，开始找{}参数
+            $parse_url_array = explode('/', rtrim(ltrim($routeKey, '/'), '/'));
+            $currentRoute    = (implode('/', $parse_url_array));
             foreach (self::$routes as $key => $value) {
-                $paramPatten = '/([\{\w\_\}]+)+/';
-                if (preg_match_all($paramPatten, $key, $match)) {
-                    //位数一样
-                    if (count($match[1]) == count($parse_url_array)) {
-                        //去除没有{}的
-                        if (preg_match_all('/{([\w\_]+)}/', implode('/', $match[1]), $matches)) {
-                            $equalLength[] = $match[1];
-                        }
+                if ($value['type'] != '*') {
+                    if ($value['type'] != REQUEST_METHOD) {
                         continue;
                     }
                 }
-            }
-            //没有找到
-            if (count($equalLength) == 0) {
-                self::faildRoute($parse_url);
-            }
-            $isFind = false;
-            //处理获取的长度数组
-            foreach ($equalLength as $key => $value) {
-                //拼装成 /hello/admin/{uid}
-                $items = '/' . implode('/', $value);
-                //是否找到，找到直接停止允许
-                if ($isFind) {
-                    break;
-                }
-                //获取{的起始位置
-                if ($start = strpos($items, '{')) {
-                    //截取{后的位置，得到 /hello/admin/
-                    $item = substr($items, 0, $start);
-                    //当前地址一样截取
-                    $parse_url_item = substr($parse_url, 0, $start);
-                    //是否相等
-                    if ($item == $parse_url_item) {
-                        array_map('maps', $parse_url_array, $value);
-                        //执行
-                        if (array_key_exists($items, self::$routes)) {
-                            $isFind = true;
-                            self::execRoute(self::$routes[ $items ]);
-                        } else {
-                            self::faildRoute($parse_url);
-                        }
+                $oldKey = explode('/', $key);
+                // 把*替换成当前请求的方法名
+                $key = str_replace('*', REQUEST_METHOD, $key);
+                // 查找出带变量名的路由格式 /xxx/xxx/{id}
+                if (preg_match_all('/{([\w\_]+)}/', $key, $matchs)) {
+                    // matchs[0] = ['{id}']
+                    foreach ($matchs[0] as $val) {
+                        // 把变量替换成正则表达式 [\w]+
+                        $key = str_replace($val, '[\w]+', $key);
                     }
-                } else {
-                    self::faildRoute($parse_url);
+                    // 开始正则匹配 $currentRoute = GET-/api/article/list/28
+                    // 正则表达式为 #^GET-/api/article/list/[\w]+$#
+                    preg_match('#^' . $key . '$#', $currentRoute, $match);
+                    if ($match[0]) {
+                        $urls = explode('/', $parse_url);
+                        array_map('maps', array_slice($urls, 1), array_slice($oldKey, 1));
+                        self::execRoute(self::$routes[ implode('/', $oldKey) ]);
+                    }
                 }
             }
-            if (!$isFind) {
-                self::faildRoute($parse_url);
-            }
+            self::faildRoute($parse_url);
         }
     }
 
@@ -228,7 +164,7 @@ class Route {
             http_response_code(404);
             exit;
         }
-        E('一个未定义的路由');
+        self::execRouteByUrl();
     }
 
     /**
@@ -239,7 +175,11 @@ class Route {
      * @author Colin <15070091894@163.com>
      * @throws
      */
-    public static function execRoute($route) {
+    protected static function execRoute($route) {
+        if ($route['route'] instanceof \Closure) {
+            $data = call_user_func($route['route']);
+            self::showView($data);
+        }
         $controllerOrAction = explode('@', $route['route']);
         list($namespace, $method) = $controllerOrAction;
         //分割数组
@@ -259,7 +199,7 @@ class Route {
             E($method . '() 这个方法不存在');
         }
         //执行中间件
-        if (isset($route['middleware']) && !$route['middleware']) {
+        if (isset($route['middleware']) && $route['middleware']) {
             /**
              * @var $middleware Middleware
              */
@@ -270,6 +210,179 @@ class Route {
         CSRF::execCSRF();
         //反射
         self::reflection($controller, $method);
+    }
+
+    /**
+     * 反射类
+     *
+     * @param object $controller 被执行的控制器实体类
+     * @param string $method     被执行的控制器方法名
+     *
+     * @throws \system\MyError
+     */
+    public static function reflection($controller, $method) {
+        try {
+            //反射
+            $ReflectionMethod = new \ReflectionMethod($controller, $method);
+        } catch (\ReflectionException $e) {
+            throw new MyError($e->getMessage());
+        }
+        $method_params = $ReflectionMethod->getParameters();
+        //处理参数返回
+        $get   = values('get.');
+        $post  = values('post.');
+        $param = $get ?: [];
+        $post  = $post ?: [];
+        $param = array_merge($param, $post);
+        if (!empty($param)) {
+            if (!empty($method_params)) {
+                $var = [];
+                foreach ($method_params as $key => $value) {
+                    $var[ $value->name ] = $param[ $value->name ];
+                }
+                self::showView($ReflectionMethod->invokeArgs($controller, $var));
+            }
+        }
+        self::showView($controller->$method());
+    }
+
+    /**
+     * 获取当前路由地址
+     * @return mixed|string
+     */
+    public static function getRoute() {
+        return Url::parseUrl();
+    }
+
+    /**
+     * 显示视图
+     *
+     * @param mixed $result
+     */
+    protected static function showView($result = '') {
+        \system\IO\File\Log::generator();
+        switch (true) {
+            case is_array($result) || is_object($result) :
+                echo ajaxReturn($result);
+                break;
+            default:
+                if (AJAX) {
+                    echo(success($result));
+                    exit;
+                }
+                echo($result === null ? '' : $result);
+                break;
+        }
+        exit;
+    }
+
+    /**
+     * 获取路由url
+     *
+     * @param        $key
+     * @param string $type
+     *
+     * @return string
+     */
+    protected static function getRouteName($key, $type = '') {
+        $type = $type ?: REQUEST_METHOD;
+        $key  = self::getPrefix($key);
+
+        return $type . '-' . self::$prefix . $key;
+    }
+
+    /**
+     * 获取*路由url
+     *
+     * @param $key
+     *
+     * @return string
+     */
+    protected static function getRouteNameAll($key) {
+        $type = $type ?: REQUEST_METHOD;
+        $key  = self::getPrefix($key);
+
+        return '*-' . self::$prefix . $key;
+    }
+
+    /**
+     * 获取路由名
+     *
+     * @param $key
+     *
+     * @return string
+     */
+    protected static function getPrefix($key) {
+        $key = DIRECTORY_SEPARATOR . ltrim($key, DIRECTORY_SEPARATOR);
+
+        return $key;
+    }
+
+    /**
+     * 解析一个路由规则
+     *
+     * @param string          $name       规则名
+     * @param string|\Closure $item       规则元素
+     * @param string          $type       访问类型
+     * @param string          $middleware 中间件
+     */
+    protected static function parseRules($name, $item, $type = '', $middleware = '') {
+        $key                  = self::getRouteName($name, $type);
+        $route                = $item instanceof \Closure ? $item : self::getNameSpace($item);
+        self::$routes[ $key ] = [
+            'route'      => $route,
+            'middleware' => $middleware,
+            'type'       => $type,
+        ];
+    }
+
+    /**
+     * 获取命名空间
+     *
+     * @param null $url        访问URL
+     * @param bool $middleware 中间件
+     *
+     * @return string|null
+     */
+    protected static function getNameSpace($url = null, $middleware = false) {
+        $layer  = Config('DEFAULT_CONTROLLER_LAYER');
+        $prefix = '\\' . ltrim($layer, '\\');
+        $url    = '\\' . ltrim($url, '\\');
+        if (strpos($url, $prefix) === 0) {
+            return $url;
+        }
+        $url = ltrim($url, '\\');
+        // 解析有没有@字符
+        if (strpos($url, '@') === false && !$middleware) {
+            $url .= '@' . Config('DEFAULT_METHOD');
+        }
+
+        return $prefix . '\\' . $url;
+    }
+
+    /**
+     * 设置常量
+     *
+     * @param [type] $controller [description]
+     * @param [type] $method     [description]
+     */
+    protected static function setFields($controller, $method) {
+        define('CONTROLLER_NAME', $controller);
+        define('ACTION_NAME', $method);
+    }
+
+    /**
+     * 设置运行方式
+     */
+    protected static function setRunMethod() {
+        //处理方法
+        define('REQUEST_METHOD', strtoupper($_SERVER["REQUEST_METHOD"]));
+        define('POST', REQUEST_METHOD == 'POST' ? true : false);
+        //定义get和post常量
+        define('GET', REQUEST_METHOD == 'GET' ? true : false);
+        $httpRequest = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ? $_SERVER['HTTP_X_REQUESTED_WITH'] : '';
+        define('AJAX', $httpRequest == 'XMLHttpRequest' ? true : false);
+        header_remove('X-Powered-By');
     }
 
     /**
@@ -340,101 +453,5 @@ class Route {
         $classname = '\\' . $layer . $classname;
 
         return [$controller_path, $classname];
-    }
-
-    /**
-     * 设置常量
-     *
-     * @param [type] $controller [description]
-     * @param [type] $method     [description]
-     */
-    protected static function setFields($controller, $method) {
-        define('CONTROLLER_NAME', $controller);
-        define('ACTION_NAME', $method);
-    }
-
-    /**
-     * 设置运行方式
-     */
-    protected static function setRunMethod() {
-        //处理方法
-        $request_method = isset($_SERVER["REQUEST_METHOD"]) ? $_SERVER["REQUEST_METHOD"] : '';
-        define('POST', $request_method == 'POST' ? true : false);
-        //定义get和post常量
-        define('GET', $request_method == 'GET' ? true : false);
-        $httpRequest = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ? $_SERVER['HTTP_X_REQUESTED_WITH'] : '';
-        define('AJAX', $httpRequest == 'XMLHttpRequest' ? true : false);
-        // header('X-Powered-By:MyClassPHP');
-        header_remove('X-Powered-By');
-    }
-
-    /**
-     * 反射类
-     *
-     * @param object $controller 被执行的控制器实体类
-     * @param string $method     被执行的控制器方法名
-     *
-     * @throws \system\MyError
-     */
-    public static function reflection($controller, $method) {
-        try {
-            //反射
-            $ReflectionMethod = new \ReflectionMethod($controller, $method);
-        } catch (\ReflectionException $e) {
-            throw new MyError($e->getMessage());
-        }
-        $method_params = $ReflectionMethod->getParameters();
-        //处理参数返回
-        $get   = values('get.');
-        $post  = values('post.');
-        $param = $get ? $get : [];
-        $post  = $post ? $post : [];
-        if (!$param) {
-            $param = [];
-        }
-        if (!$post) {
-            $post = [];
-        }
-        $param = array_merge($param, $post);
-        if (!empty($param)) {
-            if (!empty($method_params)) {
-                $var = [];
-                foreach ($method_params as $key => $value) {
-                    $var[ $value->name ] = $param[ $value->name ];
-                }
-                self::showView($ReflectionMethod->invokeArgs($controller, $var));
-            }
-        }
-        self::showView($controller->$method());
-    }
-
-    /**
-     * 获取当前路由地址
-     * @return mixed|string
-     */
-    public static function getRoute() {
-        return Url::parseUrl();
-    }
-
-    /**
-     * 显示视图
-     *
-     * @param mixed $result
-     */
-    protected static function showView($result = '') {
-        \system\IO\File\Log::generator();
-        switch (true) {
-            case is_array($result) || is_object($result) :
-                echo ajaxReturn($result);
-                break;
-            default:
-                if (AJAX) {
-                    echo(success($result));
-                    exit;
-                }
-                echo($result === null ? '' : $result);
-                break;
-        }
-        exit;
     }
 }

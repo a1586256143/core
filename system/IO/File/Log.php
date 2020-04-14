@@ -9,7 +9,7 @@ class Log extends Factory {
     protected static $file;
     // 日志内容器
     protected static $logs;
-    
+
     /**
      * 添加记录条数
      *
@@ -83,16 +83,16 @@ class Log extends Factory {
      *
      * @return string
      */
-    public static function timeRecord($mode = 0) {
+    public static function timeRecord($mode = 0, $name = 'app') {
         static $timestamp;
         if (!$mode) {
-            $timestamp = microtime();
+            $timestamp[ $name ] = microtime();
 
             return '';
         }
-        $endTimestamp = microtime();
-        $start        = array_sum(explode(" ", $timestamp));
-        $end          = array_sum(explode(" ", $endTimestamp));
+        $endTimestamp[ $name ] = microtime();
+        $start                 = array_sum(explode(" ", $timestamp[ $name ]));
+        $end                   = array_sum(explode(" ", $endTimestamp[ $name ]));
 
         return sprintf("%.4f s", ($end - $start));
     }

@@ -126,7 +126,22 @@ class Upload {
         }
 
         if (rename($path, $topath)) {
-            return ltrim('.', $topath);
+            return ltrim($topath, '.');
+        }
+
+        return false;
+    }
+
+    /**
+     * 是否是临时目录
+     *
+     * @param string $path 路径
+     *
+     * @return bool
+     */
+    public static function isTmp($path = '') {
+        if (strpos($path, 'tmp') !== false) {
+            return true;
         }
 
         return false;
