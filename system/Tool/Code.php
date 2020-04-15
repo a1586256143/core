@@ -89,9 +89,13 @@ class Code {
 
     /**
      * 对外生成
+     *
+     * @param string $prefix 多个的区分前缀
+     *
      * @author Colin <15070091894@163.com>
      */
-    public function doimg() {
+    public function doimg($prefix = 'admin') {
+        $this->getCode($prefix);
         $this->createBg();
         $this->createLine();
         $this->createFont();
