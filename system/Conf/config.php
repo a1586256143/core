@@ -69,7 +69,7 @@ return [
     'CODE_WIDTH'               => 130,                                //验证码宽度
     'CODE_HEIGHT'              => 50,                                //验证码高度
     'CODE_FONTSIZE'            => 20,                                //验证码字体大小
-    'CODE_FONTPATH'            => MyClass . '/Tool/include/elephant.ttf',//验证码字体文件存放路径
+    'CODE_FONTPATH'            => Core . 'Tool/elephant.ttf',//验证码字体文件存放路径
 
     //时间配置
     'DATE_DEFAULT_TIMEZONE'    => 'PRC',                //默认时区

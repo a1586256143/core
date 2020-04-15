@@ -96,15 +96,42 @@ class Code {
         $this->createLine();
         $this->createFont();
         $this->outPut();
+
+        return '';
     }
 
     /**
      * 获取code
+     *
+     * @param string $prefix 多个的区分前缀
+     *
      * @author Colin <15070091894@163.com>
      */
-    public function getCode() {
+    public function getCode($prefix = 'admin') {
         $this->createCode();
+        $verifyCode = strtolower($this->code);
+        session($prefix . 'system_verify_code', $verifyCode);
 
-        return strtolower($this->code);
+        return $verifyCode;
+    }
+
+    /**
+     * 校验验证码
+     *
+     * @param string $code   用户输入的验证码
+     * @param string $prefix 多个的区分前缀
+     *
+     * @return bool
+     */
+    public function verify($code, $prefix = 'admin') {
+        $verify = session($prefix . 'system_verify_code');
+        if (!$verify) {
+            return false;
+        }
+        if ($verify != $code) {
+            return false;
+        }
+
+        return true;
     }
 }
