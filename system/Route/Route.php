@@ -494,7 +494,7 @@ class Route {
      */
     protected static function execRouteByUrl() {
         $route  = Url::parseUrl();
-        $routes = explode(' / ', $route);
+        $routes = explode('/', $route);
         list($controller_path, $classname) = self::getControllerPath($routes);
         $defaultMethod = Config('DEFAULT_METHOD');
         $controller    = false;
@@ -543,11 +543,11 @@ class Route {
         $routes = array_filter($routes);
         // 尝试解析index方法
         // 拼接路径，并自动将路由中的index转换成Index
-        $controller_path   = _getFileName(APP_DIR . $layer . ' / ' . ltrim(implode(' / ', $routes), ' / '));
+        $controller_path   = _getFileName(APP_DIR . $layer . '/' . ltrim(implode('/', $routes), '/'));
         $extraRoute        = $routes;
         $defaultController = Config('DEFAULT_CONTROLLER');
         array_push($extraRoute, $defaultController);
-        $extraRoutePath = _getFileName(APP_DIR . $layer . ' / ' . ltrim(implode(' / ', $extraRoute), ' / '));
+        $extraRoutePath = _getFileName(APP_DIR . $layer . '/' . ltrim(implode('/', $extraRoute), '/'));
         $classname      = implode('\\', $routes);
         // 如果文件不存在，尝试加载目录下的默认文件
         if (!file_exists($controller_path) && $routes[ count($routes) - 1 ] != strtolower($defaultController)) {
