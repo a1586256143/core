@@ -485,7 +485,7 @@ class Route {
         define('GET', REQUEST_METHOD == 'GET' ? true : false);
         $httpRequest = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ? $_SERVER['HTTP_X_REQUESTED_WITH'] : '';
         define('AJAX', $httpRequest == 'XMLHttpRequest' ? true : false);
-        header_remove('X - Powered - By');
+        header_remove('X-Powered-By');
     }
 
     /**

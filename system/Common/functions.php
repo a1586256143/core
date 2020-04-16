@@ -363,20 +363,20 @@ if (function_exists('envg')) {
  */
 function timeFormat($timestamp, $model = 'a', $mode = '') {
     if (!$timestamp) {
-        return ' - ';
+        return '-';
     }
     switch ($model) {
         case 'a' :
-            $mode = 'Y - m - d H:i:s';
+            $mode = 'Y-m-d H:i:s';
             break;
         case 'm' :
-            $mode = 'Y - m - d H:i';
+            $mode = 'Y-m-d H:i';
             break;
         case 'h' :
-            $mode = 'Y - m - d H';
+            $mode = 'Y-m-d H';
             break;
         case 'd' :
-            $mode = 'Y - m - d';
+            $mode = 'Y-m-d';
             break;
     }
 
@@ -393,9 +393,9 @@ function timeFormat($timestamp, $model = 'a', $mode = '') {
  * @throws
  */
 function library($name = null) {
-    list($filedir, $filename) = explode(' / ', $name);
-    if ($filename == ' * ') {
-        $path = Library . ' / ' . $filedir;
+    list($filedir, $filename) = explode('/', $name);
+    if ($filename == '*') {
+        $path = Library . '/' . $filedir;
         $file = \system\Factory::File();
         //获取目录下的所有文件
         $allfile = $file->getDirAllFile($path, 'php');
@@ -413,8 +413,8 @@ function library($name = null) {
         }
     } else {
         //把@替换成.
-        $filename = str_replace('@', ' . ', $filename);
-        $path     = Library . ' / ' . $filedir . ' / ' . $filename . ' . php';
+        $filename = str_replace('@', '.', $filename);
+        $path     = Library . '/' . $filedir . '/' . $filename . '.php';
         if (!file_exists($path)) {
             E('文件不存在' . $name);
         }
@@ -494,10 +494,7 @@ function _getFileName($name) {
  */
 function maps($item, $item2) {
     if ($item != $item2) {
-        $item2          = preg_replace(' / [
-        \{ | \
-        }
-    ] +/', '', $item2);
+        $item2          = preg_replace('/[\{|\}]+/', '', $item2);
         $_GET[ $item2 ] = urldecode($item);
     }
 }
@@ -535,7 +532,7 @@ function walkFormAttr($attrs, $walk_function = 'walkParams') {
  * @author Colin <15070091894@163.com>
  */
 function ShowMessage($message) {
-    header('Content - Type:text / html;charset = UTF - 8');
+    header('Content-Type:text/html;charset=UTF-8');
     $info = ' < div style = "width:400px;height:30%;margin:0 auto;font-size:25px;color:#000;font-weight:bold;" > ';
     $info .= '<dl style = "padding:0px;margin:0px;width:100%;height:100%;border:1px solid #ccc;" > ';
     $info .= '<dt style = "padding:0px;margin:0px;border-bottom:1px solid #ccc;line-height:50px;font-size:20px;text-align:center;background:#efefef;" > MyClass提示信息</dt > ';
@@ -544,11 +541,11 @@ function ShowMessage($message) {
     $info .= '<a href = "javascript:void(0);" style = "font-size:15px;color:#181884;width:100%;text-align:center;display:block;" id = "back" > ';
     $info .= '[ 返回 ]</a ></dd ></dd ></dl > ';
     $info .= '</div ><script > ';
-    $info .= 'var back     = document . getElementById("back");
-            back . onclick = function () {
-                window . history . back();
+    $info .= 'var back = document.getElementById("back");
+            back.onclick = function () {
+                window.history.back();
             }';
-    $info .= ' </script > ';
+    $info .= '</script>';
     die($info);
 }
 
@@ -576,17 +573,17 @@ function _parseFileName($filename) {
     }
     // 替换特殊的@符号
     if (strpos($filename, '@') === 0) {
-        $route = ltrim(\system\Route\Route::getRoute(), ' / ');
-        $route = explode(' / ', $route);
+        $route = ltrim(\system\Route\Route::getRoute(), '/');
+        $route = explode('/', $route);
         array_pop($route);
-        $route = implode(' / ', $route);
+        $route = implode('/', $route);
         // @后面没有跟上/，给它加上
         if (strpos($filename, '@/') !== 0) {
-            $route .= ' / ';
+            $route .= '/';
         }
         $filename = str_replace('@', $route, $filename);
     }
-    $explode = explode(' . ', $filename);
+    $explode = explode('.', $filename);
     if (count($explode) > 1) {
         return $filename;
     }
