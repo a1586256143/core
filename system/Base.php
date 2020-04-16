@@ -56,7 +56,7 @@ class Base {
      * @author Colin <15070091894@163.com>
      *
      */
-    public static function redirect($url, $info = '', $time = 3) {
+    protected static function redirect($url, $info = '', $time = 3) {
         if (!empty($info)) {
             echo "<meta http-equiv='refresh' content='$time; url=$url'/>";
             exit($info);
@@ -72,21 +72,21 @@ class Base {
      * @author Colin <15070091894@163.com>
      *
      */
-    public static function location($url) {
+    protected static function location($url) {
         header("Location:$url");
     }
 
     /**
      * 返回json数据
      *
-     * @param message  输出信息
+     * @param string|array $message 输出信息
      * @param string url  跳转地址
      * @param int status  信息状态
      *
      * @author Colin <15070091894@163.com>
      * @return string
      */
-    public static function ajaxReturn($message, $url = null, $status = 0) {
+    protected static function ajaxReturn($message, $url = null, $status = 0) {
         $return['info']   = $message;
         $return['url']    = $url;
         $return['status'] = $status;
@@ -114,58 +114,6 @@ class Base {
      */
     protected static function assign($name, $value = null) {
         self::$view->extractVars($name, $value);
-    }
-
-    /**
-     * 提示信息模板
-     *
-     * @param string $message 输出信息
-     * @param string $type    类型
-     * @param array  $param   参数
-     *
-     * @author Colin <15070091894@163.com>
-     * @return \system\View
-     * @throws
-     */
-    public static function MessageTemplate($message, $type, $param = []) {
-        $tpl = Config('TPL_' . $type . '_PAGE');
-        if (!$tpl) {
-            E('请设置提示载入的页面');
-        }
-        $data = [
-            'param'   => $param,
-            'message' => $message,
-        ];
-
-        return self::$view->render($tpl, $data);
-    }
-
-    /**
-     * 成功后显示的对话框
-     *
-     * @param string $message 要输出的信息
-     * @param int    $time    刷新的时间
-     * @param string $url     要跳转的地址。为空则跳转为上一个页面
-     *
-     * @author Colin <15070091894@163.com>
-     * @return string
-     */
-    protected static function success($message, $url = null, $time = 3) {
-        return self::MessageTemplate($message, 'SUCCESS', ['url' => url($url), 'time' => $time, 'status' => 1]);
-    }
-
-    /**
-     * 错误后显示的对话框
-     *
-     * @param string $message 要输出的信息
-     * @param int    $time    刷新的时间
-     * @param string $url     要跳转的地址。为空则跳转为上一个页面
-     *
-     * @author Colin <15070091894@163.com>
-     * @return string
-     */
-    protected static function error($message, $url = null, $time = 3) {
-        return self::MessageTemplate($message, 'ERROR', ['url' => url($url), 'time' => $time, 'status' => 0]);
     }
 
     /**

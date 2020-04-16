@@ -75,7 +75,7 @@ class View extends Factory {
         } catch (\SmartyException $e) {
             preg_match('/Unable to load template\s+\'file:(.*)\'/', $e->getMessage(), $match);
             if (count($match) > 0) {
-                E('模板不存在 ' . $dir . $match[1]);
+                E('模板不存在 ' . $match[1]);
             } else {
                 E($e->getMessage());
             }

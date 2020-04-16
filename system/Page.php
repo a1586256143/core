@@ -64,7 +64,7 @@ class Page {
      */
     private function setPage() {
         //排除page=0 或page为空
-        $page = values('get', 'page');
+        $page = values('get.page');
         if (!empty($page)) {
             //排除负数 和 非法字符
             if ($page > 0) {

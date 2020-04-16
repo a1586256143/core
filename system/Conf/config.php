@@ -17,14 +17,13 @@ return [
     'DB_PORT'                  => '3306',                   //数据库端口
 
     // 路由设置
-    'ROUTE_STATUS'             => true,         // 是否开启路由
     'CSRF'                     => false,        // 是否开启CSRF
 
     //目录设置
-    'PUBLIC_DIR'               => '/public',    //公共文件地址
+    'PUBLIC_DIR'               => '/static',    //公共文件地址
 
     //session设置
-    'SESSION_START'            => 1,                        //开启session
+    'SESSION_START'            => true,                        //开启session
 
     //控制器设置
     'DEFAULT_CONTROLLER_LAYER' => 'controllers',   //默认控制器目录名
@@ -54,6 +53,7 @@ return [
     'CACHE_OUT_SUFFIX'         => '.json',                //缓存存储后缀
 
     //日志设置
+    'LOG'                      => true, // 记录日志信息
     'LOGDIR'                   => RunTime . '/logs',        //日志文件夹
     'LOG_SQL'                  => true, // SQL记录开启
     'LOG_SUFFIX'               => '.log',                //日志后缀
@@ -79,8 +79,6 @@ return [
 
     //错误处理
     'ERROR_MESSAGE'            => '500，此网站可能正在维护~~~', //当Debug关闭，网页错误时提示信息
-    'TPL_ERROR_PAGE'           => Core . 'Tpl/tip',                    //错误载入页面 ，默认放置 system/Tpl/tpl.html
-    'TPL_SUCCESS_PAGE'         => Core . 'Tpl/tip',                    //成功载入页面 ，默认放置 system/Tpl/tpl.html
 
     //扩展配置
     'ADDON_PATH'               => 'addons', // 扩展目录

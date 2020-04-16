@@ -36,7 +36,7 @@ class CSRF {
             if (in_array($url, self::$notFilter)) {
                 return;
             }
-            if (!checkSecurity(values('post', '_token'))) {
+            if (!checkSecurity(values('post._token'))) {
                 E('访问的链接丢失了...');
             }
         }

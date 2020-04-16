@@ -5,17 +5,16 @@
  */
 
 namespace system;
+
 class Url {
     public static $param = [];
 
     /**
      * 解析URL，得到url后面的参数
      *
-     * @param string $url 被解析的地址，转换成路由，为空，则默认当前
-     *
      * @return string
      */
-    public static function parseUrl($url = null) {
+    public static function parseUrl() {
         $pathinfo = PHP_SAPI !== 'cli' ? $_SERVER['REQUEST_URI'] : '';
         // 解析地址，得到path和query
         $parse    = parse_url($pathinfo);
@@ -23,15 +22,7 @@ class Url {
         if (isset($parse['query'])) {
             // 把query解析成数组
             parse_str($parse['query'], $query);
-            foreach ($query as $key => $value) {
-                // 处理参数，防SQL注入
-                $_GET[ $key ] = trim($value);
-            }
-        }
-        if ($pathinfo == '/') {
-            if (!Config('ROUTE_STATUS')) {
-                $pathinfo = sprintf('/%s/%s', Config('DEFAULT_CONTROLLER'), Config('DEFAULT_METHOD'));
-            }
+            self::clearQuery($query);
         }
         // 去除当前访问的文件名
         $scriptName = basename($_SERVER['SCRIPT_FILENAME']);
@@ -44,59 +35,59 @@ class Url {
     }
 
     /**
-     * 获取当前url
+     * 清理每一项数据
      *
-     * @param boolean $is_return_current_url 是否返回当前地址
-     * @param boolean $is_return_array       是否返回数组
-     *
-     * @return array|string
-     * @author Colin <15070091894@163.com>
-     * @throws
+     * @param $query
      */
-    public static function getCurrentUrl($is_return_current_url = false, $is_return_array = false) {
-        $current_url = self::getSiteUrl();
-        $parse_url   = parse_url($current_url);
-        $patten      = '/\./';
-        //匹配是否是index.php
-        if (!empty($parse_path)) {
-            if (preg_match($patten, $parse_path[0], $match)) {
-                //确认文件是否存在
-                if (!file_exists(ROOT_PATH . $parse_path[0])) {
-                    E('无效的入口文件' . $parse_path[0]);
-                }
-                unset($parse_path[0]);
-            }
-            $parse_path = array_merge($parse_path);
-        }
-        if (empty($parse_path)) {
-            $parse_path = [Config('DEFAULT_CONTROLLER'), Config('DEFAULT_METHOD')];
-        }
-        self::$param = $parse_path;
-        if ($is_return_current_url) return $current_url;
-        if ($is_return_array) return $parse_url;
+    protected static function clearQuery($query) {
+        foreach ($query as $key => $value) {
+            // 处理参数，防SQL注入
+            $value = is_array($value) ? self::clearItem($value) : trim($value);
 
-        return $parse_path;
+            $_GET[ $key ] = $value;
+        }
     }
 
     /**
-     * 获取域名
+     * 清理数据
      *
-     * @param boolean $isIndex 是否返回脚本名称
+     * @param $data
+     *
+     * @return mixed|string
+     */
+    public static function clearData($data) {
+        if (is_array($data)) {
+            $data = self::clearItem($data);
+
+            return $data;
+        } else {
+            return self::trimItem($data);
+        }
+    }
+
+    /**
+     * @param $items
+     *
+     * @return mixed
+     */
+    protected static function clearItem($items) {
+        foreach ($items as &$val) {
+            $val = is_array($val) ? self::clearItem($val) : self::trimItem($val);
+        }
+        unset($val);
+
+        return $items;
+    }
+
+    /**
+     * 去除前后空格
+     *
+     * @param $item
      *
      * @return string
-     * @author Colin <15070091894@163.com>
      */
-    public static function getSiteUrl($isIndex = false) {
-        $hostName = $_SERVER['HTTP_HOST'];
-        $params   = explode('/', $_SERVER['SCRIPT_NAME']);
-        array_pop($params);
-        $params = implode('/', $params);
-        $scheme = $_SERVER['REQUEST_SCHEME'] . '://';
-        if ($isIndex) {
-            return $scheme . $hostName . $_SERVER['SCRIPT_NAME'];
-        }
-
-        return $scheme . $hostName . $params;
+    protected static function trimItem($item) {
+        return trim($item);
     }
 
     /**
@@ -105,5 +96,22 @@ class Url {
      */
     public static function getFullUrl() {
         return isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+    }
+
+    /**
+     * 获取请求的域名
+     *
+     * @param bool $local 本地
+     *
+     * @return string
+     */
+    public static function getFullHost($local = false) {
+        $scheme = isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] . ':' : '';
+        $host   = $scheme . '//' . $_SERVER['HTTP_HOST'];
+        if ($local) {
+            return '';
+        }
+
+        return $host;
     }
 }

@@ -78,17 +78,7 @@ function M($name = null) {
  * @throws
  */
 function E($message) {
-    $debug = Debug;
-    //记录日志
-    \system\IO\File\Log::generator($message);
-    if (AJAX) {
-        error($message);
-    }
-    if ($debug) {
-        throw new \system\MyError($message);
-    } else {
-        throw new \system\MyError(Config('ERROR_MESSAGE'));
-    }
+    throw new \system\MyError($message);
 }
 
 /**
@@ -189,10 +179,21 @@ function dump($array) {
 
 /**
  * 生成url
+ *
+ * @param string $url 地址
+ *
  * @return string
  */
-function url($url) {
-    return getSiteUrl(false) . '/' . ltrim($url, '/');
+function url($url = '') {
+    return ltrim(\system\Url::getFullHost(), '/') . '/' . ltrim($url, '/');
+}
+
+/**
+ * 获取当前地址
+ * @return string
+ */
+function getCurrentUrl() {
+    return \system\Route\Route::getRoute();
 }
 
 /**
@@ -210,14 +211,14 @@ function session($name = '', $value = '') {
         //session名称为空 返回所有
         if ($name === '') {
             return $_SESSION;
-        } else if ($name == 'null') {//清空session
-            return session_destroy();
+        } else if ($name === null) {//清空session
+            return session_unset();
         } else if (!empty($name) && $value === '') {//session值为空
-            return $_SESSION["$name"] !== 'null' ? $_SESSION["$name"] : null;
+            return $_SESSION[ $name ] !== 'null' ? $_SESSION[ $name ] : null;
         } else if (!empty($name) && !empty($value)) {    //session名称和值都不为空
-            $_SESSION["$name"] = $value;
+            $_SESSION[ $name ] = $value;
         } else if (!empty($name) && is_null($value)) {
-            unset($_SESSION["$name"]);
+            unset($_SESSION[ $name ]);
         }
     } else {
         throw new \system\MyError('session未打开！请检查配置文件');
@@ -229,76 +230,39 @@ function session($name = '', $value = '') {
 /**
  * 接收post和get值函数
  *
- * @param string $type     要获取的POST或GET
- * @param string $formname 要获取的POST或type的表单名
- * @param string $function 要使用的函数
- * @param string $default  默认值
+ * @param string $type    获取的字段值
+ * @param string $default 默认值
  *
  * @author Colin <15070091894@163.com>
  * @return string|array
  */
-function values($type, $formname = null, $function = 'trim', $default = null) {
+function values($type, $default = null) {
     $string = '';
+    list($type, $field) = explode('.', $type);
     switch ($type) {
         case 'get':
-            $string = isset($_GET[ $formname ]) ? $_GET[ $formname ] : '';
-            break;
-        case 'get.':
             $string = $_GET;
             break;
         case 'post':
-            $string = isset($_POST[ $formname ]) ? $_POST[ $formname ] : '';
-            break;
-        case 'post.':
             $string = $_POST;
+            if (!$string) {
+                $string = json_decode(file_get_contents('php://input'), true);
+            }
             break;
         case 'files':
-            $string = isset($_FILES[ $formname ]) ? $_FILES[ $formname ] : '';
-            break;
-        case 'files.':
             $string = $_FILES;
             break;
+            break;
         case 'request':
-            $string = $_REQUEST[ $formname ];
+            $string = $_REQUEST;
             break;
     }
-    if ($function == null) {
-        return $string;
+    if ($type && $field) {
+        $string = isset($string[ $field ]) ? $string[ $field ] : '';
     }
-    //解析函数，得到函数名
-    $function   = explode(',', $function);
-    $processing = is_array($string) ? [] : '';
-    if (is_array($string)) {
-        $processing = [];
-        foreach ($string as $key => $value) {
-            if (is_array($value)) {
-                foreach ($value as $k => $v) {
-                    //对得到的值 使用函数处理
-                    foreach ($function as $fk => $fv) {
-                        $v                        = $fv($v);
-                        $processing[ $key ][ $k ] = $v;
-                    }
-                }
-            } else {
-                //对得到的值 使用函数处理
-                foreach ($function as $fk => $fv) {
-                    $value              = $fv($value);
-                    $processing[ $key ] = $value;
-                }
-            }
-        }
-    } else if (is_string($string)) {
-        //对得到的值 使用函数处理
-        foreach ($function as $key => $value) {
-            $processing = $value($string);
-        }
-    }
-    if (!$processing) {
-        //是否存在默认值。如果处理后的结果为空，则返回默认值
-        $processing = $default === null ? null : $default;
-    }
+    $string = !$string ? $default : \system\Url::clearData($string);
 
-    return $processing;
+    return $string;
 }
 
 /**
@@ -372,48 +336,20 @@ function Config($name = null, $value = '') {
     return '';
 }
 
-/**
- * 获取当前地址
- * @author Colin <15070091894@163.com>
- */
-function getCurrentUrl() {
-    return \system\Url::getCurrentUrl(true);
-}
+if (function_exists('envg')) {
+    /**
+     * 读取配置，并设置默认值
+     *
+     * @param string $name    配置名
+     * @param string $default 默认值
+     *
+     * @return string
+     */
+    function envg($name, $default = '') {
+        $val = Config($name);
 
-/**
- * 获取站点地址
- *
- * @param bool $isIndex 是否获取域名
- *
- * @author Colin <15070091894@163.com>
- * @return string
- */
-function getSiteUrl($isIndex = false) {
-    return \system\Url::getSiteUrl($isIndex);
-}
-
-/**
- * 设置Public地址
- *
- * @param string $public public目录的相对地址 可以直接填写Public
- *
- * @author Colin <15070091894@163.com>
- * @return string
- */
-function setPublicUrl($public) {
-    return getSiteUrl(false) . $public;
-}
-
-/**
- * 设置URL地址
- *
- * @param string $url url目录的相对地址
- *
- * @author Colin <15070091894@163.com>
- * @return string
- */
-function setUrl($url) {
-    return setPublicUrl($url);
+        return $val ? $val : $default;
+    }
 }
 
 /**
@@ -427,20 +363,20 @@ function setUrl($url) {
  */
 function timeFormat($timestamp, $model = 'a', $mode = '') {
     if (!$timestamp) {
-        return '-';
+        return ' - ';
     }
     switch ($model) {
         case 'a' :
-            $mode = 'Y-m-d H:i:s';
+            $mode = 'Y - m - d H:i:s';
             break;
         case 'm' :
-            $mode = 'Y-m-d H:i';
+            $mode = 'Y - m - d H:i';
             break;
         case 'h' :
-            $mode = 'Y-m-d H';
+            $mode = 'Y - m - d H';
             break;
         case 'd' :
-            $mode = 'Y-m-d';
+            $mode = 'Y - m - d';
             break;
     }
 
@@ -457,9 +393,9 @@ function timeFormat($timestamp, $model = 'a', $mode = '') {
  * @throws
  */
 function library($name = null) {
-    list($filedir, $filename) = explode('/', $name);
-    if ($filename == '*') {
-        $path = Library . '/' . $filedir;
+    list($filedir, $filename) = explode(' / ', $name);
+    if ($filename == ' * ') {
+        $path = Library . ' / ' . $filedir;
         $file = \system\Factory::File();
         //获取目录下的所有文件
         $allfile = $file->getDirAllFile($path, 'php');
@@ -477,8 +413,8 @@ function library($name = null) {
         }
     } else {
         //把@替换成.
-        $filename = str_replace('@', '.', $filename);
-        $path     = Library . '/' . $filedir . '/' . $filename . '.php';
+        $filename = str_replace('@', ' . ', $filename);
+        $path     = Library . ' / ' . $filedir . ' / ' . $filename . ' . php';
         if (!file_exists($path)) {
             E('文件不存在' . $name);
         }
@@ -558,7 +494,10 @@ function _getFileName($name) {
  */
 function maps($item, $item2) {
     if ($item != $item2) {
-        $item2          = preg_replace('/[\{|\}]+/', '', $item2);
+        $item2          = preg_replace(' / [
+        \{ | \
+        }
+    ] +/', '', $item2);
         $_GET[ $item2 ] = urldecode($item);
     }
 }
@@ -570,7 +509,7 @@ function maps($item, $item2) {
  * @param  string $key  属性名
  */
 function walkParams(&$item, $key) {
-    $item = $key . '="' . $item . '" ';
+    $item = $key . ' = "' . $item . '" ';
 }
 
 /**
@@ -596,20 +535,20 @@ function walkFormAttr($attrs, $walk_function = 'walkParams') {
  * @author Colin <15070091894@163.com>
  */
 function ShowMessage($message) {
-    header('Content-Type:text/html;charset=UTF-8');
-    $info = '<div style="width:400px;height:30%;margin:0 auto;font-size:25px;color:#000;font-weight:bold;">';
-    $info .= '<dl style="padding:0px;margin:0px;width:100%;height:100%;border:1px solid #ccc;">';
-    $info .= '<dt style="padding:0px;margin:0px;border-bottom:1px solid #ccc;line-height:50px;font-size:20px;text-align:center;background:#efefef;">MyClass提示信息</dt>';
-    $info .= '<dd style="padding:0px;width:100%;line-height:25px;font-size:17px;text-align:center;text-indent:0px;margin:0px;padding:30px 0;word-break:break-all;">' . $message . '</dd>';
-    $info .= '<dd style="padding:0px;margin:0px;">';
-    $info .= '<a href="javascript:void(0);" style="font-size:15px;color:#181884;width:100%;text-align:center;display:block;" id="back">';
-    $info .= '[ 返回 ]</a></dd></dd></dl>';
-    $info .= '</div><script>';
-    $info .= 'var back = document.getElementById("back");
-            back.onclick = function(){
-                window.history.back();
+    header('Content - Type:text / html;charset = UTF - 8');
+    $info = ' < div style = "width:400px;height:30%;margin:0 auto;font-size:25px;color:#000;font-weight:bold;" > ';
+    $info .= '<dl style = "padding:0px;margin:0px;width:100%;height:100%;border:1px solid #ccc;" > ';
+    $info .= '<dt style = "padding:0px;margin:0px;border-bottom:1px solid #ccc;line-height:50px;font-size:20px;text-align:center;background:#efefef;" > MyClass提示信息</dt > ';
+    $info .= '<dd style = "padding:0px;width:100%;line-height:25px;font-size:17px;text-align:center;text-indent:0px;margin:0px;padding:30px 0;word-break:break-all;" > ' . $message . '</dd > ';
+    $info .= '<dd style = "padding:0px;margin:0px;" > ';
+    $info .= '<a href = "javascript:void(0);" style = "font-size:15px;color:#181884;width:100%;text-align:center;display:block;" id = "back" > ';
+    $info .= '[ 返回 ]</a ></dd ></dd ></dl > ';
+    $info .= '</div ><script > ';
+    $info .= 'var back     = document . getElementById("back");
+            back . onclick = function () {
+                window . history . back();
             }';
-    $info .= '</script>';
+    $info .= ' </script > ';
     die($info);
 }
 
@@ -637,17 +576,17 @@ function _parseFileName($filename) {
     }
     // 替换特殊的@符号
     if (strpos($filename, '@') === 0) {
-        $route = ltrim(\system\Route\Route::getRoute(), '/');
-        $route = explode('/', $route);
+        $route = ltrim(\system\Route\Route::getRoute(), ' / ');
+        $route = explode(' / ', $route);
         array_pop($route);
-        $route = implode('/', $route);
+        $route = implode(' / ', $route);
         // @后面没有跟上/，给它加上
         if (strpos($filename, '@/') !== 0) {
-            $route .= '/';
+            $route .= ' / ';
         }
         $filename = str_replace('@', $route, $filename);
     }
-    $explode = explode('.', $filename);
+    $explode = explode(' . ', $filename);
     if (count($explode) > 1) {
         return $filename;
     }

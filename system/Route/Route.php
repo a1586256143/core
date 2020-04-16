@@ -12,8 +12,12 @@ use system\Url;
 class Route {
     //路由规则
     protected static $routes = [];
+    // 默认匹配的请求类型
     protected static $method = '*';
+    // 路由前缀
     protected static $prefix = '';
+    // 当前级信息
+    protected static $group = [];
 
     /**
      * 初始化路由
@@ -30,13 +34,14 @@ class Route {
     /**
      * 添加路由规则
      *
-     * @param array $item 路由 array('/' => 'Index@index')
+     * @param array  $item 路由 array('/' => 'Index@index')
+     * @param string $type 类型，GET、POST、PUT、DELETE、*
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function add($item) {
+    public static function add($item, $type = '') {
         foreach ($item as $key => $value) {
-            self::parseRules($key, $value, self::$method);
+            self::parseRules($key, $value, $type ? $type : self::$method);
         }
     }
 
@@ -47,8 +52,19 @@ class Route {
      * @param string $item
      * @param string $middleware
      */
-    public static function GET($name, $item, $middleware = '') {
+    public static function get($name, $item, $middleware = '') {
         self::parseRules($name, $item, 'GET', $middleware);
+    }
+
+    /**
+     * Any方法
+     *
+     * @param string $name
+     * @param string $item
+     * @param string $middleware
+     */
+    public static function any($name, $item, $middleware = '') {
+        self::parseRules($name, $item, '*', $middleware);
     }
 
     /**
@@ -58,7 +74,7 @@ class Route {
      * @param string $item
      * @param string $middleware
      */
-    public static function POST($name, $item, $middleware = '') {
+    public static function post($name, $item, $middleware = '') {
         self::parseRules($name, $item, 'POST', $middleware);
     }
 
@@ -69,8 +85,32 @@ class Route {
      * @param string $item
      * @param string $middleware
      */
-    public static function PUT($name, $item, $middleware = '') {
+    public static function put($name, $item, $middleware = '') {
         self::parseRules($name, $item, 'PUT', $middleware);
+    }
+
+    /**
+     * DELETE方法
+     *
+     * @param string $name
+     * @param string $item
+     * @param string $middleware
+     */
+    public static function delete($name, $item, $middleware = '') {
+        self::parseRules($name, $item, 'PUT', $middleware);
+    }
+
+    /**
+     * 解析控制器中的方法映射路由
+     *
+     * @param string          $name
+     * @param string|\Closure $item
+     * @param string          $middleware
+     *
+     * @throws
+     */
+    public static function controller($name, $item, $middleware = '') {
+        self::parseController($name, $item, $middleware);
     }
 
     /**
@@ -78,14 +118,21 @@ class Route {
      *
      * @param                $prefix
      * @param array|\Closure $item
+     * @param string         $middleware
+     *
+     * @throws
      */
-    public static function group($prefix, $item) {
+    public static function group($prefix, $item, $middleware = '') {
         if (is_string($item)) {
-            self::GET($prefix, $item);
-
-            return;
+            E('Router Fail : group set fail');
         }
-        self::$prefix .= self::getPrefix($prefix);
+        // 第一次进来，是一个null，setGroupName('admin')，第二次进来router是user，prefix是一个admin，setGroupName('admin/user')
+        $group = self::getGroupName('name');
+        if ($group) {
+            $prefix = $group . '/' . ltrim($prefix, '/');
+        }
+        self::$prefix = self::getPrefix($prefix);
+        self::setGroupName($prefix);
         switch (true) {
             case ($item instanceof \Closure) :
                 call_user_func($item);
@@ -94,7 +141,32 @@ class Route {
                 self::add($item);
                 break;
         }
+        self::setGroupName($group);
         self::$prefix = '';
+    }
+
+    /**
+     * 获取当前分组信息
+     *
+     * @param string $type
+     *
+     * @return mixed|null
+     */
+    protected static function getGroupName($type = '') {
+        if (isset(self::$group[ $type ]) && self::$group[ $type ]) {
+            return self::$group[ $type ];
+        }
+
+        return 'name' == $type ? null : [];
+    }
+
+    /**
+     * 设置当前分组信息
+     *
+     * @param $name
+     */
+    protected static function setGroupName($name) {
+        self::$group['name'] = $name;
     }
 
     /**
@@ -105,9 +177,8 @@ class Route {
     protected static function parseRoutes() {
         $parse_url = self::getRoute();
         // 验证访问的是否是一个文件
-        $routeKey    = self::getRouteName($parse_url);
-        $routeAll    = self::getRouteNameAll($parse_url);
-        $equalLength = [];
+        $routeKey = self::getRouteName($parse_url);
+        $routeAll = self::getRouteNameAll($parse_url);
         //寻找路由
         if (array_key_exists($routeKey, self::$routes)) {
             self::execRoute(self::$routes[ $routeKey ]);
@@ -299,8 +370,7 @@ class Route {
      * @return string
      */
     protected static function getRouteNameAll($key) {
-        $type = $type ?: REQUEST_METHOD;
-        $key  = self::getPrefix($key);
+        $key = self::getPrefix($key);
 
         return '*-' . self::$prefix . $key;
     }
@@ -334,6 +404,39 @@ class Route {
             'middleware' => $middleware,
             'type'       => $type,
         ];
+    }
+
+    /**
+     * 解析Controller方法
+     *
+     * @param        $name
+     * @param        $item
+     * @param string $middleware
+     *
+     * @throws \system\MyError
+     */
+    protected static function parseController($name, $item, $middleware = '') {
+        $route = $item instanceof \Closure ? $item : self::getNameSpace($item);
+        if (!$item instanceof \Closure) {
+            $route = explode('@', $route);
+            array_pop($route);
+            $class = $route[0];
+        } else {
+            $class = call_user_func($item);
+        }
+        try {
+            $reflect = new \ReflectionClass($class);
+        } catch (\ReflectionException $e) {
+            throw new MyError($e->getMessage());
+        }
+        $items   = [];
+        $methods = $reflect->getMethods(\ReflectionMethod::IS_PUBLIC);
+        foreach ($methods as $value) {
+            if (!$value->isConstructor() && $value->isPublic()) {
+                $items[ $value->name ] = '\\' . $reflect->name . '@' . $value->name;
+            }
+        }
+        self::group($name, $items, $middleware);
     }
 
     /**
@@ -382,7 +485,7 @@ class Route {
         define('GET', REQUEST_METHOD == 'GET' ? true : false);
         $httpRequest = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ? $_SERVER['HTTP_X_REQUESTED_WITH'] : '';
         define('AJAX', $httpRequest == 'XMLHttpRequest' ? true : false);
-        header_remove('X-Powered-By');
+        header_remove('X - Powered - By');
     }
 
     /**
@@ -391,7 +494,7 @@ class Route {
      */
     protected static function execRouteByUrl() {
         $route  = Url::parseUrl();
-        $routes = explode('/', $route);
+        $routes = explode(' / ', $route);
         list($controller_path, $classname) = self::getControllerPath($routes);
         $defaultMethod = Config('DEFAULT_METHOD');
         $controller    = false;
@@ -422,7 +525,7 @@ class Route {
     /**
      * 获取控制器路径和控制器类名
      *
-     * @param $routes
+     * @param array $routes
      *
      * @return array
      */
@@ -437,20 +540,21 @@ class Route {
         if ($isAddons) {
             unset($routes[1]);
         }
+        $routes = array_filter($routes);
         // 尝试解析index方法
         // 拼接路径，并自动将路由中的index转换成Index
-        $controller_path   = _getFileName(APP_DIR . $layer . '/' . ltrim(implode('/', $routes), '/'));
+        $controller_path   = _getFileName(APP_DIR . $layer . ' / ' . ltrim(implode(' / ', $routes), ' / '));
         $extraRoute        = $routes;
         $defaultController = Config('DEFAULT_CONTROLLER');
         array_push($extraRoute, $defaultController);
-        $extraRoutePath = _getFileName(APP_DIR . $layer . '/' . ltrim(implode('/', $extraRoute), '/'));
+        $extraRoutePath = _getFileName(APP_DIR . $layer . ' / ' . ltrim(implode(' / ', $extraRoute), ' / '));
         $classname      = implode('\\', $routes);
         // 如果文件不存在，尝试加载目录下的默认文件
         if (!file_exists($controller_path) && $routes[ count($routes) - 1 ] != strtolower($defaultController)) {
             $controller_path = $extraRoutePath;
             $classname       = implode('\\', $extraRoute);
         }
-        $classname = '\\' . $layer . $classname;
+        $classname = '\\' . $layer . '\\' . $classname;
 
         return [$controller_path, $classname];
     }

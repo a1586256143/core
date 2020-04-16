@@ -23,8 +23,8 @@ class AddonsRoute extends Base {
      * @return array
      */
     protected final function getClassName() {
-        $m = values('get', 'm');
-        $a = values('get', 'a');
+        $m = values('get.m');
+        $a = values('get.a');
         unset($_GET['m'], $_GET['a']);
         $m          = str_replace('-', '/', $m);
         $default    = config('DEFAULT_CONTROLLER_LAYER');

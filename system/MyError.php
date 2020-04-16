@@ -21,8 +21,9 @@ class MyError extends \Exception {
     public function __construct($message) {
         parent::__construct();
         $this->message = $message;
-        $this->file    = Debug ? $this->file : '未知';
-        $this->line    = Debug ? $this->line : '未知';
+        $this->file    = Debug ? $this->file : '';
+        $this->line    = Debug ? $this->line : '';
+
     }
 
     /**
@@ -33,23 +34,23 @@ class MyError extends \Exception {
      * @param string $errfile 错误文件
      * @param string $errline 错误行数
      * @param string $detail  错误流程详情
+     * @param bool   $log     记录日志
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function customError($errno, $errstr, $errfile, $errline, $detail) {
+    public static function customError($errno, $errstr, $errfile, $errline, $detail, $log = false) {
         if ($errno == E_NOTICE || $errno == E_WARNING) {
             return;
         }
-        if (E_USER_WARNING !== $errno && !(error_reporting() & $errno)) {
+        if ((E_USER_WARNING !== $errno && !(error_reporting() & $errno)) || $log) {
             Log::error($errfile . ' ' . $errstr . ' line:' . $errline);
-
-            return;
         }
         if (Debug) {
             self::info_initialize($errno, $errstr, $errfile, $errline, $detail);
         } else {
-            self::info_initialize(7, Config('ERROR_MESSAGE'), '未知', '未知', null);
+            self::info_initialize(0, Config('ERROR_MESSAGE'), '', '', null);
         }
+        Log::generator();
         exit(self::$info);
     }
 
@@ -57,9 +58,11 @@ class MyError extends \Exception {
      * 错误处理
      * @author Colin <15070091894@163.com>
      */
-    public static function shutdown_function() {
+    public static function shutdownFunction() {
         $e = error_get_last();
-        self::customError($e['type'], $e['message'], $e['file'], $e['line'], null);
+        if ($e) {
+            self::customError($e['type'], $e['message'], $e['file'], $e['line'], null, true);
+        }
     }
 
     /**
@@ -70,11 +73,11 @@ class MyError extends \Exception {
         // 解决有时会出现错误的问题
         self::set_error_show();
         Log::addRecord(Url::getFullUrl(), true);
-        error_reporting(E_PARSE | E_RECOVERABLE_ERROR | E_ERROR);
+        error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING ^ E_USER_WARNING ^ E_USER_NOTICE ^ E_USER_DEPRECATED ^ E_USER_ERROR);
         //设置错误处理
         set_error_handler('system\\MyError::customError');
         //设置错误处理
-        register_shutdown_function('system\\MyError::shutdown_function');
+        register_shutdown_function('system\\MyError::shutdownFunction');
     }
 
     /**
@@ -98,14 +101,23 @@ class MyError extends \Exception {
      */
     protected static function info_initialize($code, $message, $file, $line, $detail) {
         header('Content-type:text/html;charset="utf-8"');
-        self::$info = "<div style='width:85%;height:100%;margin:0 auto;font-family:微软雅黑'>";
-        self::$info .= "<ul style='list-style:none;width:100%;height:100%;'>";
-        self::$info .= "<li style='height:40px;line-height:40px;font-size:20px;color:#333;word-break: break-all;'>错误级别：" . $code . "</li>";
-        self::$info .= "<li style='line-height:40px;font-size:20px;color:#333;word-break: break-all;'>错误信息：<pre style='width:100%;overflow-x:auto;font-size:13px'>" . $message . "</pre></li>";
-        self::$info .= "<li style='height:40px;line-height:40px;font-size:20px;color:#333;word-break: break-all;'>错误文件：" . $file . "</li>";
-        self::$info .= "<li style='height:40px;line-height:40px;font-size:20px;color:#333;word-break: break-all;'>错误行数：" . $line . "</li>";
-        self::$info .= "<li style='height:40px;line-height:40px;font-size:20px;color:#333;word-break: break-all;'>";
-        if (Debug) {
+        header("HTTP/1.1 404 Not Found");
+        $debug      = Debug;
+        $style      = <<<EOF
+<style>
+    div{width:100%;height:100%;margin:0 auto;font-family:'微软雅黑'}
+    ul {list-style:none;width:100%;height:100%;padding:0px;margin:0px;}
+    li{min-height:40px;line-height:40px;font-size:16px;color:#333;word-break: break-all;}
+    li > pre{width:100%;line-height:25px;overflow-x:auto;font-size:13px;margin:0px;}
+</style>
+EOF;
+        self::$info = '<div><ul>';
+        $debug && self::$info .= "<li><pre>" . $message . "</pre></li>";
+        !$debug && self::$info .= "<li><pre>" . $message . "</pre></li>";
+        $line = $line ? ":" . $line : '';
+        $file && self::$info .= "<li>错误文件：" . $file . $line . "</li>";
+        self::$info .= "<li>";
+        if ($debug) {
             $string = array_filter(explode("#", $detail));
             if (is_array($string)) {
                 foreach ($string as $key => $value) {
@@ -113,9 +125,7 @@ class MyError extends \Exception {
                 }
             }
         }
-        self::$info .= "</li>";
-        self::$info .= "</ul></div>";
-        //记录日志
-        WriteLog($message);
+        self::$info .= "</li></ul></div>";
+        self::$info .= $style;
     }
 }

@@ -45,7 +45,7 @@ class Log extends Factory {
      * @return bool
      */
     public static function generator($msg = null) {
-        if (!Debug) {
+        if (!Config('LOG')) {
             return true;
         }
         self::$file = Factory::File();

@@ -109,7 +109,7 @@ class Auth {
         $auth_group = M('AuthGroup')->where(['id' => $auth_users['gid']])->find();
         //根据权限规则查找对应的权限
         $model = M('Auth');
-        $auths = $model->field('url')->in('id', $auth_group['auths'])->select();
+        $auths = $model->field('url')->where(['id' => ['in', $auth_group['auths']]])->select();
 
         return $auths;
     }

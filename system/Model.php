@@ -524,7 +524,7 @@ class Model implements \ArrayAccess {
      */
     public function order($field = '', $desc = null) {
         if (!$field) {
-            $field = values('request', 'sort');
+            $field = values('get.sort');
             $desc  = $field['order'];
             if (!in_array($desc, ['desc', 'asc'])) {
                 return $this;
@@ -1032,7 +1032,7 @@ class Model implements \ArrayAccess {
         $this->_clearThis();
         Config('LOG_SQL') && Log::timeRecord(0, 'sql');
         $query = $this->db->query($sql);
-        Config('LOG_SQL') && WriteLog($sql . ' [' . Log::timeRecord(1, 'sql') . ']');
+        Config('LOG_SQL') && Log::sql($sql . ' [' . Log::timeRecord(1, 'sql') . ']');
         if (!$query) {
             if ($this->startTransaction) {
                 return false;
