@@ -393,7 +393,9 @@ function timeFormat($timestamp, $model = 'a', $mode = '') {
  * @throws
  */
 function library($name = null) {
-    list($filedir, $filename) = explode('/', $name);
+    $items    = explode('/', $name);
+    $filename = array_pop($items);
+    $filedir  = implode('/', $items);
     if ($filename == '*') {
         $path = Library . '/' . $filedir;
         $file = \system\Factory::File();
