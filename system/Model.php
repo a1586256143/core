@@ -194,8 +194,8 @@ class Model implements \ArrayAccess {
     public function where($field = '', $value = null, $or = null) {
         if ($or !== null) $this->WhereOR = $or;
         if ($field == null) return $this;
+        asort($field);
         $this->parseWhere($field, $value);
-
         return $this;
     }
 
@@ -598,10 +598,10 @@ class Model implements \ArrayAccess {
      * @return array
      */
     public function max($field) {
-        $this->setDefaultAs($field);
+        $parseField = $this->setDefaultAs($field);
         $find = $this->field("MAX($field)$this->FieldAs")->find();
 
-        return $find[ $field ] ?: 0;
+        return $find[ $parseField ] ?: 0;
     }
 
     /**
@@ -613,10 +613,10 @@ class Model implements \ArrayAccess {
      * @return array
      */
     public function min($field) {
-        $this->setDefaultAs($field);
+        $parseField = $this->setDefaultAs($field);
         $find = $this->field("MIN($field)$this->FieldAs")->find();
 
-        return $find[ $field ] ?: 0;
+        return $find[ $parseField ] ?: 0;
     }
 
     /**
@@ -628,10 +628,10 @@ class Model implements \ArrayAccess {
      * @return array
      */
     public function sum($field) {
-        $this->setDefaultAs($field);
+        $parseField = $this->setDefaultAs($field);
         $find = $this->field("SUM($field)$this->FieldAs")->find();
 
-        return $find[ $field ] ?: 0;
+        return $find[ $parseField ] ?: 0;
     }
 
     /**
@@ -643,10 +643,10 @@ class Model implements \ArrayAccess {
      * @return array
      */
     public function avg($field) {
-        $this->setDefaultAs($field);
+        $parseField = $this->setDefaultAs($field);
         $find = $this->field("AVG($field)$this->FieldAs")->find();
 
-        return $find[ $field ] ?: 0;
+        return $find[ $parseField ] ?: 0;
     }
 
     /**
@@ -840,6 +840,7 @@ class Model implements \ArrayAccess {
             $field = $explode[1];
         }
         $this->FieldAs = ' AS ' . $field;
+        return $field;
     }
 
     /**
@@ -1203,7 +1204,7 @@ class Model implements \ArrayAccess {
             if (count($this->Where) == 1) {
                 $format[0] = mb_substr($format[0], 1, -1);
             }
-            $where = ' WHERE ' . implode(' OR ', $format);
+            $where = ' WHERE ' . implode(' AND ', $format);
         }
 
         return $where;
