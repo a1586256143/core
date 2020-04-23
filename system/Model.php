@@ -676,16 +676,20 @@ class Model implements \ArrayAccess {
     /**
      * 获取下一条数据
      *
-     * @param string $id    获取下一条数据的ID
-     * @param string $field 查询字段
+     * @param string $id        获取下一条数据的ID
+     * @param array  $condition 条件
+     * @param string $field     查询字段
      *
      * @author Colin <15070091894@163.com>
      * @return array
      */
-    public function next($id, $field = '*') {
+    public function next($id, $condition = [], $field = '*') {
         $map = [
             'id >' => $id,
         ];
+        if ($condition) {
+            $map = array_merge($map, $condition);
+        }
 
         return $this->field($field)->where($map)->find();
     }
@@ -693,16 +697,20 @@ class Model implements \ArrayAccess {
     /**
      * 获取上一条数据
      *
-     * @param string $id    获取下一条数据的ID
-     * @param string $field 查询字段
+     * @param string $id        获取下一条数据的ID
+     * @param array  $condition 条件
+     * @param string $field     查询字段
      *
      * @author Colin <15070091894@163.com>
      * @return array
      */
-    public function prev($id, $field = '*') {
+    public function prev($id, $condition = [], $field = '*') {
         $map = [
             'id <' => $id,
         ];
+        if ($condition) {
+            $map = array_merge($map, $condition);
+        }
 
         return $this->field($field)->where($map)->find();
     }
