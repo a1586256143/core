@@ -691,7 +691,7 @@ class Model implements \ArrayAccess {
             $map = array_merge($map, $condition);
         }
 
-        return $this->field($field)->where($map)->find();
+        return $this->getFind($map , $field);
     }
 
     /**
@@ -712,7 +712,7 @@ class Model implements \ArrayAccess {
             $map = array_merge($map, $condition);
         }
 
-        return $this->field($field)->where($map)->find();
+        return $this->getFind($map , $field , 'id');
     }
 
     /**
