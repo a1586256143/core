@@ -101,9 +101,9 @@ class DynamicQuery extends Factory {
             $normal = false;
         }
         if (!method_exists(self::class, $oper)) {
-            $map       = $this->selectMap[ $oper ];
-            $oper      = $map ? $map : $oper;
-            $value     = $normal ? $this->getValue($value) : $value;
+            $map   = $this->selectMap[ $oper ];
+            $oper  = $map ? $map : $oper;
+            $value = $normal ? $this->getValue($value) : $value;
             // 解决使用field()函数的时候，出现0,1,2这种无字段的条件值
             if (is_numeric($field)) {
                 $field = '';

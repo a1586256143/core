@@ -8,6 +8,7 @@ namespace system;
 
 use system\IO\File\Log;
 use system\Model\Select\DynamicQuery;
+use system\Model\Select\FieldQuery;
 use system\Tool\Validate;
 
 class Model implements \ArrayAccess {
@@ -196,6 +197,7 @@ class Model implements \ArrayAccess {
         if ($field == null) return $this;
         asort($field);
         $this->parseWhere($field, $value);
+
         return $this;
     }
 
@@ -599,7 +601,7 @@ class Model implements \ArrayAccess {
      */
     public function max($field) {
         $parseField = $this->setDefaultAs($field);
-        $find = $this->field("MAX($field)$this->FieldAs")->find();
+        $find       = $this->field("MAX($field)$this->FieldAs")->find();
 
         return $find[ $parseField ] ?: 0;
     }
@@ -614,7 +616,7 @@ class Model implements \ArrayAccess {
      */
     public function min($field) {
         $parseField = $this->setDefaultAs($field);
-        $find = $this->field("MIN($field)$this->FieldAs")->find();
+        $find       = $this->field("MIN($field)$this->FieldAs")->find();
 
         return $find[ $parseField ] ?: 0;
     }
@@ -629,7 +631,7 @@ class Model implements \ArrayAccess {
      */
     public function sum($field) {
         $parseField = $this->setDefaultAs($field);
-        $find = $this->field("SUM($field)$this->FieldAs")->find();
+        $find       = $this->field("SUM($field)$this->FieldAs")->find();
 
         return $find[ $parseField ] ?: 0;
     }
@@ -644,7 +646,7 @@ class Model implements \ArrayAccess {
      */
     public function avg($field) {
         $parseField = $this->setDefaultAs($field);
-        $find = $this->field("AVG($field)$this->FieldAs")->find();
+        $find       = $this->field("AVG($field)$this->FieldAs")->find();
 
         return $find[ $parseField ] ?: 0;
     }
@@ -848,6 +850,7 @@ class Model implements \ArrayAccess {
             $field = $explode[1];
         }
         $this->FieldAs = ' AS ' . $field;
+
         return $field;
     }
 
@@ -1117,7 +1120,7 @@ class Model implements \ArrayAccess {
             }
         } else {
             foreach ($field as $key => $value) {
-                if (is_numeric($key)) {
+                if (is_numeric($key) && !$value instanceof FieldQuery) {
                     $index += 1;
                     $this->parseWhere($value, null, $index);
                     continue;
