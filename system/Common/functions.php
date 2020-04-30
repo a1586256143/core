@@ -284,9 +284,7 @@ function S($name = '', $value = '', $time = 0) {
         //移除缓存
         $cache->remove($name);
     } else if (!empty($name) && !empty($value)) {
-        if (is_array($value)) {
-            $value = json_encode($value);
-        }
+        $value = json_encode($value);
         //生成缓存
         $cache->set($name, $value, $time);
 

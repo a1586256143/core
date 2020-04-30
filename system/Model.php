@@ -1122,11 +1122,16 @@ class Model implements \ArrayAccess {
                     $this->parseWhere($value, null, $index);
                     continue;
                 }
-                if ($key == '_logic') {
+                if ($key === '_logic') {
                     $this->WhereOR[ $index ] = $value;
                     continue;
                 }
                 $query = new DynamicQuery();
+                if ($value instanceof FieldQuery) {
+                    $query->autoBind($key, $value, '');
+                    $this->Where[ $index ][] = $query->fetch();
+                    continue;
+                }
                 // 解析key中的操作符号
                 list($explodeField, $explode) = explode(' ', $key);
                 // 解析字段为 'name >' => '2'

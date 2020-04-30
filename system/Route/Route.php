@@ -205,7 +205,7 @@ class Route {
                     // matchs[0] = ['{id}']
                     foreach ($matchs[0] as $val) {
                         // 把变量替换成正则表达式 [\w]+
-                        $key = str_replace($val, '[\w]+', $key);
+                        $key = str_replace($val, '[\w\-]+', $key);
                     }
                     // 开始正则匹配 $currentRoute = GET-/api/article/list/28
                     // 正则表达式为 #^GET-/api/article/list/[\w]+$#
