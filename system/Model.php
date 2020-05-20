@@ -693,7 +693,7 @@ class Model implements \ArrayAccess {
             $map = array_merge($map, $condition);
         }
 
-        return $this->getFind($map , $field);
+        return $this->getFind($map, $field);
     }
 
     /**
@@ -714,7 +714,7 @@ class Model implements \ArrayAccess {
             $map = array_merge($map, $condition);
         }
 
-        return $this->getFind($map , $field , 'id');
+        return $this->getFind($map, $field, 'id');
     }
 
     /**
@@ -1201,6 +1201,19 @@ class Model implements \ArrayAccess {
     }
 
     /**
+     * 解除过滤
+     *
+     * @param $value
+     *
+     * @return string
+     */
+    protected function unFilter($value) {
+        if (is_string($value)) {
+            return stripslashes($value);
+        }
+    }
+
+    /**
      * 获取where条件
      * @return string
      */
@@ -1243,11 +1256,17 @@ class Model implements \ArrayAccess {
         if ($is_more) {
             while ($rows = $this->db->fetch_array($result)) {
                 $this->afterFind($rows);
+                foreach ($rows as $key => &$val) {
+                    $val = $this->unFilter($val);
+                }
                 $data[] = $rows;
             }
             $this->result = $data;
         } else {
             $data = $this->db->fetch_array($result);
+            foreach ($data as $key => &$val) {
+                $val = $this->unFilter($val);
+            }
             $this->afterFind($data);
         }
 

@@ -5,6 +5,7 @@
  */
 
 namespace system\Tool;
+
 class Code {
     private $charset  = 'abcdefghkmnprstuvwxyz23456789';    //随机因子
     private $code;                                        //验证码

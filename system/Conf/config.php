@@ -75,7 +75,7 @@ return [
     'DATE_DEFAULT_TIMEZONE'    => 'PRC',                //默认时区
 
     //权限配置
-    'AUTH_OTHER'               => false,                   //是否验证其他不在规则表方法
+    'AUTH_OTHER'               => true,                   //是否验证其他不在规则表方法
 
     //错误处理
     'ERROR_MESSAGE'            => '500，此网站可能正在维护~~~', //当Debug关闭，网页错误时提示信息

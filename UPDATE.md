@@ -1,5 +1,10 @@
 ## 更新日志
 
+* 2020.5.20
+    - 权限控制的重构
+    - 新增`Doc`类，读取注释信息
+    - 解决存储Json读取时被转义问题
+
 * 2020.4.16
 	- 去除`Base`中的success、error方法
 	- 优化`Route`并可选controller、get、post、delete、put、any方法

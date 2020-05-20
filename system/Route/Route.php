@@ -500,17 +500,20 @@ class Route {
         $controller    = false;
         if (file_exists($controller_path)) {
             // 解析className
+            // construct中使用ACTION_NAME无法被解析
+            $method = $defaultMethod;
+            self::setFields(array_pop($routes), $method);
             $controller = new $classname;
-            $method     = $defaultMethod;
         } else {
             $method = array_pop($routes);
             list($controller_path, $classname) = self::getControllerPath($routes);
+
             //是否存在控制器
             if (!file_exists($controller_path)) {
                 E($classname . ' 控制器不存在！');
             }
+            self::setFields(array_pop($routes), $method);
         }
-        self::setFields(array_pop($routes), $method);
         /**
          * @var $controller \system\Base
          */
