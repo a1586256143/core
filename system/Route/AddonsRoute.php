@@ -36,7 +36,7 @@ class AddonsRoute extends Base {
         }
         $addon     = config('ADDON_PATH');
         $className = $addon . '\\' . implode('\\', $mArray) . '\\' . $default . '\\' . $controller;
-        $path      = MyClass . DIRECTORY_SEPARATOR . str_replace('\\', '/', $className) . '.php';
+        $path      = MyClass . DS . str_replace('\\', '/', $className) . '.php';
         if (!is_file($path)) {
             exit(error('404 not found'));
         }

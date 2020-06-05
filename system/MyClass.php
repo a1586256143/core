@@ -38,10 +38,10 @@ class MyClass {
     public static function autoload($ClassName) {
         if (preg_match("/\\\\/", $ClassName)) {
             //是否为命名空间加载
-            $ClassName = preg_replace("/\\\\/", DIRECTORY_SEPARATOR, $ClassName);
+            $ClassName = preg_replace("/\\\\/", DS, $ClassName);
             // 简单处理app命名空间
-            list($dirname) = explode(DIRECTORY_SEPARATOR, $ClassName);
-            $path      = APP_PATH . APP_NAME . DIRECTORY_SEPARATOR;
+            list($dirname) = explode(DS, $ClassName);
+            $path      = APP_PATH . APP_NAME . DS;
             $ClassName = $dirname != 'system' ? $path . $ClassName : NAME_SPACE . $ClassName;
             require_file($ClassName . Config('DEFAULT_CLASS_SUFFIX'));
         }

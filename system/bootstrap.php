@@ -3,13 +3,13 @@
  * 引导
  * @author Colin <15070091894@163.com>
  */
-
+define('DS' , DIRECTORY_SEPARATOR);
 //根目录
-define('ROOT_PATH', MyClass . DIRECTORY_SEPARATOR);
+define('ROOT_PATH', MyClass . DS);
 //APP路径
 define('APP_PATH', ROOT_PATH);
 //核心文件
-define('Core', dirname(__FILE__) . DIRECTORY_SEPARATOR);
+define('Core', dirname(__FILE__) . DS);
 //system
 define('NAME_SPACE', substr(Core, 0, -7));
 //系统app名字
@@ -17,7 +17,7 @@ define('APP_NAME', '');
 //是否CLI模式
 define('PHP_CLI', PHP_SAPI === 'cli' ? true : false);
 //系统app目录
-define('APP_DIR', !PHP_CLI ? APP_PATH . APP_NAME . DIRECTORY_SEPARATOR : APP_PATH . DIRECTORY_SEPARATOR);
+define('APP_DIR', !PHP_CLI ? APP_PATH . APP_NAME . DS : APP_PATH . DS);
 //第三方类库文件目录
 define('Library', APP_DIR . 'librarys');
 //定义运行目录

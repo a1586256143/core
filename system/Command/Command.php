@@ -12,12 +12,7 @@ class Command extends Facade {
     protected static $argv;
 
     // 所有可输入的命令列表
-    protected static $helpCommands = [
-        'controller',
-        'model',
-        'help',
-        'version',
-    ];
+    protected static $helpCommands = [];
     // 不是命令的元素
     protected static $notCommand = [
         'help',
@@ -113,10 +108,14 @@ class Command extends Facade {
      * 绑定容器
      */
     protected static function bindContainer() {
-        $helpCommand = array_diff(self::$helpCommands, self::$notCommand);
         $helps       = [];
-        foreach ($helpCommand as $value) {
-            $name = 'system\Command\Drivers\\' . $value . 'Command';
+        $commandFiles = glob(Core . 'Command' . DS . 'Drivers' . DS . '*Command.php');
+        $commands = [];
+        foreach ($commandFiles as $key => $val){
+            $info = pathinfo($val);
+            $value = strtolower(str_replace('Command' , '' , $info['filename']));
+            array_push($commands , $value);
+            $name = 'system\Command\Drivers\\' . $info['filename'];
             /**
              * @var $command \system\Command\Drivers\ModelCommand
              */
@@ -129,7 +128,7 @@ class Command extends Facade {
                 return $name;
             });
         }
-
+        self::$helpCommands = $commands;
         return $helps;
     }
 }
