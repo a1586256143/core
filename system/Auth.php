@@ -18,7 +18,7 @@ use system\Tool\Doc;
  * `group_id` int(11) DEFAULT '0' COMMENT '分组ID',
  * PRIMARY KEY (`id`),
  * UNIQUE KEY `uid` (`uid`)
- * ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+ * ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='权限用户绑定表';
  *
  * CREATE TABLE `auth_group` (
  * `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -26,7 +26,7 @@ use system\Tool\Doc;
  * `rules` text COMMENT '权限规则',
  * `create_time` int(10) DEFAULT NULL COMMENT '添加时间',
  * PRIMARY KEY (`id`)
- * ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+ * ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='权限组表';
  * @package system
  */
 trait Auth {
@@ -44,6 +44,8 @@ trait Auth {
     protected static $whiteList = [];
     // 是否超级管理员
     protected static $supper = false;
+    // 超级管理员所在组ID
+    protected static $supperId = 1;
     // 记录分组的字段
     protected static $groupField;
     // 记录用户和分组绑定的字段
@@ -126,6 +128,14 @@ trait Auth {
     }
 
     /**
+     * 获取超级管理员所在组ID
+     * @return int
+     */
+    protected function getSupperGroupId() {
+        return 1;
+    }
+
+    /**
      * 当权限校验失败时会执行此方法
      */
     protected function onDied() {
@@ -166,7 +176,7 @@ trait Auth {
         if (!$group) {
             return [];
         }
-        if ($group == 1) {
+        if ($group == self::getSupperGroupId()) {
             self::$supper = true;
 
             return [];
@@ -317,16 +327,16 @@ trait Auth {
      * 获取授权的菜单列表
      *
      * @param array $data
-     * [
-     *    [
-     *      'name' => '系统设置' ,
-     *      'list' => [
+     *          [
+     *          [
+     *          'name' => '系统设置' ,
+     *          'list' => [
      *          'name' => '网站设置' ,
      *          'auth_name' => 'Config' , // 权限的类名，假设是Config类
      *          'action' => 'index' // 权限的方法名，对应Config -> index()
-     *      ]
-     *    ]
-     * ]
+     *          ]
+     *          ]
+     *          ]
      *
      * @return array
      */

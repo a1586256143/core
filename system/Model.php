@@ -405,7 +405,7 @@ class Model implements \ArrayAccess {
             $this->where($field, $value);
         }
         $where     = $this->getWhere();
-        $this->Sql = "DELETE FROM " . $this->TablesName . $where;
+        $this->Sql = "DELETE FROM " . str_replace('FROM ', '', $this->From) . $where;
 
         return $this->ADUP($this->Sql, 'upd');
     }
@@ -440,7 +440,7 @@ class Model implements \ArrayAccess {
             }
         }
         $where     = $this->getWhere();
-        $this->Sql = "UPDATE " . $this->TablesName . $this->ParKey . $where;
+        $this->Sql = "UPDATE " . str_replace('FROM ', '', $this->From) . $this->ParKey . $where;
 
         return $this->ADUP($this->Sql, 'upd');
     }
