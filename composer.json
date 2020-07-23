@@ -23,5 +23,6 @@
             "system/bootstrap.php"
         ]
     },
+    "bin" : ["bin/supper"],
     "minimum-stability": "dev"
 }
