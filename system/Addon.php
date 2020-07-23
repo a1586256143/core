@@ -58,4 +58,17 @@ abstract class Addon {
     public function uninstall() {
         return true;
     }
+
+
+    /**
+     * 绑定一些导航菜单
+     * [
+        'name'  => 'shop',
+        'title' => '商品管理',
+        'icon'  => 'layui-icon-set',
+        ],
+     */
+    public function onInitMenu(){
+        return [];
+    }
 }

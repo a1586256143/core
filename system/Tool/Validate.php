@@ -238,7 +238,7 @@ class Validate {
      * @param string $string 字段值
      */
     public function setreturnValue($name, $string = null) {
-        $this->returnValue[ $name ] = htmlspecialchars(trim($string));
+        $this->returnValue = htmlspecialchars(trim($string));
     }
 
     /**

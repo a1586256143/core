@@ -124,7 +124,7 @@ class Upload {
         if (!$topath) {
             $topath = self::getRandName($path, Config('UPLOAD_DIR'));
         }
-
+        $path = ltrim($path , '/');
         if (rename($path, $topath)) {
             return ltrim($topath, '.');
         }
