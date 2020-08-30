@@ -16,13 +16,14 @@ class Upload {
      * 初始化
      *
      * @param array $file 上传的实例，包含tmp_name,name等原始信息
-     * @param bool  $tmp  临时模式，开启临时模式后，上传的文件将会存储到临时目录
+     * @param bool  $config 上传配置
      */
-    public function __construct($file, $tmp = false) {
-        $upload          = Config('UPLOAD_DIR');
+    public function __construct($file, $config = []) {
+        $tmp = is_bool($config) ? $config : $config['tmp'] ?: false;
+        $upload          = $config['dir'] ?: Config('UPLOAD_DIR');;
         $this->path      = $tmp ? $upload . '/tmp' : $upload;
-        $this->allowtype = explode(',', Config('UPLOAD_TYPE'));
-        $this->maxsize   = Config('UPLOAD_MAXSIZE');
+        $this->allowtype = explode(',', $config['exts'] ?: Config('UPLOAD_TYPE'));
+        $this->maxsize   = $config['maxsize'] ?: Config('UPLOAD_MAXSIZE');
         //初始化文件信息
         $this->file = $file;
     }
