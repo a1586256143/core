@@ -14,8 +14,6 @@ use system\Tool\Validate;
 class Model implements \ArrayAccess {
     //数据库句柄
     protected $db = '';
-    //获取数据表前缀
-    protected $db_prefix = '';
     //获取数据库名
     protected $DataName = '';
     //多表查询数据库名，必须带数据前缀
@@ -1295,7 +1293,7 @@ class Model implements \ArrayAccess {
                 continue;
             }
             $member = strtolower($match[0]);
-            if ($this->$member == '') {
+            if (!property_exists($this, $member)) {
                 $this->$member = $value;
             }
         }
