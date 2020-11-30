@@ -158,15 +158,15 @@ abstract class Db {
     /**
      * 获取表所有字段
      *
-     * @param string $table 表名
+     * @param string $table  表名
+     * @param string $dbName 数据库名
      *
      * @author Colin <15070091894@163.com>
      * @return mixed
      */
-    public function getFields($table) {
-        $prefix = Config('DB_PREFIX') . $table;
-        $dbName = Config('DB_TABS');
-        $query  = $this->_db->query("select COLUMN_NAME from information_schema.COLUMNS where table_name = '$prefix' and table_schema = '$dbName' ");
+    public function getFields($table, $dbName = '') {
+        $dbName = $dbName ? $dbName : Config('DB_TABS');
+        $query  = $this->_db->query("select COLUMN_NAME from information_schema.COLUMNS where table_name = '$table' and table_schema = '$dbName' ");
         $result = $this->getResult($query);
         $result = array_column($result, 'COLUMN_NAME');
 
