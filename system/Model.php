@@ -9,6 +9,7 @@ namespace system;
 use system\IO\File\Log;
 use system\Model\Select\DynamicQuery;
 use system\Model\Select\FieldQuery;
+use system\Route\Route;
 use system\Tool\Validate;
 
 class Model implements \ArrayAccess {
@@ -1006,12 +1007,23 @@ class Model implements \ArrayAccess {
      * @return string
      */
     protected function _parse_prefix($data = null) {
-        //处理表前缀
-        if (strpos($data, '@') !== false) {
-            $prefix = $this->dbName ? ($this->dbName . '.' . $this->db_prefix) : $this->db_prefix;
-            $data   = str_replace('@', $prefix, $data);
+        if ($data instanceof Model){
+            if (!$data->Alias){
+                $data->alias(substr($data->DataName , 0 , 1));
+            }
+            $data   = $data->dbName . '.' . $data->TablesName . $data->Alias;
+        }else{
+            //处理表前缀
+            if (strpos($data, '@') !== false) {
+                $explode = array_filter(explode('@' , $data));
+                $prefix = $this->dbName ? ($this->dbName . '.' . $this->db_prefix) : $this->db_prefix;
+                if (count($explode) > 1){
+                    $prefix = array_shift($explode) . '.';
+                    $data = '@' . $explode[0];
+                }
+                $data   = str_replace('@', $prefix, $data);
+            }
         }
-
         return $data;
     }
 
@@ -1076,7 +1088,7 @@ class Model implements \ArrayAccess {
                 if (is_array($array)) {
                     foreach ($array as $key => $value) {
                         $setKey   .= '`' . $key . '`,';
-                        $setValue .= $this->filter($value) . ',';
+                        $setValue .= $this->filter($key , $value) . ',';
                     }
                     $this->ParKey   = substr($setKey, 0, -1);
                     $this->Parvalue = substr($setValue, 0, -1);
@@ -1091,7 +1103,7 @@ class Model implements \ArrayAccess {
                     if ($key == $pk) {
                         continue;
                     }
-                    $setKey .= '`' . $key . '`=' . $this->filter($value) . ',';
+                    $setKey .= '`' . $key . '`=' . $this->filter($key , $value) . ',';
                 }
                 //解析主键
                 if ($this->Where[0] === null) {
@@ -1114,7 +1126,7 @@ class Model implements \ArrayAccess {
         // 是否为单个的字段，直接赋值的，假如 where('id' , 1)
         if (!is_array($field)) {
             if (!is_array($val)) {
-                $this->Where[ $index ][] = sprintf($template, $this->parseJoinField($field), $this->filter($val));
+                $this->Where[ $index ][] = sprintf($template, $this->parseJoinField($field), $this->filter($field , $val));
             }
         } else {
             foreach ($field as $key => $value) {
@@ -1159,7 +1171,7 @@ class Model implements \ArrayAccess {
 
                         }
                     }
-                    $this->Where[ $index ][] = sprintf($template, $this->parseJoinField($key), $this->filter($value));
+                    $this->Where[ $index ][] = sprintf($template, $this->parseJoinField($key), $this->filter($key , $value));
                 }
             }
         }
@@ -1183,11 +1195,15 @@ class Model implements \ArrayAccess {
     /**
      * 过滤数据
      *
+     * @param $key
      * @param $value
      *
      * @return string
      */
-    protected function filter($value) {
+    protected function filter($key , $value) {
+        if (in_array($key , $this->notFilter())){
+            return $value;
+        }
         if (is_numeric($value) || is_int($value)) {
             return $value;
         }
@@ -1201,14 +1217,29 @@ class Model implements \ArrayAccess {
     /**
      * 解除过滤
      *
+     * @param $key
      * @param $value
      *
      * @return string
      */
-    protected function unFilter($value) {
+    protected function unFilter($key , $value) {
+        Log::debug($key . '---' . json_encode($this->notFilter()));
+        if (in_array($key , $this->notFilter())){
+
+            return $value;
+        }
         if (is_string($value)) {
             return stripslashes($value);
         }
+        return $value;
+    }
+
+    /**
+     * 不需要过滤的元素
+     * @return array
+     */
+    protected function notFilter(){
+        return [];
     }
 
     /**
@@ -1255,7 +1286,7 @@ class Model implements \ArrayAccess {
             while ($rows = $this->db->fetch_array($result)) {
                 $this->afterFind($rows);
                 foreach ($rows as $key => &$val) {
-                    $val = $this->unFilter($val);
+                    $val = $this->unFilter($key , $val);
                 }
                 $data[] = $rows;
             }
@@ -1263,7 +1294,7 @@ class Model implements \ArrayAccess {
         } else {
             $data = $this->db->fetch_array($result);
             foreach ($data as $key => &$val) {
-                $val = $this->unFilter($val);
+                $val = $this->unFilter($key , $val);
             }
             $this->afterFind($data);
         }
