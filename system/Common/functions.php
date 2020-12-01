@@ -35,6 +35,8 @@ function success($msg, $code = '') {
     if (is_array($msg)) {
         $item['data'] = $msg;
         unset($item['msg']);
+    } else {
+        $item['data'] = [];
     }
 
     return ajaxReturn($item);
