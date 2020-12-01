@@ -19,7 +19,7 @@ class Log extends Factory {
      */
     public static function addRecord($msg = null, $time = false, $prefix = null) {
         if ($time) {
-            $msg = date('Y-m-d H:i:s') . ' --- ' . $msg;
+            $msg = date('Y-m-d H:i:s') . ' [' . getIp() . '] --- ' . $msg;
             self::timeRecord();
         }
         if ($prefix) {
