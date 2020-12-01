@@ -15,7 +15,7 @@ class Url {
      * @return string
      */
     public static function parseUrl() {
-        $pathinfo = PHP_SAPI !== 'cli' ? $_SERVER['REQUEST_URI'] : '';
+        $pathinfo = !PHP_CLI ? $_SERVER['REQUEST_URI'] : '';
         // 解析地址，得到path和query
         $parse    = parse_url($pathinfo);
         $pathinfo = rtrim($parse['path'], '/');

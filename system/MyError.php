@@ -7,8 +7,9 @@
 namespace system;
 
 use system\IO\File\Log;
+use Exception;
 
-class MyError extends \Exception {
+class MyError extends Exception {
     protected static $info;
 
     /**

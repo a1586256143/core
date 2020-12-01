@@ -5,9 +5,11 @@
  */
 
 namespace system;
+use SmartyBC;
+use SmartyException;
 class View extends Factory {
     /**
-     * @var $view \SmartyBC
+     * @var $view SmartyBC
      */
     public static $view;
 
@@ -18,7 +20,7 @@ class View extends Factory {
      * @param array $config 视图的配置
      *
      * @author Colin <15070091894@163.com>
-     * @throws \SmartyException
+     * @throws SmartyException
      */
     public static function init($type, $config = []) {
         self::$view = Factory::CreateTemplates($type, $config);
@@ -27,8 +29,7 @@ class View extends Factory {
 
     /**
      * 注册smarty解析
-     * @return null
-     * @throws \SmartyException
+     * @throws SmartyException
      */
     protected static function register() {
         self::$view->register_prefilter('smarty_preFilterConstants');
@@ -51,7 +52,8 @@ class View extends Factory {
      * @param        $data
      * @param string $class 使用render方法的类
      *
-     * @throws \system\MyError
+     * @throws MyError
+     * @return string
      */
     public function render($filename, $data, $class = '') {
         if ($data) {
@@ -72,7 +74,7 @@ class View extends Factory {
         }
         try {
             return self::$view->display($filename);
-        } catch (\SmartyException $e) {
+        } catch (SmartyException $e) {
             preg_match('/Unable to load template\s+\'file:(.*)\'/', $e->getMessage(), $match);
             if (count($match) > 0) {
                 E('模板不存在 ' . $match[1]);
@@ -80,6 +82,7 @@ class View extends Factory {
                 E($e->getMessage());
             }
         }
+        return '';
     }
 
     /**

@@ -67,12 +67,22 @@ abstract class Db {
         if (empty($db_tabs)) {
             $db_tabs = Config('DB_TABS');
         }
+        $tables = $this->filterTables($tables);
         $sql    = "select `TABLE_NAME` from `INFORMATION_SCHEMA`.`TABLES` where `TABLE_SCHEMA`='$db_tabs' and `TABLE_NAME`='$tables' limit 1";
         $result = $this->execute($sql);
         if (empty($result)) {
             $throw && E('数据表不存在！' . $tables);
             if (!$throw) throw new MyError('数据表不存在！' . $tables);
         }
+    }
+
+    /**
+     * 过滤表名中的``符号
+     * @param $tables
+     * @return string|string[]
+     */
+    protected function filterTables($tables){
+        return str_replace('`' , '' , $tables);
     }
 
     /**

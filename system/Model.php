@@ -6,69 +6,129 @@
 
 namespace system;
 
+use Closure;
 use system\IO\File\Log;
 use system\Model\Select\DynamicQuery;
 use system\Model\Select\FieldQuery;
 use system\Tool\Validate;
+use ArrayAccess;
 
-class Model implements \ArrayAccess {
-    //数据库句柄
+class Model implements ArrayAccess {
+    /**
+     * @var string|Model\Drivers\Mysqli 数据库句柄
+     */
     protected $db = '';
-    //获取数据库名
+    /**
+     * @var string 动态解析类名的数据表名 table
+     */
     protected $DataName = '';
-    //多表查询数据库名，必须带数据前缀
+    /**
+     * @var string 多表查询数据库名，必须带数据前缀
+     */
     protected $Tables;
-    //数据表的真实名字，可指定模型的表名
+    /**
+     * @var string 数据表的真实名字，在模型中定义使用。可指定模型的表名 mc_table、table
+     */
     protected $TableName = '';
-    //From表名
+    /**
+     * @var string From表名
+     */
     protected $From;
-    //多表查询字段名
+    /**
+     * @var string 多表查询字段名
+     */
     protected $Fields = '*';
-    //where字段
+    /**
+     * @var array where字段
+     */
     protected $Where = [];
-    //where value
+    /**
+     * @var array where value
+     */
     protected $value = [];
-    //where 条件的 OR and
+    /**
+     * @var array where 条件的 OR and
+     */
     protected $WhereOR = [];
-    //sql语句
+    /**
+     * @var string sql语句
+     */
     protected $Sql = '';
-    //解析后存放的字段
+    /**
+     * @var string 解析后存放的字段
+     */
     protected $ParKey = '';
-    //解析后存放的字段
+    /**
+     * @var string 解析后存放的字段
+     */
     protected $Parvalue = '';
-    //表别名
+    /**
+     * @var string 表别名
+     */
     protected $Alias = '';
-    //字段别名
+    /**
+     * @var string 字段别名
+     */
     protected $FieldAs = '';
-    //limit
+    /**
+     * @var string limit
+     */
     protected $Limit = '';
-    //order
+    /**
+     * @var string order
+     */
     protected $Order = '';
-    // 分组
+    /**
+     * @var string 分组
+     */
     protected $Group = '';
-    // Having
+    /**
+     * @var string Having
+     */
     protected $Having = '';
-    //自动完成
+    /**
+     * @var array 自动完成
+     */
     protected $auto = [];
-    //自动验证
+    /**
+     * @var array 自动验证
+     */
     protected $validate = [];
-    //保存数据
+    /**
+     * @var array 保存数据
+     */
     protected $data = [];
-    //join
+    /**
+     * @var array join
+     */
     protected $Join = [];
-    // 查询锁
+    /**
+     * @var bool 查询锁
+     */
     protected $Lock = false;
-    //开启事务
+    /**
+     * @var int 开启事务
+     */
     protected $startTransaction = 0;
-    // 查询时设置此值可跨库查询
+    /**
+     * @var string 查询时设置此值可跨库查询
+     */
     protected $dbName = '';
-    // 查询的结果
+    /**
+     * @var array 查询的结果
+     */
     protected $result = [];
-    //新增时操作
+    /**
+     * 新增时操作
+     */
     const MODEL_INSERT = 1;
-    //修改时操作
+    /**
+     * 修改时操作
+     */
     const MODEL_UPDATE = 2;
-    //所有操作
+    /**
+     * 所有操作
+     */
     const MODEL_BOTH = 3;
 
     /**
@@ -91,10 +151,9 @@ class Model implements \ArrayAccess {
             // 处理是否有实例化类名
             $explode          = explode('\\', get_class($this));
             $tables           = array_pop($explode);
-            $tables           = str_replace('Model', '', $tables);
             $className        = explode('\\', __CLASS__);
             $currentModelName = array_pop($className);
-            if ($tables == $currentModelName) {
+            if (str_replace('Model', '', $tables) == str_replace('Model', '', $currentModelName)) {
                 return $this;
             }
         }
@@ -105,7 +164,7 @@ class Model implements \ArrayAccess {
         //执行判断表方法
         $this->TablesType($tables);
         //确认表是否存在
-        $this->db->CheckTables($this->db_prefix . $this->DataName, $this->dbName);
+        $this->db->CheckTables($this->getTableName(), $this->dbName);
 
         return $this;
     }
@@ -119,10 +178,9 @@ class Model implements \ArrayAccess {
      * @return Model
      */
     public function from($tables = null) {
-        $tables     = $tables === null ? $this->TablesName : $tables;
+        $tables     = $tables === null ? $this->DataName : $tables;
         $tables     = $this->dbName ? $this->dbName . '.' . $tables : $this->_parse_prefix($tables);
         $this->From = ' FROM ' . $tables;
-
         return $this;
     }
 
@@ -132,7 +190,7 @@ class Model implements \ArrayAccess {
      * @param string field 字段名
      *
      * @author Colin <15070091894@163.com>
-     * @return \system\Model
+     * @return Model
      */
     public function field($field = '*') {
         if (!empty($field)) {
@@ -147,8 +205,9 @@ class Model implements \ArrayAccess {
      *
      * @param array $data 创建对象的数据
      *
-     * @author Colin <15070091894@163.com>
      * @return array
+     * @throws MyError
+     * @author Colin <15070091894@163.com>
      */
     public function create($data = []) {
         if (!$data) $data = values('post.');
@@ -188,7 +247,7 @@ class Model implements \ArrayAccess {
      * @param string       $or    OR和AND
      *
      * @author Colin <15070091894@163.com>
-     * @return \system\Model
+     * @return Model
      */
     public function where($field = '', $value = null, $or = null) {
         if ($or !== null) $this->WhereOR = $or;
@@ -237,7 +296,7 @@ class Model implements \ArrayAccess {
      *
      * @param bool $each 是否自行遍历
      *
-     * @return array|\system\Model
+     * @return array|Model
      */
     public function select($each = false) {
         $this->result = '';
@@ -253,11 +312,11 @@ class Model implements \ArrayAccess {
     /**
      * 遍历数组
      *
-     * @param \Closure $callback
+     * @param Closure $callback
      *
      * @return array
      */
-    public function each(\Closure $callback) {
+    public function each(Closure $callback) {
         foreach ($this->result as $key => &$value) {
             if ($return = $callback($value, $key)) {
                 $value = $return;
@@ -342,6 +401,7 @@ class Model implements \ArrayAccess {
      * @param string|array $map condition or field
      *
      * @author Colin <15070091894@163.com>
+     * @return int
      */
     public function count($map = []) {
         $pk     = is_string($map) && $map ? $map : $this->getpk();
@@ -352,7 +412,7 @@ class Model implements \ArrayAccess {
         $result       = $result->find();
         $this->Fields = '*';
 
-        return $result['count'] ? $result['count'] : 0;
+        return $result['count'] ?: 0;
     }
 
     /**
@@ -361,10 +421,10 @@ class Model implements \ArrayAccess {
      *      先生成 select id from user 这条SQL语句，然后调用任意一个Model里的subQueryCount方法
      *
      * @param $sql
+     * @return int
      */
     public function subQueryCount($sql) {
-        $this->sql = 'SELECT COUNT(*) as count FROM (' . $sql . ') as s';
-        $data      = $this->query($this->sql);
+        $data      = $this->query('SELECT COUNT(*) as count FROM (' . $sql . ') as s');
 
         return $data['count'] ?: 0;
     }
@@ -372,13 +432,13 @@ class Model implements \ArrayAccess {
     /**
      * 插入数据
      *
-     * @param array $datas 要插入的数据
+     * @param array $data 要插入的数据
      *
      * @author Colin <15070091894@163.com>
      * @return int
      */
-    public function insert($datas = null) {
-        $values = myclass_filter($datas);
+    public function insert($data = null) {
+        $values = myclass_filter($data);
         if (!$values) {
             $values = $this->data['create'];
         }
@@ -399,6 +459,14 @@ class Model implements \ArrayAccess {
         }
 
         return $prefix . $this->db_prefix . $this->DataName;
+    }
+
+    /**
+     * 获取带前缀的表名
+     * @return string
+     */
+    protected function getTableName(){
+        return empty($this->TableName) ? '`' . $this->db_prefix . $this->DataName . '`' : '`' . $this->TableName . '`';
     }
 
     /**
@@ -463,7 +531,7 @@ class Model implements \ArrayAccess {
      * @param string $on     关联条件
      * @param string $method 连接名
      *
-     * @return \system\Model
+     * @return Model
      */
     public function join($table, $on = '', $method = 'LEFT') {
         $join         = $this->_parse_prefix($table);
@@ -507,12 +575,13 @@ class Model implements \ArrayAccess {
      * @param int $end   10
      *
      * @author Colin <15070091894@163.com>
-     * @return \system\Model
+     * @return Model
      */
     public function limit($start = 0, $end = null) {
         if (!$start && !$end) {
             return $this;
         }
+        $str = 1;
         if (!empty($start) && $end) {
             $start = ($start - 1) * $end;
             $str   = $start . ',' . $end;
@@ -533,7 +602,7 @@ class Model implements \ArrayAccess {
      * @param string $desc  排序方式
      *
      * @author Colin <15070091894@163.com>
-     * @return \system\Model
+     * @return Model
      */
     public function order($field = '', $desc = null) {
         if (!$field) {
@@ -554,7 +623,7 @@ class Model implements \ArrayAccess {
      *
      * @param bool $lock
      *
-     * @return \system\Model
+     * @return Model
      */
     public function lock($lock = false) {
         $this->Lock = $lock;
@@ -594,7 +663,7 @@ class Model implements \ArrayAccess {
      * @param string $as 新的别名
      *
      * @author Colin <15070091894@163.com>
-     * @return \system\Model
+     * @return Model
      */
     public function alias($as = 'alias') {
         $this->Alias = ' AS ' . $as;
@@ -608,7 +677,7 @@ class Model implements \ArrayAccess {
      * @param string $field 要求出最大值的数值
      *
      * @author Colin <15070091894@163.com>
-     * @return array
+     * @return int
      */
     public function max($field) {
         $parseField = $this->setDefaultAs($field);
@@ -623,7 +692,7 @@ class Model implements \ArrayAccess {
      * @param string $field 要被求出最小值的字段
      *
      * @author Colin <15070091894@163.com>
-     * @return array
+     * @return int
      */
     public function min($field) {
         $parseField = $this->setDefaultAs($field);
@@ -638,7 +707,7 @@ class Model implements \ArrayAccess {
      * @param string $field 要被求和的字段
      *
      * @author Colin <15070091894@163.com>
-     * @return array
+     * @return int
      */
     public function sum($field) {
         $parseField = $this->setDefaultAs($field);
@@ -653,7 +722,7 @@ class Model implements \ArrayAccess {
      * @param string $field 平均值的字段
      *
      * @author Colin <15070091894@163.com>
-     * @return array
+     * @return int
      */
     public function avg($field) {
         $parseField = $this->setDefaultAs($field);
@@ -857,6 +926,7 @@ class Model implements \ArrayAccess {
      * @param string $field 别名字段
      *
      * @author Colin <15070091894@163.com>
+     * @return string
      */
     protected function setDefaultAs($field = null) {
         $explode = explode('.', $field);
@@ -905,8 +975,8 @@ class Model implements \ArrayAccess {
             $as             = substr($this->DataName, $spaceIndex);
             $this->DataName = substr($this->DataName, 0, $spaceIndex);
         }
-        $this->TablesName = empty($this->TableName) ? '`' . $this->db_prefix . $this->DataName . '`' : '`' . $this->TableName . '`';
-        $this->from($this->TablesName . $as);
+        // 带前缀的表名 `table` `mc_table`
+        $this->from($this->getTableName() . $as);
     }
 
     /**
@@ -918,10 +988,8 @@ class Model implements \ArrayAccess {
      * @return string
      */
     protected function parTableName($tables) {
-        $tablename = myclass_filter(preg_split('/(?=[A-Z])/', $tables));
-        $tablename = implode('_', $tablename);
-
-        return $tablename;
+        $tableName = myclass_filter(preg_split('/(?=[A-Z])/', $tables));
+        return implode('_', $tableName);
     }
 
     /**
@@ -979,6 +1047,7 @@ class Model implements \ArrayAccess {
      *  ['age', 'required', '年龄必须填写'],
      * ['name', 'pattern', '姓名只能为英文', '/[0-9]+/'],
      * 或['name', 'pattern', '姓名只能为英文', '/[0-9]+/','callback'],
+     * @throws MyError
      * @author Colin <15070091894@163.com>
      */
     protected function _parse_validate() {
@@ -1225,6 +1294,7 @@ class Model implements \ArrayAccess {
         if (is_string($value)) {
             return stripslashes($value);
         }
+        return $value;
     }
 
     /**
@@ -1245,7 +1315,7 @@ class Model implements \ArrayAccess {
                 $format[] = '(' . implode(' ' . $logic . ' ', $value) . ')';
             }
             if (count($this->Where) == 1) {
-                $format[0] = mb_substr($format[0], 1, -1);
+                $format[0] = mb_substr($format[0], 1, -1 , 'utf8');
             }
             $where = ' WHERE ' . implode(' AND ', $format);
         }

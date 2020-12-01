@@ -75,8 +75,7 @@ class MyClass {
 
     /**
      * 执行一系列操作
-     * @throws \SmartyException
-     * @throws \system\MyError
+     * @throws MyError
      */
     public static function start() {
         //加载配置文件
