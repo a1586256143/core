@@ -6,6 +6,12 @@
 
 namespace system\Route;
 
+use Closure;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
+use system\Base;
+use system\IO\File\Log;
 use system\MyError;
 use system\Url;
 
@@ -22,7 +28,7 @@ class Route {
     /**
      * 初始化路由
      * @author Colin <15070091894@163.com>
-     * @throws \system\MyError
+     * @throws MyError
      */
     public static function init() {
         self::setRunMethod();
@@ -36,12 +42,13 @@ class Route {
      *
      * @param array  $item 路由 array('/' => 'Index@index')
      * @param string $type 类型，GET、POST、PUT、DELETE、*
+     * @param string $middleware 中间件
      *
      * @author Colin <15070091894@163.com>
      */
-    public static function add($item, $type = '') {
+    public static function add($item, $type = '' , $middleware = '') {
         foreach ($item as $key => $value) {
-            self::parseRules($key, $value, $type ? $type : self::$method);
+            self::parseRules($key, $value, $type ? $type : self::$method , $middleware);
         }
     }
 
@@ -104,7 +111,7 @@ class Route {
      * 解析控制器中的方法映射路由
      *
      * @param string          $name
-     * @param string|\Closure $item
+     * @param string|Closure $item
      * @param string          $middleware
      *
      * @throws
@@ -117,7 +124,7 @@ class Route {
      * 分组
      *
      * @param                $prefix
-     * @param array|\Closure $item
+     * @param array|Closure $item
      * @param string         $middleware
      *
      * @throws
@@ -134,11 +141,11 @@ class Route {
         self::$prefix = self::getPrefix($prefix);
         self::setGroupName($prefix);
         switch (true) {
-            case ($item instanceof \Closure) :
+            case ($item instanceof Closure) :
                 call_user_func($item);
                 break;
             case is_array($item) :
-                self::add($item);
+                self::add($item , self::$method , $middleware);
                 break;
         }
         self::setGroupName($group);
@@ -172,7 +179,7 @@ class Route {
     /**
      * 解析路由
      * @author Colin <15070091894@163.com>
-     * @throws \system\MyError
+     * @throws MyError
      */
     protected static function parseRoutes() {
         $parse_url = self::getRoute();
@@ -201,7 +208,7 @@ class Route {
                 // 把*替换成当前请求的方法名
                 $key = str_replace('*', REQUEST_METHOD, $key);
                 // 查找出带变量名的路由格式 /xxx/xxx/{id}
-                if (preg_match_all('/{([\w\_]+)}/', $key, $matchs)) {
+                if (preg_match_all('/{([\w_]+)}/', $key, $matchs)) {
                     // matchs[0] = ['{id}']
                     foreach ($matchs[0] as $val) {
                         // 把变量替换成正则表达式 [\w]+
@@ -226,7 +233,7 @@ class Route {
      *
      * @param $url
      *
-     * @throws \system\MyError
+     * @throws MyError
      */
     protected static function faildRoute($url) {
         // 验证是否为一个文件
@@ -247,7 +254,7 @@ class Route {
      * @throws
      */
     protected static function execRoute($route) {
-        if ($route['route'] instanceof \Closure) {
+        if ($route['route'] instanceof Closure) {
             $data = call_user_func($route['route']);
             self::showView($data);
         }
@@ -289,13 +296,13 @@ class Route {
      * @param object $controller 被执行的控制器实体类
      * @param string $method     被执行的控制器方法名
      *
-     * @throws \system\MyError
+     * @throws MyError
      */
     public static function reflection($controller, $method) {
         try {
             //反射
-            $ReflectionMethod = new \ReflectionMethod($controller, $method);
-        } catch (\ReflectionException $e) {
+            $ReflectionMethod = new ReflectionMethod($controller, $method);
+        } catch (ReflectionException $e) {
             throw new MyError($e->getMessage());
         }
         $method_params = $ReflectionMethod->getParameters();
@@ -331,7 +338,7 @@ class Route {
      * @param mixed $result
      */
     protected static function showView($result = '') {
-        \system\IO\File\Log::generator();
+        Log::generator();
         switch (true) {
             case is_array($result) || is_object($result) :
                 echo ajaxReturn($result);
@@ -392,13 +399,13 @@ class Route {
      * 解析一个路由规则
      *
      * @param string          $name       规则名
-     * @param string|\Closure $item       规则元素
+     * @param string|Closure $item       规则元素
      * @param string          $type       访问类型
      * @param string          $middleware 中间件
      */
     protected static function parseRules($name, $item, $type = '', $middleware = '') {
         $key                  = self::getRouteName($name, $type);
-        $route                = $item instanceof \Closure ? $item : self::getNameSpace($item);
+        $route                = $item instanceof Closure ? $item : self::getNameSpace($item);
         self::$routes[ $key ] = [
             'route'      => $route,
             'middleware' => $middleware,
@@ -413,11 +420,11 @@ class Route {
      * @param        $item
      * @param string $middleware
      *
-     * @throws \system\MyError
+     * @throws MyError
      */
     protected static function parseController($name, $item, $middleware = '') {
-        $route = $item instanceof \Closure ? $item : self::getNameSpace($item);
-        if (!$item instanceof \Closure) {
+        $route = $item instanceof Closure ? $item : self::getNameSpace($item);
+        if (!$item instanceof Closure) {
             $route = explode('@', $route);
             array_pop($route);
             $class = $route[0];
@@ -425,12 +432,12 @@ class Route {
             $class = call_user_func($item);
         }
         try {
-            $reflect = new \ReflectionClass($class);
-        } catch (\ReflectionException $e) {
+            $reflect = new ReflectionClass($class);
+        } catch (ReflectionException $e) {
             throw new MyError($e->getMessage());
         }
         $items   = [];
-        $methods = $reflect->getMethods(\ReflectionMethod::IS_PUBLIC);
+        $methods = $reflect->getMethods(ReflectionMethod::IS_PUBLIC);
         foreach ($methods as $value) {
             if (!$value->isConstructor() && $value->isPublic()) {
                 $items[ $value->name ] = '\\' . $reflect->name . '@' . $value->name;
@@ -480,17 +487,17 @@ class Route {
     protected static function setRunMethod() {
         //处理方法
         define('REQUEST_METHOD', strtoupper($_SERVER["REQUEST_METHOD"]));
-        define('POST', REQUEST_METHOD == 'POST' ? true : false);
+        define('POST', REQUEST_METHOD == 'POST');
         //定义get和post常量
-        define('GET', REQUEST_METHOD == 'GET' ? true : false);
+        define('GET', REQUEST_METHOD == 'GET');
         $httpRequest = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ? $_SERVER['HTTP_X_REQUESTED_WITH'] : '';
-        define('AJAX', $httpRequest == 'XMLHttpRequest' ? true : false);
+        define('AJAX', $httpRequest == 'XMLHttpRequest');
         header_remove('X-Powered-By');
     }
 
     /**
      * 根据URL执行路由
-     * @throws \system\MyError
+     * @throws MyError
      */
     protected static function execRouteByUrl() {
         $route  = Url::parseUrl();
@@ -515,7 +522,7 @@ class Route {
             self::setFields(array_pop($routes), $method);
         }
         /**
-         * @var $controller \system\Base
+         * @var $controller Base
          */
         !$controller && $controller = new $classname;
         //控制器方法是否存在
@@ -538,7 +545,7 @@ class Route {
         if (count(array_filter($routes)) == 0) {
             $routes = ['', ''];
         }
-        $isAddons = $routes[1] == $addonsUrlVar ? true : false;
+        $isAddons = $routes[1] == $addonsUrlVar;
         $layer    = $isAddons ? Config('DEFAULT_ADDONS_LAYER') : Config('DEFAULT_CONTROLLER_LAYER');
         if ($isAddons) {
             unset($routes[1]);

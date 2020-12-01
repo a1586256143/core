@@ -6,6 +6,8 @@
 
 namespace system\Tool;
 
+use system\MyError;
+
 class Code {
     private $charset  = 'abcdefghkmnprstuvwxyz23456789';    //随机因子
     private $code;                                        //验证码
@@ -94,6 +96,8 @@ class Code {
      * @param string $prefix 多个的区分前缀
      *
      * @author Colin <15070091894@163.com>
+     * @return mixed
+     * @throws MyError
      */
     public function doimg($prefix = 'admin') {
         $this->getCode($prefix);
@@ -111,6 +115,8 @@ class Code {
      * @param string $prefix 多个的区分前缀
      *
      * @author Colin <15070091894@163.com>
+     * @return mixed
+     * @throws MyError
      */
     public function getCode($prefix = 'admin') {
         $this->createCode();
@@ -125,7 +131,7 @@ class Code {
      *
      * @param string $code   用户输入的验证码
      * @param string $prefix 多个的区分前缀
-     *
+     * @throws MyError
      * @return bool
      */
     public function verify($code, $prefix = 'admin') {

@@ -9,7 +9,6 @@ namespace system;
 use system\IO\File\Log;
 use system\Model\Select\DynamicQuery;
 use system\Model\Select\FieldQuery;
-use system\Route\Route;
 use system\Tool\Validate;
 
 class Model implements \ArrayAccess {
@@ -119,7 +118,7 @@ class Model implements \ArrayAccess {
      * @param string tables 表名
      *
      * @author Colin <15070091894@163.com>
-     * @return \system\Model
+     * @return Model
      */
     public function from($tables = null) {
         $tables     = $tables === null ? $this->TablesName : $tables;

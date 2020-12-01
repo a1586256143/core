@@ -20,7 +20,7 @@ class Base {
     //存储post字段
     protected static $post;
     /**
-     * @var \system\View
+     * @var View
      */
     protected static $view;
 
@@ -99,8 +99,7 @@ class Base {
      *
      * @param string $filename 文件名
      * @param array  $data     参数
-     *
-     * @return \system\View
+     * @throws MyError
      */
     protected static function view($filename = null, $data = []) {
         self::$view->render($filename, $data, get_called_class());
@@ -136,13 +135,13 @@ class Base {
     /**
      * 设置session
      *
-     * @param $name
      * @param $data
+     * @param $name
      *
      * @return bool
-     * @throws \system\MyError
+     * @throws MyError
      */
-    protected static function setSession($name = null, $data) {
+    protected static function setSession($data , $name = null) {
         if (is_array($data)) {
             $data = json_encode($data);
         }
@@ -157,7 +156,7 @@ class Base {
      * @param $name
      *
      * @return bool|null
-     * @throws \system\MyError
+     * @throws MyError
      */
     protected static function removeSession($name = '') {
         return session($name, null);

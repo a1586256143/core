@@ -1,6 +1,8 @@
 <?php
 
 namespace system;
+use Closure;
+
 class Container extends Factory {
     // 向容器中绑定服务对象
     protected $binds = [];
@@ -15,7 +17,7 @@ class Container extends Factory {
      * @param  [type] $concrete [description]
      */
     public function bind($abstract, $concrete) {
-        if ($concrete instanceof \Closure) {
+        if ($concrete instanceof Closure) {
             $this->binds[ $abstract ] = $concrete;
         } else {
             $this->instances[ $abstract ] = $concrete;

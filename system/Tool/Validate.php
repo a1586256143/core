@@ -6,6 +6,8 @@
 
 namespace system\Tool;
 
+use system\MyError;
+
 class Validate {
     //是否必填
     protected $required = 0;
@@ -125,7 +127,7 @@ class Validate {
      *
      * @author Colin <15070091894@163.com>
      *
-     * @throws \system\MyError
+     * @throws MyError
      */
     protected function _parseFunction($rules, $string = null) {
         $method  = '';
@@ -205,7 +207,7 @@ class Validate {
     public function maxlength($string, $maxlength = null, $name = null) {
         $maxlength = empty($maxlength) ? $this->maxlength : $maxlength;
         $name      = empty($name) ? $this->name : $name;
-        if (mb_strlen($string, $this->charset) > $maxlength) {
+        if (mb_strlen($string, $this->charset , 'utf8') > $maxlength) {
             $this->error($this->info ? $this->info : $name . '的长度超过' . $maxlength . '位');
         }
         $this->setreturnValue($this->name, $string);
@@ -225,7 +227,7 @@ class Validate {
     public function minlength($string, $minlength = null, $name = null) {
         $minlength = empty($minlength) ? $this->minlength : $minlength;
         $name      = empty($name) ? $this->name : $name;
-        if (mb_strlen($string, $this->charset) < $minlength) {
+        if (mb_strlen($string, $this->charset , 'utf8') < $minlength) {
             $this->error($this->info ? $this->info : $name . '的长度不能低于' . $minlength . '位');
         }
         $this->setreturnValue($this->name, $string);
@@ -267,5 +269,6 @@ class Validate {
                 return ajaxReturn(['info' => $this->info, 'url' => null, 'status' => 0]);
                 break;
         }
+        return '';
     }
 }

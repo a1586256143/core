@@ -3,10 +3,12 @@
 namespace system\Route;
 
 use system\Base;
+use system\MyError;
 
 class AddonsRoute extends Base {
     /**
      * 运行方法
+     * @return mixed
      */
     public final function index() {
         list($className, $method) = $this->getClassName();
@@ -16,6 +18,7 @@ class AddonsRoute extends Base {
         } catch (MyError $e) {
             return error($e->getMessage());
         }
+        return '';
     }
 
     /**

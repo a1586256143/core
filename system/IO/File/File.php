@@ -46,9 +46,7 @@ class File extends Factory {
      */
     public function getDirFiles($path) {
         //打开目录
-        $dirResource = opendir($path);
-
-        return $dirResource;
+        return opendir($path);
     }
 
     /**

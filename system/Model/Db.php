@@ -6,11 +6,12 @@
 
 namespace system\Model;
 
+use system\Model\Drivers\Mysqli;
 use system\MyError;
 
 abstract class Db {
     /**
-     * @var $db \system\Model\Drivers\Mysqli
+     * @var $db Mysqli
      */
     protected static $db;
     // $_db 供子类存储用
@@ -19,7 +20,7 @@ abstract class Db {
     /**
      * 获取数据库类
      * @author Colin <15070091894@163.com>
-     * @return \system\Model\Drivers\Mysqli
+     * @return Mysqli
      * @throws
      */
     public static function getIns() {
@@ -42,6 +43,7 @@ abstract class Db {
     /**
      * 确认数据库是否存在
      * @author Colin <15070091894@163.com>
+     * @throws MyError
      */
     public static function CheckDatabase() {
         $database = Config('DB_TABS');
@@ -86,6 +88,7 @@ abstract class Db {
         if (!$this->execute("Describe `$table` `$field`")) {
             return true;
         }
+        return false;
     }
 
     /**
@@ -101,9 +104,7 @@ abstract class Db {
         if (!$query) {
             return false;
         }
-        $result = $this->fetch_array($query);
-
-        return $result;
+        return $this->fetch_array($query);
     }
 
     /**

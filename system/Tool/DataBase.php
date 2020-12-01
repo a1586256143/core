@@ -6,6 +6,8 @@
 
 namespace system\Tool;
 
+use system\Factory;
+use system\Model\Drivers\Mysqli;
 use system\MyError;
 
 class DataBase {
@@ -25,13 +27,13 @@ class DataBase {
      * @author Colin <15070091894@163.com>
      */
     public function __construct() {
-        $this->db     = \system\Factory::getIns();
+        $this->db     = Factory::getIns();
         $this->prefix = Config('DB_PREFIX');
     }
 
     /**
      * 获取DB句柄
-     * @return \system\Model\Drivers\Mysqli
+     * @return Mysqli
      */
     public function getDB() {
         return $this->db;
@@ -66,7 +68,7 @@ class DataBase {
      * @param string $table 选择的数据表
      *
      * @author Colin <15070091894@163.com>
-     * @return \system\Tool\DataBase
+     * @return DataBase
      * @throws
      */
     public function useTable($table = null) {
@@ -210,7 +212,7 @@ class DataBase {
      *
      * @param array $fields
      *
-     * @throws \system\MyError
+     * @throws MyError
      */
     public function changeFields($fields = []) {
         $this->createFields($fields, 'MODIFY');
@@ -259,6 +261,7 @@ class DataBase {
             $this->sql = $sql;
         }
         $separator = array_filter(explode(';', $this->sql));
+        $query = false;
         foreach ($separator as $key => $value) {
             $query = $this->db->query($value);
             if (!$query) {

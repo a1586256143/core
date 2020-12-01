@@ -1,9 +1,11 @@
 <?php
 
 namespace system;
+use Closure;
+
 class Facade {
     public static function getInstance($classname = '', $args = []) {
-        if ($classname instanceof \Closure) {
+        if ($classname instanceof Closure) {
             return $classname;
         }
 

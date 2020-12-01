@@ -7,8 +7,10 @@
 namespace system;
 
 use system\IO\File\File;
+use system\IO\Storage\Drivers\FileStorage;
 use system\IO\Storage\Storage;
 use system\Model\Db;
+use system\Model\Drivers\Mysqli;
 
 class Factory {
     protected static $ins;
@@ -20,7 +22,7 @@ class Factory {
     /**
      * 获取一个单例模式
      *
-     * @return
+     * @return mixed
      */
     final public static function getInstance() {
         $class = get_called_class();
@@ -34,7 +36,7 @@ class Factory {
     /**
      * 创建数据库对象
      * @author Colin <15070091894@163.com>
-     * @return \system\Model\Drivers\Mysqli
+     * @return Mysqli
      * @throws
      */
     public static function getIns() {
@@ -44,7 +46,7 @@ class Factory {
     /**
      * 创建缓存类
      * @author Colin <15070091894@163.com>
-     * @return \system\IO\Storage\Drivers\FileStorage
+     * @return FileStorage
      * @throws
      */
     public static function CreateCache() {
@@ -58,7 +60,7 @@ class Factory {
      * @param array  $config 配置
      *
      * @author Colin <15070091894@163.com>
-     * @return \system\View
+     * @return View
      */
     public static function CreateTemplates($type = null, $config = []) {
         //实例化第三方模板类
@@ -79,7 +81,7 @@ class Factory {
      * @param string tables 表名
      *
      * @author Colin <15070091894@163.com>
-     * @return \system\Model
+     * @return Model
      */
     public static function CreateSystemModel($tables = null) {
         return new Model($tables);
@@ -96,7 +98,7 @@ class Factory {
 
     /**
      * 获取容器
-     * @return \system\Container
+     * @return Container
      */
     public static function Container() {
         return Container::getInstance();
@@ -104,7 +106,7 @@ class Factory {
 
     /**
      * 创建文件类
-     * @return \system\IO\File\File
+     * @return File
      */
     public static function File() {
         return File::getInstance();

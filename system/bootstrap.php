@@ -15,7 +15,7 @@ define('NAME_SPACE', substr(Core, 0, -7));
 //系统app名字
 define('APP_NAME', '');
 //是否CLI模式
-define('PHP_CLI', PHP_SAPI === 'cli' ? true : false);
+define('PHP_CLI', PHP_SAPI === 'cli');
 //系统app目录
 define('APP_DIR', !PHP_CLI ? APP_PATH . APP_NAME . DS : APP_PATH . DS);
 //第三方类库文件目录

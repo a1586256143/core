@@ -79,7 +79,8 @@ class Log extends Factory {
     /***
      * 记录执行时间
      *
-     * @param int $mode
+     * @param int $mode     初始化模式
+     * @param string $name  日志名
      *
      * @return string
      */

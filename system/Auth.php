@@ -2,6 +2,9 @@
 
 namespace system;
 
+use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
 use system\Route\Route;
 use system\Tool\Doc;
 
@@ -59,7 +62,6 @@ trait Auth {
      * Auth constructor.
      */
     public final function __construct() {
-        parent::__construct();
         $this->checkAuth();
         $this->onConstruct();
     }
@@ -275,8 +277,8 @@ trait Auth {
             $pathInfo  = pathinfo($path);
             $className = $pathInfo['filename'];
             try {
-                $class = new \ReflectionClass('\\' . self::$authNameSpace . '\\' . $className);
-            } catch (\ReflectionException $e) {
+                $class = new ReflectionClass('\\' . self::$authNameSpace . '\\' . $className);
+            } catch (ReflectionException $e) {
                 continue;
             }
             $docInfo = Doc::getDocInfo($class->getDocComment());
@@ -295,7 +297,7 @@ trait Auth {
                     array_push(self::$group[ $docInfo['group'] ], $class->getName());
                 }
                 // 解析方法
-                foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+                foreach ($class->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
                     if ($method->isConstructor()) {
                         continue;
                     }

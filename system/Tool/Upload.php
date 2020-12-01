@@ -7,20 +7,20 @@
 namespace system\Tool;
 
 class Upload {
-    public static $path;                    //上传文件保存路径
-    public        $allowtype;               //设置上传文件类型
-    public        $maxsize;                 //限制文件上传大小
-    public        $file;                    //文件对象
+    public $path;                    //上传文件保存路径
+    public $allowtype;               //设置上传文件类型
+    public $maxsize;                 //限制文件上传大小
+    public $file;                    //文件对象
 
     /**
      * 初始化
      *
-     * @param array $file 上传的实例，包含tmp_name,name等原始信息
-     * @param bool  $config 上传配置
+     * @param array|string $file 上传的实例，包含tmp_name,name等原始信息
+     * @param array  $config 上传配置
      */
     public function __construct($file, $config = []) {
         $tmp = is_bool($config) ? $config : $config['tmp'] ?: false;
-        $upload          = $config['dir'] ?: Config('UPLOAD_DIR');;
+        $upload          = $config['dir'] ?: Config('UPLOAD_DIR');
         $this->path      = $tmp ? $upload . '/tmp' : $upload;
         $this->allowtype = explode(',', $config['exts'] ?: Config('UPLOAD_TYPE'));
         $this->maxsize   = $config['maxsize'] ?: Config('UPLOAD_MAXSIZE');
@@ -71,6 +71,8 @@ class Upload {
     /**
      * 设置随机文件名
      * @author Major <1450494434@qq.com>
+     * @param string $filename 文件名
+     * @param string $uploaddir 上传的目录
      * @return string
      */
     public static function getRandName($filename = '', $uploaddir = '') {
@@ -120,6 +122,7 @@ class Upload {
      *
      * @param string $path   被移动的文件
      * @param string $topath 将要移动到的目录或文件
+     * @return bool|string
      */
     public static function moveUpload($path, $topath = '') {
         if (!$topath) {

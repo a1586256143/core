@@ -19,9 +19,7 @@ class RouteBuild extends Build {
  * '访问路由' => '访问方法'
  */
 use system\Route\Route;
-Route::add(array(
-    '/' => '\controllers\Index@index'
-));
+Route::get('/' , 'Index@index');
 EOT;
 
     }

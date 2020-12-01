@@ -51,6 +51,7 @@ class Pdo extends Db implements DBInterface {
         if ($this->_db) {
             return true;
         }
+        return false;
     }
 
     /**

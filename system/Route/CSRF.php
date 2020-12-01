@@ -6,6 +6,7 @@
 
 namespace system\Route;
 
+use system\MyError;
 use system\Url;
 
 class CSRF {
@@ -26,9 +27,9 @@ class CSRF {
     }
 
     /**
-     * 执行csrf
+     * 执行CSRF
      * @author Colin <15070091894@163.com>
-     * @throws \system\MyError
+     * @throws MyError
      */
     public static function execCSRF() {
         if (POST && Config('CSRF') == 1) {
