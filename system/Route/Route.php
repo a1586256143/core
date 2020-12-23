@@ -11,6 +11,7 @@ use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
 use system\Base;
+use system\Container;
 use system\IO\File\Log;
 use system\MyError;
 use system\Url;
@@ -282,7 +283,10 @@ class Route {
              * @var $middleware Middleware
              */
             $middleware = new $route['middleware'];
-            $middleware->execMiddleware($controller, new self());
+            $res = $middleware->execMiddleware($controller, new self());
+            if ($res !== true){
+                exit($res);
+            }
         }
         //处理跨站访问，或者cx攻击
         CSRF::execCSRF();
@@ -305,23 +309,11 @@ class Route {
         } catch (ReflectionException $e) {
             throw new MyError($e->getMessage());
         }
-        $method_params = $ReflectionMethod->getParameters();
         //处理参数返回
-        $get   = values('get.');
-        $post  = values('post.');
-        $param = $get ?: [];
-        $post  = $post ?: [];
-        $param = array_merge($param, $post);
-        if (!empty($param)) {
-            if (!empty($method_params)) {
-                $var = [];
-                foreach ($method_params as $key => $value) {
-                    $var[ $value->name ] = $param[ $value->name ];
-                }
-                self::showView($ReflectionMethod->invokeArgs($controller, $var));
-            }
-        }
-        self::showView($controller->$method());
+        $get   = values('get.') ?: [];
+        $post  = values('post.') ?: [];
+        $args = Container::build($ReflectionMethod , array_merge($get, $post));
+        self::showView($ReflectionMethod->invokeArgs($controller, $args));
     }
 
     /**
@@ -408,7 +400,7 @@ class Route {
         $route                = $item instanceof Closure ? $item : self::getNameSpace($item);
         self::$routes[ $key ] = [
             'route'      => $route,
-            'middleware' => $middleware,
+            'middleware' => $middleware ? self::getNameSpace($middleware , true) : $middleware,
             'type'       => $type,
         ];
     }

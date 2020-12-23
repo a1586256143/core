@@ -19,6 +19,7 @@ class Base {
     protected static $get;
     //存储post字段
     protected static $post;
+    protected $app;
     /**
      * @var View
      */
@@ -30,6 +31,7 @@ class Base {
      */
     public function __construct() {
         self::init();
+        $this->app = Factory::Container();
     }
 
     /**

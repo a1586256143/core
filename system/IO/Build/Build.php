@@ -71,7 +71,7 @@ class Build extends Factory {
      * 添加一个Build
      *
      * @param  string                $name  Build名字
-     * @param Build $build 实体类
+     * @param \system\IO\Build\Build $build 实体类
      *
      * @return mixed
      */
@@ -80,7 +80,6 @@ class Build extends Factory {
             return true;
         }
         $this->build[ $name ] = $build;
-        return true;
     }
 
     /**

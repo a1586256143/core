@@ -34,6 +34,7 @@ abstract class Middleware extends Base {
      * @param Route $route      当前运行的路由类
      *
      * @author Colin <15070091894@163.com>
+     * @return bool
      */
     abstract function execMiddleware(Base $controller, Route $route);
 }
