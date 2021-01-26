@@ -62,8 +62,8 @@ trait Auth {
      * Auth constructor.
      */
     public final function __construct() {
-        $this->checkAuth();
         $this->onConstruct();
+        $this->checkAuth();
     }
 
     /**
