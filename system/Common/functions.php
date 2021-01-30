@@ -336,7 +336,7 @@ function Config($name = null, $value = '') {
     return '';
 }
 
-if (function_exists('envg')) {
+if (!function_exists('envg')) {
     /**
      * 读取配置，并设置默认值
      *
