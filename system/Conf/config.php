@@ -26,7 +26,7 @@ return [
     'SESSION_START'            => true,                        //开启session
 
     //控制器设置
-    'DEFAULT_CONTROLLER_LAYER' => 'controllers',   //默认控制器目录名
+    'DEFAULT_CONTROLLER_LAYER' => 'app',   //默认控制器目录名
     'DEFAULT_CLASS_SUFFIX'     => '.php',    //默认类文件后缀
     'DEFAULT_CONTROLLER'       => 'Index', // 默认控制器
     'DEFAULT_METHOD'           => 'index',
