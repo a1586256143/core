@@ -1273,7 +1273,7 @@ class Model implements ArrayAccess {
      * @return string
      */
     protected function filter($value) {
-        if (is_numeric($value) || is_int($value)) {
+        if(preg_match('/^[0-9]+$/' , $value)){
             return $value;
         }
         if (is_string($value)) {

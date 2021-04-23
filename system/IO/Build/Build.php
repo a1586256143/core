@@ -4,6 +4,7 @@ namespace system\IO\Build;
 
 use system\Factory;
 use system\IO\Build\Task\ControllerBuild;
+use system\IO\Build\Task\CorsBuild;
 use system\IO\Build\Task\CsrfBuild;
 use system\IO\Build\Task\EnvBuild;
 use system\IO\Build\Task\HelperBuild;
@@ -87,6 +88,7 @@ class Build extends Factory {
      */
     protected function initBuild() {
         $this->addBuild('env', new EnvBuild());
+		$this->addBuild('cors', new CorsBuild());
         $this->addBuild('csrf', new CsrfBuild());
         $this->addBuild('helper', new HelperBuild());
         $this->addBuild('route', new RouteBuild());

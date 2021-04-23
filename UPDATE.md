@@ -1,5 +1,9 @@
 ## 更新日志
 
+* 2021.4.23
+    - 跨域处理函数 ***AllowHeader::enable()***
+    - 路由支持Restful模式 ***Route::restFul()***
+
 * 2020.6.5
 	- 新增`run`命令 `./make run -h 127.0.0.1 -p 8080`
 

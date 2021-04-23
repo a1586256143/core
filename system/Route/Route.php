@@ -97,6 +97,28 @@ class Route {
         self::parseRules($name, $item, 'PUT', $middleware);
     }
 
+	/**
+	 * PATCH方法
+	 *
+	 * @param string $name
+	 * @param string $item
+	 * @param string $middleware
+	 */
+	public static function patch($name, $item, $middleware = '') {
+		self::parseRules($name, $item, 'PATCH', $middleware);
+	}
+
+	/**
+	 * OPTIONS方法
+	 *
+	 * @param string $name
+	 * @param string $item
+	 * @param string $middleware
+	 */
+	public static function options($name, $item, $middleware = '') {
+		self::parseRules($name, $item, 'OPTIONS', $middleware);
+	}
+
     /**
      * DELETE方法
      *
@@ -105,7 +127,7 @@ class Route {
      * @param string $middleware
      */
     public static function delete($name, $item, $middleware = '') {
-        self::parseRules($name, $item, 'PUT', $middleware);
+        self::parseRules($name, $item, 'DELETE', $middleware);
     }
 
     /**
@@ -120,6 +142,46 @@ class Route {
     public static function controller($name, $item, $middleware = '') {
         self::parseController($name, $item, $middleware);
     }
+
+	/**
+	 * 解析RestfulApi
+	 * @param $name
+	 * @param $item
+	 * @author Colin
+	 * @date 2021-04-23 上午11:31
+	 * @throws
+	 */
+    public static function restFul($name , $item){
+		$route = $item instanceof Closure ? $item : self::getNameSpace($item);
+		if (!$item instanceof Closure) {
+			$route = explode('@', $route);
+			array_pop($route);
+			$class = $route[0];
+		} else {
+			$class = call_user_func($item);
+		}
+		try {
+			$reflect = new ReflectionClass($class);
+		} catch (ReflectionException $e) {
+			throw new MyError($e->getMessage());
+		}
+		$items   = [];
+		$methods = $reflect->getMethods(ReflectionMethod::IS_PUBLIC);
+		foreach ($methods as $value) {
+			if (!$value->isConstructor() && $value->isPublic()) {
+				$item = '\\' . $reflect->name . '@' . $value->name;
+				$methodName = $value->getName();
+				if ($methodName == 'get') {
+					$items[] = [$methodName , $name , $item , ''];
+				}
+				$items[] = [$methodName , $name . '/{id}' , $item , ''];
+			}
+		}
+		foreach ($items as $val){
+			$key = array_shift($val);
+			call_user_func_array([self::class , $key] , $val);
+		}
+	}
 
     /**
      * 分组
@@ -277,6 +339,12 @@ class Route {
         if (!method_exists($controller, $method)) {
             E($method . '() 这个方法不存在');
         }
+        // 如果是cors，则调用options方法
+		if (CORS_MODEL){
+			if(method_exists($controller , 'options')){
+				call_user_func([$controller , 'options']);
+			}
+		}
         //执行中间件
         if (isset($route['middleware']) && $route['middleware']) {
             /**
@@ -478,6 +546,7 @@ class Route {
      */
     protected static function setRunMethod() {
         //处理方法
+		define('CORS_MODEL' , $_SERVER['HTTP_SEC_FETCH_MODE'] == 'cors');
         define('REQUEST_METHOD', strtoupper($_SERVER["REQUEST_METHOD"]));
         define('POST', REQUEST_METHOD == 'POST');
         //定义get和post常量

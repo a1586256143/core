@@ -63,6 +63,9 @@ class MyClass {
             //合并config文件内容
             $config = array_replace_recursive($config, $env);
         }
+        if (is_file(Common . '/cors.php')){
+			$config = array_replace_recursive($config, require_file(Common . '/cors.php'));
+		}
         //加入配置文件
         Config($config);
         //解析session

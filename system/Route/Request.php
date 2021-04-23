@@ -79,5 +79,4 @@ class Request{
     public function session($name){
         return session($name);
     }
-
 }

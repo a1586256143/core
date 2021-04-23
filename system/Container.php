@@ -49,7 +49,7 @@ class Container extends Factory {
     }
 
     /**
-     * 自动绑定
+     * 参数自动绑定
      * @param \ReflectionMethod $methodReflect
      * @param array $params
      * @return array
@@ -65,10 +65,8 @@ class Container extends Factory {
                 if ($params[$val->getName()]){
                     $args[] = $params[$val->getName()];
                 }else{
-                    if ($val->isDefaultValueAvailable()){
-                        $args[$val->getDefaultValue()];
-                    }else{
-                        throw new MyError('required params "' . $val->getName() . '"');
+                    if (!$val->isDefaultValueAvailable()){
+						throw new MyError('required params "' . $val->getName() . '"');
                     }
                 }
             }
