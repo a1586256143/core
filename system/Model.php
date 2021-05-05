@@ -1110,6 +1110,8 @@ class Model implements ArrayAccess {
         $this->Order  = '';
         $this->Group  = '';
         $this->Having = '';
+        $this->FieldAs = '';
+        $this->Fields = '*';
     }
 
     /**

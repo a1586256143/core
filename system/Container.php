@@ -62,7 +62,7 @@ class Container extends Factory {
             if ($name){
                 $args[] = new $name;
             }else{
-                if ($params[$val->getName()]){
+                if (isset($params[$val->getName()])){
                     $args[] = $params[$val->getName()];
                 }else{
                     if (!$val->isDefaultValueAvailable()){
