@@ -269,6 +269,23 @@ trait Auth {
         self::$name                 = self::getName();
         $basePath                   = APP_PATH . '/' . str_replace('\\', '/', self::$authNameSpace);
         self::$rules[ self::$name ] = [];
+        self::findRules($basePath);
+        // 兼容addons中的权限控制
+        $paths = glob(APP_PATH . '/' . envg('ADDON_PATH') . '/*/controllers');
+        foreach ($paths as $val){
+            self::findRules($val , true);
+        }
+
+        return self::$rules[ self::$name ];
+    }
+
+    /**
+     * 寻找要授权的对象
+     * @param $basePath
+     * @author Colin <xiongxinsheng@yikaosheng.com>
+     * @date 2021-05-12 下午6:03
+     */
+    protected final static function findRules($basePath , $other = false){
         foreach (scandir($basePath) as $val) {
             if ($val == '.' || $val == '..') {
                 continue;
@@ -276,15 +293,16 @@ trait Auth {
             $path      = $basePath . '/' . $val;
             $pathInfo  = pathinfo($path);
             $className = $pathInfo['filename'];
+            $space = $other ? str_replace('/' , '\\' , str_replace(APP_PATH , '' , $pathInfo['dirname'])) : '\\' . self::$authNameSpace;
             try {
-                $class = new ReflectionClass('\\' . self::$authNameSpace . '\\' . $className);
+                $class = new ReflectionClass($space . '\\' . $className);
             } catch (ReflectionException $e) {
                 continue;
             }
             $docInfo = Doc::getDocInfo($class->getDocComment());
             if ($docInfo['auth'] || isset($docInfo['needAuth'])) {
                 $rule = [
-                    'name'              => $className,
+                    'name'              => $other ? ltrim($space , '\\') . '\\' . $className : $className,
                     'title'             => $docInfo['auth'],
                     'namespace'         => $class->getName(),
                     self::$childrenName => []
@@ -321,8 +339,6 @@ trait Auth {
                 self::$rules[ self::$name ][] = $rule;
             }
         }
-
-        return self::$rules[ self::$name ];
     }
 
     /**
@@ -350,7 +366,7 @@ trait Auth {
             if ($val['list'] && $count > 0) {
                 $children = [];
                 foreach ($val['list'] as $k => $v) {
-                    $authName = ucfirst($v['auth_name']);
+                    $authName = strpos($v['auth_name'] , '\\') !== false ? $v['auth_name'] : ucfirst($v['auth_name']);
                     $action   = $v['action'] ? $v['action'] : 'index';
                     if ($auths[ $authName ]) {
                         $useAuths = $auths[ $authName ]['children'];
