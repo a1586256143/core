@@ -6,6 +6,8 @@
 
 namespace system;
 
+use system\Route\AllowHeader;
+
 class Base {
     //是否get
     protected static $is_get;
@@ -39,13 +41,14 @@ class Base {
      * @throws
      */
     protected static function init() {
-        self::$view    = View::getInstance();
-        self::$is_get  = GET;
-        self::$is_post = POST;
-        self::$session = session();
-        self::$get     = values('get.');
-        self::$post    = values('post.');
-        unset(self::$post['_token']);
+		self::$view    = View::getInstance();
+		self::$is_get  = GET;
+		self::$is_post = POST;
+		self::$session = session();
+		self::$get     = values('get.');
+		self::$post    = values('post.');
+		unset(self::$post['_token']);
+
     }
 
     /**

@@ -10,7 +10,6 @@ use Closure;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
-use system\Base;
 use system\Container;
 use system\IO\File\Log;
 use system\MyError;
@@ -97,27 +96,27 @@ class Route {
         self::parseRules($name, $item, 'PUT', $middleware);
     }
 
-	/**
-	 * PATCH方法
-	 *
-	 * @param string $name
-	 * @param string $item
-	 * @param string $middleware
-	 */
-	public static function patch($name, $item, $middleware = '') {
-		self::parseRules($name, $item, 'PATCH', $middleware);
-	}
+    /**
+     * PATCH方法
+     *
+     * @param string $name
+     * @param string $item
+     * @param string $middleware
+     */
+    public static function patch($name, $item, $middleware = '') {
+        self::parseRules($name, $item, 'PATCH', $middleware);
+    }
 
-	/**
-	 * OPTIONS方法
-	 *
-	 * @param string $name
-	 * @param string $item
-	 * @param string $middleware
-	 */
-	public static function options($name, $item, $middleware = '') {
-		self::parseRules($name, $item, 'OPTIONS', $middleware);
-	}
+    /**
+     * OPTIONS方法
+     *
+     * @param string $name
+     * @param string $item
+     * @param string $middleware
+     */
+    public static function options($name, $item, $middleware = '') {
+        self::parseRules($name, $item, 'OPTIONS', $middleware);
+    }
 
     /**
      * DELETE方法
@@ -143,45 +142,45 @@ class Route {
         self::parseController($name, $item, $middleware);
     }
 
-	/**
-	 * 解析RestfulApi
-	 * @param $name
-	 * @param $item
-	 * @author Colin
-	 * @date 2021-04-23 上午11:31
-	 * @throws
-	 */
+    /**
+     * 解析RestfulApi
+     * @param $name
+     * @param $item
+     * @author Colin
+     * @date 2021-04-23 上午11:31
+     * @throws
+     */
     public static function restFul($name , $item){
-		$route = $item instanceof Closure ? $item : self::getNameSpace($item);
-		if (!$item instanceof Closure) {
-			$route = explode('@', $route);
-			array_pop($route);
-			$class = $route[0];
-		} else {
-			$class = call_user_func($item);
-		}
-		try {
-			$reflect = new ReflectionClass($class);
-		} catch (ReflectionException $e) {
-			throw new MyError($e->getMessage());
-		}
-		$items   = [];
-		$methods = $reflect->getMethods(ReflectionMethod::IS_PUBLIC);
-		foreach ($methods as $value) {
-			if (!$value->isConstructor() && $value->isPublic()) {
-				$item = '\\' . $reflect->name . '@' . $value->name;
-				$methodName = $value->getName();
-				if ($methodName == 'get') {
-					$items[] = [$methodName , $name , $item , ''];
-				}
-				$items[] = [$methodName , $name . '/{id}' , $item , ''];
-			}
-		}
-		foreach ($items as $val){
-			$key = array_shift($val);
-			call_user_func_array([self::class , $key] , $val);
-		}
-	}
+        $route = $item instanceof Closure ? $item : self::getNameSpace($item);
+        if (!$item instanceof Closure) {
+            $route = explode('@', $route);
+            array_pop($route);
+            $class = $route[0];
+        } else {
+            $class = call_user_func($item);
+        }
+        try {
+            $reflect = new ReflectionClass($class);
+        } catch (ReflectionException $e) {
+            throw new MyError($e->getMessage());
+        }
+        $items   = [];
+        $methods = $reflect->getMethods(ReflectionMethod::IS_PUBLIC);
+        foreach ($methods as $value) {
+            if (!$value->isConstructor() && $value->isPublic()) {
+                $item = '\\' . $reflect->name . '@' . $value->name;
+                $methodName = $value->getName();
+                if ($methodName == 'get') {
+                    $items[] = [$methodName , $name , $item , ''];
+                }
+                $items[] = [$methodName , $name . '/{id}' , $item , ''];
+            }
+        }
+        foreach ($items as $val){
+            $key = array_shift($val);
+            call_user_func_array([self::class , $key] , $val);
+        }
+    }
 
     /**
      * 分组
@@ -271,7 +270,7 @@ class Route {
                 // 把*替换成当前请求的方法名
                 $key = str_replace('*', REQUEST_METHOD, $key);
                 // 查找出带变量名的路由格式 /xxx/xxx/{id}
-                if (preg_match_all('/{([\w_]+)}/', $key, $matchs)) {
+                if (preg_match_all('/{([\w_\-]+)}/', $key, $matchs)) {
                     // matchs[0] = ['{id}']
                     foreach ($matchs[0] as $val) {
                         // 把变量替换成正则表达式 [\w]+
@@ -284,6 +283,7 @@ class Route {
                         $urls = explode('/', $parse_url);
                         array_map('maps', array_slice($urls, 1), array_slice($oldKey, 1));
                         self::execRoute(self::$routes[ implode('/', $oldKey) ]);
+                        return;
                     }
                 }
             }
@@ -334,32 +334,10 @@ class Route {
         if (!file_exists($controller_path)) {
             E($get_class_name . ' 控制器不存在！');
         }
-        $controller = new $namespace;
-        //控制器方法是否存在
-        if (!method_exists($controller, $method)) {
-            E($method . '() 这个方法不存在');
-        }
-        // 如果是cors，则调用options方法
-		if (CORS_MODEL){
-			if(method_exists($controller , 'options')){
-				call_user_func([$controller , 'options']);
-			}
-		}
-        //执行中间件
-        if (isset($route['middleware']) && $route['middleware']) {
-            /**
-             * @var $middleware Middleware
-             */
-            $middleware = new $route['middleware'];
-            $res = $middleware->execMiddleware($controller, new self());
-            if ($res !== true){
-                exit($res);
-            }
-        }
         //处理跨站访问，或者cx攻击
         CSRF::execCSRF();
         //反射
-        self::reflection($controller, $method);
+        self::reflection($namespace, $method , $route);
     }
 
     /**
@@ -367,11 +345,32 @@ class Route {
      *
      * @param object $controller 被执行的控制器实体类
      * @param string $method     被执行的控制器方法名
+	 * @param array $route
      *
      * @throws MyError
      */
-    public static function reflection($controller, $method) {
+    public static function reflection($controller, $method , $route = []) {
         try {
+        	$reflectionClass = new ReflectionClass($controller);
+			//控制器方法是否存在
+			if (!$reflectionClass->hasMethod($method)) {
+				throw new MyError($method . '() 这个方法不存在');
+			}
+			AllowHeader::enable();
+			$class = $reflectionClass->newInstance();
+			if ($route){
+				//执行中间件
+				if (isset($route['middleware']) && $route['middleware']) {
+					/**
+					 * @var $middleware Middleware
+					 */
+					$middleware = new $route['middleware'];
+					$res = $middleware->execMiddleware($class, new self());
+					if ($res !== true){
+						exit($res);
+					}
+				}
+			}
             //反射
             $ReflectionMethod = new ReflectionMethod($controller, $method);
         } catch (ReflectionException $e) {
@@ -381,7 +380,7 @@ class Route {
         $get   = values('get.') ?: [];
         $post  = values('post.') ?: [];
         $args = Container::build($ReflectionMethod , array_merge($get, $post));
-        self::showView($ReflectionMethod->invokeArgs($controller, $args));
+        self::showView($ReflectionMethod->invokeArgs($class, $args));
     }
 
     /**
@@ -450,7 +449,7 @@ class Route {
      * @return string
      */
     protected static function getPrefix($key) {
-        $key = DIRECTORY_SEPARATOR . ltrim($key, DIRECTORY_SEPARATOR);
+        $key = '/' . ltrim($key, '/');
 
         return $key;
     }
@@ -546,8 +545,8 @@ class Route {
      */
     protected static function setRunMethod() {
         //处理方法
-		define('CORS_MODEL' , $_SERVER['HTTP_SEC_FETCH_MODE'] == 'cors');
         define('REQUEST_METHOD', strtoupper($_SERVER["REQUEST_METHOD"]));
+        define('CORS_MODEL' , $_SERVER['HTTP_SEC_FETCH_MODE'] == 'cors' || REQUEST_METHOD == 'OPTIONS');
         define('POST', REQUEST_METHOD == 'POST');
         //定义get和post常量
         define('GET', REQUEST_METHOD == 'GET');
@@ -565,13 +564,12 @@ class Route {
         $routes = explode('/', $route);
         list($controller_path, $classname) = self::getControllerPath($routes);
         $defaultMethod = Config('DEFAULT_METHOD');
-        $controller    = false;
+		// 如果是cors，则调用options方法
         if (file_exists($controller_path)) {
             // 解析className
             // construct中使用ACTION_NAME无法被解析
             $method = $defaultMethod;
             self::setFields(array_pop($routes), $method);
-            $controller = new $classname;
         } else {
             $method = array_pop($routes);
             list($controller_path, $classname) = self::getControllerPath($routes);
@@ -582,15 +580,7 @@ class Route {
             }
             self::setFields(array_pop($routes), $method);
         }
-        /**
-         * @var $controller Base
-         */
-        !$controller && $controller = new $classname;
-        //控制器方法是否存在
-        if (!method_exists($controller, $method)) {
-            E($method . '() 这个方法不存在');
-        }
-        self::reflection($controller, $method);
+        self::reflection($classname, $method);
     }
 
     /**
