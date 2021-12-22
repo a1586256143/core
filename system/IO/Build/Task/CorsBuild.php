@@ -14,7 +14,10 @@ class CorsBuild extends Build {
 <?php
 return [
 	'allowDefault' => [ // 默认配置
-		'Origin' => '*' ,
+		'Origin' => [] , // 允许的域名
+		'Headers' => [ // 允许携带的额外字段头
+			// 'Access-Token' , // 例如Access-Token
+		]
 	]
 ];
 EOT;

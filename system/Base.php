@@ -48,7 +48,6 @@ class Base {
 		self::$get     = values('get.');
 		self::$post    = values('post.');
 		unset(self::$post['_token']);
-
     }
 
     /**
