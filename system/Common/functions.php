@@ -199,6 +199,16 @@ function getCurrentUrl() {
 }
 
 /**
+ * 获取当前地址-不带方法
+ * @return string
+ * @author Colin <amcolin@126.com>
+ * @date 2021-12-23 上午11:14
+ */
+function getCurrentClass(){
+	return \system\Route\Route::getShortRoute();
+}
+
+/**
  * 设置session
  *
  * @param string $name  session的名称

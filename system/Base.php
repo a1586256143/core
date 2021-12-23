@@ -104,9 +104,11 @@ class Base {
      * @param string $filename 文件名
      * @param array  $data     参数
      * @throws MyError
+	 * @return string
      */
     protected static function view($filename = null, $data = []) {
         self::$view->render($filename, $data, get_called_class());
+        return '';
     }
 
     /**

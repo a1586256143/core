@@ -24,6 +24,8 @@ class Route {
     protected static $prefix = '';
     // 当前级信息
     protected static $group = [];
+	// 当前短路由
+    protected static $currentRoute = '';
 
     /**
      * 初始化路由
@@ -356,6 +358,17 @@ class Route {
 			if (!$reflectionClass->hasMethod($method)) {
 				throw new MyError($method . '() 这个方法不存在');
 			}
+			$currentRoute = self::getRoute();
+			if ($currentRoute){
+				$currentRoute = explode('/' , $currentRoute);
+				$routeMethod = array_pop($currentRoute);
+				if ($routeMethod != $method){
+					array_push($currentRoute , $routeMethod);
+				}
+				$currentRoute = implode('/' , $currentRoute);
+				self::$currentRoute = $currentRoute;
+			}
+
 			AllowHeader::enable();
 			$class = $reflectionClass->newInstance();
 			if ($route){
@@ -380,7 +393,8 @@ class Route {
         $get   = values('get.') ?: [];
         $post  = values('post.') ?: [];
         $args = Container::build($ReflectionMethod , array_merge($get, $post));
-        self::showView($ReflectionMethod->invokeArgs($class, $args));
+        $res = $ReflectionMethod->invokeArgs($class, $args);
+        self::showView($res);
     }
 
     /**
@@ -390,6 +404,16 @@ class Route {
     public static function getRoute() {
         return Url::parseUrl();
     }
+
+	/**
+	 * 获取短路由，场景为ajax请求时，带上的URL
+	 * @return string
+	 * @author Colin <amcolin@126.com>
+	 * @date 2021-12-23 上午11:14
+	 */
+    public static function getShortRoute(){
+    	return self::$currentRoute;
+	}
 
     /**
      * 显示视图

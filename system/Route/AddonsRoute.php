@@ -6,17 +6,21 @@ use system\Base;
 use system\MyError;
 
 class AddonsRoute extends Base {
-    /**
-     * 运行方法
-     * @return mixed
-     */
+	/**
+	 * 运行方法
+	 * @return mixed
+	 * @throws MyError
+	 */
     public final function index() {
         list($className, $method) = $this->getClassName();
         $controller = new $className();
         try {
             Route::reflection($controller, $method);
         } catch (MyError $e) {
-            return error($e->getMessage());
+        	if (AJAX){
+				return error($e->getMessage());
+			}
+        	throw new MyError($e->getMessage());
         }
         return '';
     }
@@ -43,7 +47,6 @@ class AddonsRoute extends Base {
         if (!is_file($path)) {
             exit(error('404 not found'));
         }
-
         return [$className, $method];
     }
 }

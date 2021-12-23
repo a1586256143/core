@@ -62,13 +62,15 @@ abstract class Addon {
 
     /**
      * 绑定一些导航菜单
-     * [
-        'name'  => 'shop',
-        'title' => '商品管理',
-        'icon'  => 'layui-icon-set',
-        ],
+	 * @param array $data
+	 * [
+        * 'name'  => 'shop',
+        * 'title' => '商品管理',
+        * 'icon'  => 'layui-icon-set',
+        * ],
+	 * @return array
      */
-    public function onInitMenu(){
+    public function onInitMenu(&$data = []){
         return [];
     }
 }
