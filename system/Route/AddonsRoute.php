@@ -18,7 +18,7 @@ class AddonsRoute extends Base {
             Route::reflection($controller, $method);
         } catch (MyError $e) {
         	if (AJAX){
-				return error($e->getMessage());
+				return $e->getMessage();
 			}
         	throw new MyError($e->getMessage());
         }

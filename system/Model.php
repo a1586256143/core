@@ -151,9 +151,11 @@ class Model implements ArrayAccess {
             // 处理是否有实例化类名
             $explode          = explode('\\', get_class($this));
             $tables           = array_pop($explode);
+            // 解决文件名为 xxxModel时找不到表的问题
+			$tables 		  = str_replace('Model' , '' , $tables);
             $className        = explode('\\', __CLASS__);
             $currentModelName = array_pop($className);
-            if (str_replace('Model', '', $tables) == str_replace('Model', '', $currentModelName)) {
+            if ($tables == str_replace('Model', '', $currentModelName)) {
                 return $this;
             }
         }
