@@ -73,4 +73,13 @@ abstract class Addon {
     public function onInitMenu(&$data = []){
         return [];
     }
+
+	/**
+	 * 升级信息 ['1.0.0' => '升级信息']
+	 * @author Colin <amcolin@126.com>
+	 * @date 2021-12-30 下午4:17
+	 */
+    public function upgrade(){
+		return [];
+	}
 }

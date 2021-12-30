@@ -112,7 +112,7 @@ class MyError extends Exception {
     li > pre{width:100%;line-height:25px;overflow-x:auto;font-size:13px;margin:0px;}
 </style>
 EOF;
-        self::$info = '<div><ul>';
+        self::$info = '<!DOCTYPE html><html lang=""><head><meta charset="utf-8"></head><body><div><ul>';
         $debug && self::$info .= "<li><pre>" . $message . "</pre></li>";
         !$debug && self::$info .= "<li><pre>" . $message . "</pre></li>";
         $line = $line ? ":" . $line : '';
@@ -126,7 +126,7 @@ EOF;
                 }
             }
         }
-        self::$info .= "</li></ul></div>";
+        self::$info .= "</li></ul></div></body></html>";
         self::$info .= $style;
     }
 }
