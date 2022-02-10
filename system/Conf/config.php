@@ -30,6 +30,7 @@ return [
     'DEFAULT_CLASS_SUFFIX'     => '.php',    //默认类文件后缀
     'DEFAULT_CONTROLLER'       => 'Index', // 默认控制器
     'DEFAULT_METHOD'           => 'index',
+	'DEFAULT_MODULE'		   => '' , // 默认模块
 
     //模型设置
     'DEFAULT_MODEL_LAYER'      => 'models',         //默认模型目录名

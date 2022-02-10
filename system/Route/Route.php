@@ -397,6 +397,24 @@ class Route {
         self::showView($res);
     }
 
+	/**
+	 * 执行控制器
+	 * @param string $class			控制器名称
+	 * @param string $method		方法名
+	 * @param array $args			携带参数
+	 * @return mixed
+	 * @throws MyError
+	 * @throws ReflectionException
+	 * @author Colin <amcolin@126.com>
+	 * @date 2022-01-26 上午11:19
+	 */
+    public static function execController($class , $method , $args = []){
+		$action = new $class;
+		$ReflectionMethod = new \ReflectionMethod($action, $method);
+		$args = Container::build($ReflectionMethod , $args);
+		return $ReflectionMethod->invokeArgs($action, $args);
+	}
+
     /**
      * 获取当前路由地址
      * @return mixed|string
@@ -428,7 +446,8 @@ class Route {
                 break;
             default:
                 if (AJAX) {
-                    echo(success($result));
+                	// 如果是json数据，则直接输出
+                    echo(strpos($result , '{') === 0 ? $result : success($result));
                     exit;
                 }
                 echo($result === null ? '' : $result);
@@ -586,18 +605,15 @@ class Route {
     protected static function execRouteByUrl() {
         $route  = Url::parseUrl();
         $routes = explode('/', $route);
-        list($controller_path, $classname) = self::getControllerPath($routes);
-        $defaultMethod = Config('DEFAULT_METHOD');
+        list($controller_path, $classname , $method) = self::getControllerPath($routes);
 		// 如果是cors，则调用options方法
         if (file_exists($controller_path)) {
             // 解析className
             // construct中使用ACTION_NAME无法被解析
-            $method = $defaultMethod;
             self::setFields(array_pop($routes), $method);
         } else {
-            $method = array_pop($routes);
-            list($controller_path, $classname) = self::getControllerPath($routes);
-
+			$method = array_pop($routes);
+            list($controller_path, $classname , $method) = self::getControllerPath($routes , $method);
             //是否存在控制器
             if (!file_exists($controller_path)) {
                 E($classname . ' 控制器不存在！');
@@ -611,10 +627,11 @@ class Route {
      * 获取控制器路径和控制器类名
      *
      * @param array $routes
+	 * @param string $method
      *
      * @return array
      */
-    protected static function getControllerPath($routes) {
+    protected static function getControllerPath($routes , $method = '') {
         // 是不是模块
         $addonsUrlVar = Config('ADDONS_URL_VAR') ? Config('ADDONS_URL_VAR') : 'a';
         if (count(array_filter($routes)) == 0) {
@@ -633,14 +650,29 @@ class Route {
         $defaultController = Config('DEFAULT_CONTROLLER');
         array_push($extraRoute, $defaultController);
         $extraRoutePath = _getFileName(APP_DIR . $layer . '/' . ltrim(implode('/', $extraRoute), '/'));
-        $classname      = implode('\\', $routes);
+		// 处理默认模块控制器
+		if (!file_exists($controller_path)){
+			$defaultModule = Config('DEFAULT_MODULE');
+			array_pop($extraRoute);
+			$method = array_pop($extraRoute);
+			$defaultModuleController = $defaultModule ? _getFileName(APP_DIR . $layer . '/' . $defaultModule . '/' . ltrim(implode('/', $extraRoute), '/')) : '';
+			if ($defaultModuleController && file_exists($defaultModuleController)){
+				$defaultModule = str_replace('/' , '\\' , $defaultModule);
+				array_pop($routes);
+				$classname      = implode('\\', $routes);
+				$classname = '\\' . $layer . '\\' . $defaultModule . '\\' . $classname;
+				return [$defaultModuleController, $classname , $method];
+			}
+		}
+		$classname      = implode('\\', $routes);
+		$method = $method ? $method : Config('DEFAULT_METHOD'); // 当使用默认模块时，会指定方法名
         // 如果文件不存在，尝试加载目录下的默认文件
         if (!file_exists($controller_path) && $routes[ count($routes) - 1 ] != strtolower($defaultController)) {
             $controller_path = $extraRoutePath;
             $classname       = implode('\\', $extraRoute);
+			$method = array_pop($routes);
         }
         $classname = '\\' . $layer . '\\' . $classname;
-
-        return [$controller_path, $classname];
+        return [$controller_path, $classname , $method];
     }
 }

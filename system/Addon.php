@@ -82,4 +82,14 @@ abstract class Addon {
     public function upgrade(){
 		return [];
 	}
+
+	/**
+	 * 依赖哪些组件，返回组件名数组
+	 * @return array
+	 * @author Colin <amcolin@126.com>
+	 * @date 2022-02-08 下午9:51
+	 */
+	public function dependents(){
+    	return [];
+	}
 }
