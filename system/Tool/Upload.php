@@ -19,7 +19,7 @@ class Upload {
      * @param array  $config 上传配置
      */
     public function __construct($file, $config = []) {
-        $tmp = is_bool($config) ? $config : $config['tmp'] ?: false;
+        $tmp = is_bool($config) ? $config : ($config['tmp'] ?: false);
         $upload          = $config['dir'] ?: Config('UPLOAD_DIR');
         $this->path      = $tmp ? $upload . '/tmp' : $upload;
         $this->allowtype = explode(',', $config['exts'] ?: Config('UPLOAD_TYPE'));
