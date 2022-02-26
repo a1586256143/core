@@ -130,6 +130,10 @@ class Upload {
         }
         $path = ltrim($path , '/');
         $topath = ltrim($topath , '/');
+        $dirpath = './' . dirname($topath);
+        if(!is_dir($dirpath)){
+            mkdir($dirpath , 0777);
+        }
         if (rename($path, $topath)) {
             return ltrim($topath, '.');
         }
